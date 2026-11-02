@@ -126,7 +126,6 @@ pub fn role_key(r: Role) -> &'static str {
         Role::Worker => "worker",
         Role::Reviewer => "reviewer",
         Role::Builder => "builder",
-        Role::Extractor => "extractor",
     }
 }
 
@@ -178,7 +177,7 @@ impl AiConfig {
     }
 
     /// The backend for a role, with the plan's defaults: lead = first enabled backend; worker =
-    /// a local model if present, else lead; reviewer and extractor = only when set; builder = an
+    /// a local model if present, else lead; reviewer = only when set; builder = an
     /// agent CLI if present, else lead.
     pub fn backend_for(&self, role: Role) -> Option<&BackendEntry> {
         if let Some(b) = self.roles.get(role_key(role)).and_then(|n| self.get(n)).filter(|b| b.config.enabled) {
@@ -188,7 +187,7 @@ impl AiConfig {
         match role {
             Role::Lead => lead(),
             Role::Worker => self.enabled().find(|b| b.config.kind == BackendKind::OpenaiCompatible).or_else(lead),
-            Role::Reviewer | Role::Extractor => None,
+            Role::Reviewer => None,
             Role::Builder => self.enabled().find(|b| b.config.kind == BackendKind::AgentCli).or_else(lead),
         }
     }
@@ -272,7 +271,6 @@ mod tests {
         assert_eq!(c.backend_for(Role::Worker).unwrap().config.name, "Local");
         assert_eq!(c.backend_for(Role::Builder).unwrap().config.name, "Codex");
         assert!(c.backend_for(Role::Reviewer).is_none());
-        assert!(c.backend_for(Role::Extractor).is_none(), "the extractor only runs when chosen");
         c.roles.insert("lead".into(), "Local".into());
         assert_eq!(c.backend_for(Role::Lead).unwrap().config.name, "Local");
         c.fallback_chain = vec!["Claude".into(), "Local".into(), "Gone".into()];

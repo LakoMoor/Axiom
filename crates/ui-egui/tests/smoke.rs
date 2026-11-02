@@ -85,42 +85,6 @@ fn simple_title_bar_keeps_only_the_essentials() {
     h.get_by_label("Clean room");
 }
 
-#[test]
-fn a_game_is_built_with_its_engine_and_a_missing_engine_is_got_first() {
-    use craft_anything_engine::workspace::TargetRef;
-    use craft_anything_engines::game::{Builder, Found, Installed, Inventory, Made};
-    use craft_anything_ui_egui::state::Modal;
-    let d = tempfile::tempdir().unwrap();
-    let game = d.path().join("game");
-    std::fs::create_dir_all(&game).unwrap();
-    // Tall enough to show Start below the Clean room / Deep, engine and asset choices.
-    let mut h = harness_sized(egui::vec2(1280.0, 1120.0), move || {
-        let mut a = demo::app(demo::engine(Mode::Beginner, true));
-        demo::fill_projects(&mut a);
-        a.state.make.target = TargetRef::Local { path: game };
-        a.state.make.game = true;
-        a.state.make.request = "Recreate this game".into();
-        a.state.make.found = Some(Found { engine: Made::Unity, version: Some("2021.3.16f1".into()), clue: "unityplayer.dll".into(), note: None });
-        a.game_engines = Some(Inventory {
-            engines: vec![Installed { builder: Builder::Godot, version: "4.4.1".into(), program: "godot.exe".into() }],
-            ..Default::default()
-        });
-        a
-    });
-    h.run_steps(3);
-    h.get_by_label("Made with Unity 2021.3.16f1");
-    h.get_by_label("Get Unity");
-    // Unity isn't here, so Start opens the steps to get it (and starts once it's ready).
-    h.get_by_label("Start").click();
-    h.run_steps(4);
-    assert_eq!(h.state().state.modal, Some(Modal::Engine(Builder::Unity)));
-    assert!(h.state().engine_flow.start_after);
-    // The first step: Unity's own installer where we can check its signature, else its website.
-    h.get_by_label(if cfg!(windows) { "Download Unity Hub" } else { "Get Unity Hub" });
-    h.get_by_label("Build with Godot instead");
-    assert!(h.state().projects.iter().all(|p| p.manifest.request != "Recreate this game"), "nothing started yet");
-}
-
 /// Whether the fal.ai key is set up, as the app keeps it.
 fn fal_key(stored: bool) -> std::collections::BTreeMap<String, bool> {
     [(craft_anything_engines::assets::fal::ID.to_string(), stored)].into()
@@ -129,7 +93,6 @@ fn fal_key(stored: bool) -> std::collections::BTreeMap<String, bool> {
 #[test]
 fn turning_on_generated_assets_without_a_fal_key_asks_for_one() {
     use craft_anything_engine::workspace::TargetRef;
-    use craft_anything_engines::game::{Builder, Installed, Inventory};
     use craft_anything_ui_egui::state::Modal;
     let d = tempfile::tempdir().unwrap();
     let game = d.path().join("game");
@@ -140,11 +103,6 @@ fn turning_on_generated_assets_without_a_fal_key_asks_for_one() {
         a.state.make.target = TargetRef::Local { path: game };
         a.state.make.game = true;
         a.state.make.request = "Recreate this game".into();
-        a.state.make.builder = Some(Builder::Unity);
-        a.game_engines = Some(Inventory {
-            engines: vec![Installed { builder: Builder::Unity, version: "6000.0.23f1".into(), program: "Unity.exe".into() }],
-            ..Default::default()
-        });
         a.asset_keys = Some(fal_key(false));
         a
     });
@@ -177,7 +135,6 @@ fn turning_on_generated_assets_without_a_fal_key_asks_for_one() {
 #[test]
 fn deep_mode_without_ghidra_asks_to_get_it_before_using_it() {
     use craft_anything_engine::workspace::TargetRef;
-    use craft_anything_engines::game::{Builder, Installed, Inventory};
     use craft_anything_ui_egui::state::Modal;
     let d = tempfile::tempdir().unwrap();
     let (store, game) = (d.path().join("engines"), d.path().join("game"));
@@ -191,11 +148,6 @@ fn deep_mode_without_ghidra_asks_to_get_it_before_using_it() {
         a.state.make.target = TargetRef::Local { path: game };
         a.state.make.game = true;
         a.state.make.request = "Recreate this game".into();
-        a.state.make.builder = Some(Builder::Unity);
-        a.game_engines = Some(Inventory {
-            engines: vec![Installed { builder: Builder::Unity, version: "6000.0.23f1".into(), program: "Unity.exe".into() }],
-            ..Default::default()
-        });
         a.asset_keys = Some(fal_key(true));
         a
     });
@@ -258,9 +210,9 @@ fn a_game_project_shows_its_asset_spending_and_can_raise_the_budget() {
     use craft_anything_engine::workspace::{AssetRecord, TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
-    ws.manifest.stack = "Unity".into();
+    ws.manifest.stack = "Rust + macroquad".into();
     ws.save().unwrap();
-    ws.record_asset(AssetRecord { file: "Assets/Generated/crate.glb".into(), kind: "model".into(), prompt: "a crate".into(), cost_usd: 0.51, at_ms: 0 })
+    ws.record_asset(AssetRecord { file: "assets/generated/crate.glb".into(), kind: "model".into(), prompt: "a crate".into(), cost_usd: 0.51, at_ms: 0 })
         .unwrap();
     let root = ws.root.clone();
     let mut h = harness(move || {
@@ -282,24 +234,6 @@ fn a_game_project_shows_its_asset_spending_and_can_raise_the_budget() {
     assert_eq!(Workspace::open(&root).unwrap().manifest.asset_budget_usd, 10.0);
     h.run_steps(2);
     h.get_by_label("1 · $0.51 of $10.00");
-}
-
-#[test]
-fn an_engine_download_shows_in_the_title_bar_on_every_screen() {
-    use craft_anything_engines::game::Builder;
-    let mut h = harness(|| demo::app(demo::engine(Mode::Beginner, true)));
-    h.run_steps(2);
-    let id = h.state_mut().jobs.spawn("Getting Godot", true, |j| {
-        j.report(craft_anything_engine::Progress { fraction: Some(0.42), message: "63 of 150 MB".into() });
-        std::thread::sleep(Duration::from_secs(5));
-        Ok(craft_anything_ui_egui::Done::Nothing)
-    });
-    h.state_mut().engine_flow.job = Some((Builder::Godot, id));
-    assert!(wait(&mut h, |a| a.jobs.running().any(|j| j.progress().is_some())));
-    h.run_steps(2);
-    h.get_by_label("Getting Godot · 42%").click();
-    h.run_steps(3);
-    assert_eq!(h.state().state.modal, Some(craft_anything_ui_egui::state::Modal::Engine(Builder::Godot)), "the bar opens the steps");
 }
 
 #[test]
@@ -818,39 +752,6 @@ fn opening_a_file_lands_on_ask_with_a_first_look() {
 }
 
 #[test]
-fn a_picked_game_shows_what_its_made_of_and_can_be_asked_about() {
-    let d = tempfile::tempdir().unwrap();
-    let game = d.path().join("Game");
-    let names = br#"{"names": ["Assembly-CSharp.dll", "FishNet.Runtime.dll", "UnityEngine.CoreModule.dll"]}"#;
-    for (rel, bytes) in [
-        ("Game.exe", &b"MZ"[..]),
-        ("GameAssembly.dll", b"MZ"),
-        ("Game_Data/globalgamemanagers", b"\0\0\0\0\x16\0\x002022.3.62f2\0\0junk"),
-        ("Game_Data/ScriptingAssemblies.json", names),
-    ] {
-        let p = game.join(rel);
-        std::fs::create_dir_all(p.parent().unwrap()).unwrap();
-        std::fs::write(p, bytes).unwrap();
-    }
-    let mut h = harness(|| {
-        let mut a = demo::app(demo::engine(Mode::Beginner, true));
-        demo::deep(&mut a);
-        a.state.screen = Screen::GameFiles;
-        a
-    });
-    h.run_steps(2);
-    craft_anything_ui_egui::game_files::folder_picked(h.state_mut(), game.clone());
-    assert!(wait(&mut h, |a| a.state.game.profile.is_some()), "the game is looked at");
-    h.run_steps(2);
-    h.get_by_label("Unity 2022.3.62f2");
-    h.get_by_label("FishNet");
-    // Asking opens the game in the chat, whose first look says what it's made of.
-    h.get_by_label("Ask about this game").click();
-    assert!(wait(&mut h, |a| a.state.screen == Screen::Ask && a.view.active_target().is_some()));
-    assert!(wait(&mut h, |a| format!("{:?}", a.state.chat).contains("FishNet (multiplayer)")), "{:?}", h.state().state.chat);
-}
-
-#[test]
 fn opening_a_missing_file_is_a_calm_error() {
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
@@ -878,16 +779,12 @@ fn clean_room_asks_for_deep_mode_instead_of_opening_a_file() {
     h.run_steps(3);
     assert_eq!(h.state().state.modal, None);
     assert!(!h.state().settings.deep_mode);
-    // The Game files screen asks the same before anything is picked.
-    h.state_mut().state.screen = Screen::GameFiles;
-    h.run_steps(3);
-    assert!(h.query_by_label("Pick a game's folder").is_none());
+    // Asked again, turning it on works.
+    h.state_mut().open_path(std::path::PathBuf::from("/samples/tool.exe"));
+    assert!(wait(&mut h, |a| a.state.modal == Some(Modal::DeepMode)));
     h.get_by_label("Turn on Deep mode").click();
     h.run_steps(3);
     assert!(h.state().settings.deep_mode);
-    h.state_mut().state.modal = None;
-    h.run_steps(2);
-    h.get_by_label("Pick a game's folder");
 }
 
 #[test]
@@ -1587,9 +1484,6 @@ fn the_front_door_makes_something_or_just_looks_inside() {
     assert_eq!(h.state().state.modal, Some(Modal::Website));
     h.state_mut().state.modal = None;
     h.run_steps(2);
-    h.get_by_label("A game's files").click();
-    h.run_steps(3);
-    assert_eq!(h.state().state.screen, Screen::GameFiles);
     // Back on New project, it's still on "Just look inside"; switching back shows the Make steps.
     h.get_by_label("New project").click();
     h.run_steps(3);
@@ -1722,42 +1616,6 @@ fn the_builders_open_questions_show_beside_the_project() {
     h.get_by_label("Open questions");
     h.get_by_label("May the original's logo and text be reused, or must they be placeholders?");
     h.get_by_label("Answer any of them in a message below.");
-}
-
-#[test]
-fn saves_a_picture_from_a_unity_bundle() {
-    use craft_anything_testkit::games::{unity_bundle_with, unity_serialized_file, unity_texture2d};
-    use craft_anything_ui_egui::{game_files, state::Modal};
-    // A game whose only pictures are in a bundle: one DXT1 texture, its pixels in the bundle's .resS.
-    let dir = tempfile::tempdir().unwrap();
-    let (game, out) = (dir.path().join("Game"), dir.path().join("wall.png"));
-    let aa = game.join("Game_Data/StreamingAssets/aa");
-    std::fs::create_dir_all(&aa).unwrap();
-    let wall = unity_texture2d("2022.3.62f1", "Wall", 4, 4, 10, None, Some(("archive:/CAB-0123456789abcdef/CAB-0123456789abcdef.resS", 0, 8)));
-    let red = [0x00, 0xf8, 0x1f, 0x00, 0, 0, 0, 0];
-    std::fs::write(aa.join("walls.bundle"), unity_bundle_with(&unity_serialized_file("2022.3.62f1", &[(28, wall)]), &red)).unwrap();
-    let mut h = harness(|| {
-        let mut a = demo::app(demo::engine(Mode::Beginner, true));
-        demo::deep(&mut a);
-        a
-    });
-    h.state_mut().state.screen = Screen::GameFiles;
-    game_files::folder_picked(h.state_mut(), game);
-    assert!(wait(&mut h, |a| !a.state.game.looking && !a.state.game.archives.is_empty()), "the bundle is found");
-    let name = h.state().state.game.archives[0]["name"].as_str().unwrap().to_string();
-    h.get_by_label(&name).click();
-    assert!(wait(&mut h, |a| !a.state.game.loading && !a.state.game.rows.is_empty()), "its pictures are listed");
-    h.run_steps(3);
-    h.get_by_label("Wall");
-    h.get_by_label("Save picture").click();
-    h.run_steps(3);
-    assert_eq!(h.state().state.modal, Some(Modal::GamePermission), "asked before anything is taken out");
-    h.get_by_label("I have permission").click();
-    h.run_steps(3);
-    // Headless, the save dialog doesn't open; answer it as the person would.
-    game_files::save_to(h.state_mut(), out.clone());
-    assert!(wait(&mut h, |_| out.exists()), "the picture is saved");
-    assert!(std::fs::read(&out).unwrap().starts_with(b"\x89PNG"));
 }
 
 #[test]

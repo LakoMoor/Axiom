@@ -141,7 +141,7 @@ pub struct StartParams {
     /// `start_from` (material to start from; the app is built in app/ beside them).
     #[serde(default)]
     pub existing: Option<craft_anything_engine::workspace::ExistingFiles>,
-    /// What to build with: an engine (unity, unreal, godot, rust) or a stack's full name.
+    /// What to build with: an engine or a stack's full name.
     #[serde(default)]
     pub build_with: Option<String>,
     /// For a new game: the builder may generate pictures and 3D models (paid from the person's

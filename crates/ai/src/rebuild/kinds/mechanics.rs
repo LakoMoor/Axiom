@@ -18,7 +18,7 @@ const MAX_FILE: u64 = 2 * 1024 * 1024;
 /// Stop reading code after this much.
 const MAX_CODE: u64 = 32 * 1024 * 1024;
 const MAX_DEPTH: usize = 16;
-/// Folders inside `app/` that hold builds, dependencies or tools' caches (Unreal's too), not the
+/// Folders inside `app/` that hold builds, dependencies or tools' caches, not the
 /// builder's code; compared without case.
 const SKIP_DIRS: [&str; 14] =
     ["target", "node_modules", "build", "dist", "bin", "obj", "library", "temp", "shots", "addons", "binaries", "intermediate", "saved", "deriveddatacache"];

@@ -124,7 +124,7 @@ pub fn detect(b: &Binary, data: &[u8]) -> Vec<Hint> {
         push(&mut out, hint("qt", "framework", "Qt", "strong", "links Qt"));
     }
     if lib("UnityPlayer").is_some() || lib("libil2cpp").is_some() || bytes(b"il2cpp") {
-        push(&mut out, hint("unity", "framework", "Unity (IL2CPP)", "weak", "Unity/IL2CPP markers"));
+        push(&mut out, hint("unity", "framework", "Unity (IL2CPP)", "weak", "IL2CPP markers"));
     }
     if b.exports.iter().any(|e| e.name == "JNI_OnLoad" || e.name.starts_with("Java_")) {
         push(&mut out, hint("jni", "framework", "Java native library (JNI)", "strong", "exports JNI entry points"));

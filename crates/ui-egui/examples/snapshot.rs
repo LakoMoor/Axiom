@@ -212,88 +212,15 @@ fn main() {
             a
         });
     }
-    // Game files: a game's archives, one pak open, and the permission question before saving.
-    let game_app = |asking: bool| {
-        use serde_json::json;
-        let mut a = demo::app(demo::engine(Mode::Beginner, true));
-        demo::fill_projects(&mut a);
-        demo::deep(&mut a);
-        a.state.screen = craft_anything_ui_egui::state::Screen::GameFiles;
-        let g = &mut a.state.game;
-        g.folder = Some(PathBuf::from("D:/Games/Cave Game"));
-        g.archives = vec![
-            json!({"path": "D:/Games/Cave Game/CaveGame/Content/Paks/CaveGame-WindowsNoEditor.pak", "name": "CaveGame/Content/Paks/CaveGame-WindowsNoEditor.pak", "kind": "unreal_pak", "size": 2_492_378_800u64, "list_tool": "game_pak_list"}),
-            json!({"path": "D:/Games/Cave Game/Engine/Content/Paks/Engine.utoc", "name": "Engine/Content/Paks/Engine.utoc", "kind": "unreal_iostore", "size": 1_204_000u64, "list_tool": "game_iostore_list"}),
-        ];
-        g.profile = Some(json!({"game": {
-            "engine": "Unity 2022.3.62f2",
-            "found": {"note": "Its C# code was compiled to native code (IL2CPP), so it reads like any native program."},
-            "stack": [
-                {"name": "URP", "what": "rendering"},
-                {"name": "FishNet", "what": "multiplayer"},
-                {"name": "Steamworks.NET", "what": "Steam features"},
-                {"name": "A* Pathfinding Project", "what": "characters finding their way"},
-                {"name": "TextMeshPro", "what": "text"},
-                {"name": "Input System", "what": "controls"},
-                {"name": "Newtonsoft.Json", "what": "reading and writing data, often saves"}
-            ],
-            "other_groups": ["Assembly-CSharp-firstpass", "Assembly-CSharp", "CaveGame (3)"],
-            "scenes": 3, "bytes": 6_764_000_000u64, "files": 109
-        }}));
-        g.open = Some("D:/Games/Cave Game/CaveGame/Content/Paks/CaveGame-WindowsNoEditor.pak".into());
-        g.open_kind = "unreal_pak".into();
-        g.rows = ["Arrow", "Logo", "Logo_Tagline", "Portrait_Captain", "HUD_Radar_Icon_Cart"]
-            .iter()
-            .map(|n| json!({"path": format!("CaveGame/Content/Art/UI/{n}.uasset"), "size": 930, "compression": "none"}))
-            .collect();
-        if asking {
-            g.pending = Some(craft_anything_ui_egui::state::PendingPicture {
-                archive: g.open.clone().unwrap_or_default(),
-                kind: "unreal_pak".into(),
-                item: json!({"path": "CaveGame/Content/Art/UI/Logo.uasset"}),
-                name: "Logo.png".into(),
-            });
-            a.state.modal = Some(craft_anything_ui_egui::state::Modal::GamePermission);
-        }
-        a
-    };
-    if want("game-files") {
-        render(&out, "game-files", w, h, scale, move || game_app(false));
-    }
-    if want("game-permission") {
-        render(&out, "game-permission", w, h, scale, move || game_app(true));
-    }
-    // Game engines: a Unity game picked while Unity isn't here, the steps to get it, and a download.
-    let engine_app = |modal: Option<craft_anything_engines::game::Builder>, downloading: bool| {
-        use craft_anything_engines::game::{Builder, Found, Installed, Inventory, Made};
+    // A game picked on Make, with its generated-assets choice.
+    let engine_app = |_modal: Option<()>, _downloading: bool| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         demo::fill_projects(&mut a);
         a.state.make.target = craft_anything_engine::workspace::TargetRef::Local { path: std::env::temp_dir() };
         a.state.make.game = true;
         a.state.make.request = "Recreate this game".into();
-        a.state.make.found = Some(Found { engine: Made::Unity, version: Some("2021.3.16f1".into()), clue: "unityplayer.dll".into(), note: None });
-        a.game_engines =
-            Some(Inventory { engines: vec![Installed { builder: Builder::Rust, version: String::new(), program: "cargo".into() }], ..Default::default() });
-        if let Some(b) = modal {
-            a.state.modal = Some(craft_anything_ui_egui::state::Modal::Engine(b));
-            a.engine_flow.start_after = true;
-        }
-        if downloading {
-            let id = a.jobs.spawn("Getting Godot", true, |j| {
-                j.report(craft_anything_engine::Progress { fraction: Some(0.42), message: "63 of 150 MB".into() });
-                std::thread::sleep(std::time::Duration::from_secs(30));
-                Ok(craft_anything_ui_egui::Done::Nothing)
-            });
-            a.engine_flow.job = Some((Builder::Godot, id));
-        }
         a
     };
-    if want("make-engine") {
-        render(&out, "make-engine", w, h, scale, move || engine_app(None, false));
-    }
-    if want("engine-unity") {
-        render(&out, "engine-unity", w, h, scale, move || engine_app(Some(craft_anything_engines::game::Builder::Unity), false));
-    }
     if want("assets-offer") {
         render(&out, "assets-offer", w, h, scale, move || {
             let mut a = engine_app(None, false);
@@ -360,7 +287,6 @@ fn main() {
         ];
         a.state.backend = Some("Claude".into());
         a.builder = Some("Claude Code".into());
-        a.extractor = Some("Kimi K3 (OpenRouter)".into());
         if error {
             a.toast("Couldn't save C:/Users/me/AppData/Roaming/craft-anything/config.toml: access is denied.", true);
         }
@@ -371,9 +297,6 @@ fn main() {
     }
     if want("settings-ai-error") {
         render(&out, "settings-ai-error", w, h, scale, move || ai_app(true));
-    }
-    if want("engine-godot") {
-        render(&out, "engine-godot", w, h, scale, move || engine_app(Some(craft_anything_engines::game::Builder::Godot), true));
     }
     if want("project-game") {
         // A finished game: a workspace with what `cargo build` leaves behind (nothing is run).

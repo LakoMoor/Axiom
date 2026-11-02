@@ -285,8 +285,6 @@ fn engines(app: &mut CraftApp, ui: &mut Ui) {
         }
     });
     ui.add_space(12.0);
-    crate::engine_ui::settings_section(app, ui);
-    ui.add_space(12.0);
     widgets::caption(ui, "Your own tool installs (optional)");
     ui.label(RichText::new(tr("Leave a path empty to use the managed install. We never need environment variables.")).color(t.text_faint).size(theme::CAPTION));
     ui.add_space(6.0);
@@ -314,7 +312,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
     if app.backends.is_empty() {
         ui.label(RichText::new(tr("No AI is set up yet. The built-in engines still work; an AI adds plain-words answers.")).color(t.text_dim));
     }
-    let (mut pick, mut builds, mut extracts, mut toggle, mut remove) = (None, None, None, None, None);
+    let (mut pick, mut builds, mut toggle, mut remove) = (None, None, None, None);
     let (mut choose_program, mut usual_program) = (None, None);
     let (mut pick_model, mut chosen_model, mut close_picker) = (None, None, false);
     let mut chosen_effort = None;
@@ -416,19 +414,6 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                 } else if b.enabled && widgets::secondary(ui, None, "Build with this").clicked() {
                     builds = Some(Some(b.name.clone()));
                 }
-                // Who takes a game's files out in Deep mode (an API backend, e.g. Kimi K3).
-                if b.kind != BackendKind::AgentCli {
-                    if app.extractor.as_ref() == Some(&b.name) {
-                        if widgets::secondary(ui, Some("package"), "Extracts")
-                            .on_hover_text(tr("In Deep mode this one takes a game's own files out after the study. Click to stop."))
-                            .clicked()
-                        {
-                            extracts = Some(None);
-                        }
-                    } else if b.enabled && widgets::secondary(ui, None, "Extract with this").clicked() {
-                        extracts = Some(Some(b.name.clone()));
-                    }
-                }
                 // Off: kept with its key, but nothing uses it.
                 let (label, tip) = if b.enabled {
                     ("Turn off", "Nothing uses it until it's on again; it keeps its key.")
@@ -486,9 +471,6 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
     }
     if let Some(b) = builds {
         app.set_role(craft_anything_ai::Role::Builder, b);
-    }
-    if let Some(e) = extracts {
-        app.set_role(craft_anything_ai::Role::Extractor, e);
     }
     ui.add_space(8.0);
     ui.horizontal(|ui| {

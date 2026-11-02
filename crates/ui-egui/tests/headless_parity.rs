@@ -78,15 +78,11 @@ const ACTIONS: &[Action] = &[
     a("Project › Details",   "switch to the Experienced workbench",            UiOnly("a view switch")),
 
     // ---- Engines, Deep mode and assets --------------------------------------------------------
-    a("refresh_game_engines","which game engines are on this computer",        Tool(&["engines_list"])),
-    a("get_engine",          "download or install a game engine",              Tool(&["engines_install"])),
     a("get_ghidra",          "download Ghidra for Deep mode",                  Tool(&["engines_install"])),
-    a("detect_game_engine",  "find the engine the original game was made with", Cli("rebuild <target> <request>")),
     a("set_deep",            "Clean room or Deep mode (Ghidra)",               Tool(&["settings_set"])),
     a("check_asset_keys",    "which asset providers have a key set up",        Tool(&["assets_key_status"])),
     a("save_asset_key",      "save an asset provider's key in the keychain",   Tool(&["assets_key_set"])),
     a("remove_asset_key",    "forget an asset provider's key",                 Tool(&["assets_key_remove"])),
-    a("Engine › Open",       "open Unity Hub or the Epic Games Launcher",      Tool(&["engines_app_open"])),
     a("Download pages",      "open an engine's or fal.ai's download page",     UiOnly("a link; engines_install returns the page for vendor installs")),
 
     // ---- Settings ----------------------------------------------------------------------------
@@ -111,7 +107,7 @@ const ACTIONS: &[Action] = &[
     a("set_model",           "change the model an AI uses",                    Cli("ai model <name> <model>")),
     a("set_effort",          "change how hard a Claude AI thinks",             Cli("ai effort <name> <level>")),
     a("choose_backend",      "pick the AI brain",                              Cli("chat <question> --backend")),
-    a("set_role",            "choose which AI builds or extracts",             Cli("ai extractor <name>")),
+    a("set_role",            "choose which AI builds",                         Cli("ai builder <name>")),
 
     // ---- Studying a target -------------------------------------------------------------------
     a("open_path",           "open an app or file as the target",              Tool(&["core_target_open"])),
@@ -138,13 +134,12 @@ const PLUMBING: &[(&str, &str)] = &[
     ("act", "runs a button's tool on a worker (play, preview, open folder)"),
     ("waiting_question", "finds the question an answer is for"),
     ("acted", "shows a button tool's result (toast, open the preview)"),
-    ("engines_found", "a job's result"), ("engine_got", "a job's result"), ("ghidra_got", "a job's result"),
     ("ghidra_ready", "a query"), ("ghidra_missing", "a query"),
     ("load_prefs", "startup"), ("log", "the log panel"), ("toast", "a message"),
     ("settings_changed", "marks settings dirty; each setting has its row"), ("flush_settings", "saves settings"),
     ("refresh_view", "redraw data"), ("resolve_chat_evidence", "redraw data"), ("mark_dirty", "redraw data"),
     ("poll_conversation", "polling"), ("allow_for_project", "part of answer_consent"),
-    ("handle_done", "a job's result"), ("tool_done", "a job's result"),
+    ("handle_done", "a job's result"), ("tool_done", "a job's result"), ("ghidra_got", "a job's result"),
     ("tick", "the frame loop"), ("show", "drawing"), ("toasts", "drawing"), ("shortcuts", "keys"),
     ("builder_backend", "part of start_make"), ("need_builder", "part of start_make"), ("start_run", "part of start_make"), ("start_run_with", "part of start_run and continue_build"),
     ("resume", "part of follow_up"), ("poll_run", "polling"), ("launch", "part of start_run: RunSet::start, the queue rebuild_start uses too"),

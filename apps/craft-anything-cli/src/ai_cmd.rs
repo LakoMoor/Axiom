@@ -69,9 +69,6 @@ pub enum AiCommand {
     Test { name: String },
     /// Choose the backend that builds (leave the name out to go back to automatic).
     Builder { name: Option<String> },
-    /// Choose the backend that takes a game's own files out after the study, in Deep mode (an API
-    /// backend such as Kimi K3 through OpenRouter; leave the name out to turn it off).
-    Extractor { name: Option<String> },
 }
 
 fn hub(cli: &Cli) -> Result<AiHub, ToolError> {
@@ -318,13 +315,6 @@ pub fn ai(cli: &Cli, c: &AiCommand, f: Format) -> u8 {
         AiCommand::Builder { name } => match hub.set_role(craft_anything_ai::Role::Builder, name.as_deref()) {
             Ok(()) => {
                 emit(&json!({"builder": name}), f);
-                0
-            }
-            Err(e) => fail(&e, f),
-        },
-        AiCommand::Extractor { name } => match hub.set_role(craft_anything_ai::Role::Extractor, name.as_deref()) {
-            Ok(()) => {
-                emit(&json!({"extractor": name}), f);
                 0
             }
             Err(e) => fail(&e, f),

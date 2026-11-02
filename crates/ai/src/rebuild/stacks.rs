@@ -10,15 +10,11 @@ use std::sync::OnceLock;
 pub struct Stack {
     /// Shown to the person and stored in the project.
     pub name: String,
-    /// The game engine it builds with (`unity`, `unreal`, `godot`, `rust`), if any.
-    #[serde(default)]
-    pub engine: Option<String>,
     /// Phrases in a request that ask for this stack (`" in python"`), matched on the lower-case
     /// request padded with spaces.
     #[serde(default)]
     pub asked_by: Vec<String>,
-    /// What the builder is told; `{editor}`, `{player}` and `{ext}` are filled in. `None` gets
-    /// the generic instruction.
+    /// What the builder is told; `None` gets the generic instruction.
     #[serde(default)]
     pub steps: Option<String>,
     /// package.json dependencies that show a build uses this stack (`next`, `vite`).
@@ -78,11 +74,11 @@ pub fn get(name: &str) -> Option<&'static Stack> {
     catalogue().iter().find(|s| s.name == name)
 }
 
-/// A stack picked by name: its full name or its engine id, ignoring case (`unity`, `Godot`,
+/// A stack picked by name: its full name, ignoring case (`Python`,
 /// `React + TypeScript (Vite)`).
 pub fn resolve(name: &str) -> Option<&'static Stack> {
     let n = name.trim();
-    catalogue().iter().find(|s| s.name.eq_ignore_ascii_case(n) || s.engine.as_deref().is_some_and(|e| e.eq_ignore_ascii_case(n)))
+    catalogue().iter().find(|s| s.name.eq_ignore_ascii_case(n))
 }
 
 /// The first stack whose phrases appear in `words` (a request through [`words`]).
@@ -107,34 +103,26 @@ pub fn libraries_for(request: &str, stack: &str) -> Vec<&'static Library> {
         .collect()
 }
 
-/// What the builder is told for `stack`. `editor`: the game engine's editor for engine stacks.
-pub fn steps(stack: &str, editor: Option<&std::path::Path>) -> String {
+/// What the builder is told for `stack`.
+pub fn steps(stack: &str) -> String {
     let Some(text) = get(stack).and_then(|s| s.steps.as_deref()) else {
         return format!("Use {stack}. Create the project in app/ and make sure it builds or runs without errors.");
     };
-    let (player, ext) = if cfg!(windows) {
-        ("StandaloneWindows64", "exe")
-    } else if cfg!(target_os = "macos") {
-        ("StandaloneOSX", "app")
-    } else {
-        ("StandaloneLinux64", "x86_64")
-    };
-    let editor = editor.map(|e| e.display().to_string()).unwrap_or_default();
-    text.replace("{editor}", &editor).replace("{player}", player).replace("{ext}", ext)
+    text.to_string()
 }
+
+/// The stack a Rust game is built with, and what games default to.
+pub const GAME_STACK: &str = "Rust + macroquad";
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn the_table_parses_and_covers_every_engine() {
+    fn the_table_parses_and_has_the_game_stack() {
         let names: Vec<&str> = catalogue().iter().map(|s| s.name.as_str()).collect();
         assert!(names.len() >= 7, "{names:?}");
-        for b in craft_anything_engines::game::Builder::ALL {
-            assert!(get(b.stack()).is_some(), "no stack in stacks.toml for {}", b.stack());
-        }
-        assert_eq!(get("Unity").and_then(|s| s.engine.as_deref()), Some("unity"));
+        assert!(get(GAME_STACK).is_some(), "no stack in stacks.toml for {GAME_STACK}");
         assert!(parse("[[stack]]\nname = 3").is_err(), "a broken table is an error, not a panic");
         for l in &table().library {
             assert!(!l.steps.is_empty() && !l.asked_by.is_empty(), "{l:?}");
@@ -184,12 +172,8 @@ mod tests {
         assert_eq!(asked_for(&words("A tool in Python.")).map(|s| s.name.as_str()), Some("Python"));
         assert_eq!(asked_for(&words("a page with react")).map(|s| s.name.as_str()), Some("React + TypeScript (Vite)"));
         assert_eq!(asked_for(&words("a notes app")), None);
-        assert_eq!(resolve("godot").map(|s| s.name.as_str()), Some("Godot"));
-        assert_eq!(resolve(" unreal ").map(|s| s.name.as_str()), Some("Unreal Engine"));
         assert_eq!(resolve("rust + EGUI (eframe)").map(|s| s.name.as_str()), Some("Rust + egui (eframe)"));
         assert!(resolve("cobol").is_none());
-        let unity = steps("Unity", Some(std::path::Path::new("/ed/Unity")));
-        assert!(unity.contains("the editor is /ed/Unity") && !unity.contains('{'), "{unity}");
-        assert_eq!(steps("Elm", None), "Use Elm. Create the project in app/ and make sure it builds or runs without errors.");
+        assert_eq!(steps("Elm"), "Use Elm. Create the project in app/ and make sure it builds or runs without errors.");
     }
 }

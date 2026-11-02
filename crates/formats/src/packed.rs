@@ -69,13 +69,8 @@ pub trait PackedFormat: Sync {
 }
 
 /// Every reader, most specific first: the first whose `detect` says yes reads the file.
-pub static READERS: &[&dyn PackedFormat] = &[
-    &crate::bun_program::BunProgram,
-    &crate::node_sea::NodeSea,
-    &crate::dotnet_bundle::DotnetBundle,
-    &crate::godot_pck::GodotPck,
-    &crate::pyinstaller::PyInstaller,
-];
+pub static READERS: &[&dyn PackedFormat] =
+    &[&crate::bun_program::BunProgram, &crate::node_sea::NodeSea, &crate::dotnet_bundle::DotnetBundle, &crate::pyinstaller::PyInstaller];
 
 /// The reader for these bytes, if any.
 pub fn detect(data: &[u8]) -> Option<&'static dyn PackedFormat> {

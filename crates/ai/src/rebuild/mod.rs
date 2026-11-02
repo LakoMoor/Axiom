@@ -23,7 +23,6 @@ use craft_anything_engine::inbox::{Answer, Inbox, InboxDir, Request};
 use craft_anything_engine::project::{Project, Purpose};
 use craft_anything_engine::workspace::{CheckResult, ProjectUsage, Status, TargetRef, Workspace};
 use craft_anything_engine::{CallOptions, Caller, CancelToken, Engine, ToolOutput};
-use craft_anything_engines::game;
 use craft_anything_evidence::{ErrorCode, ToolError};
 pub use craft_anything_platform::serve::StaticServer;
 use craft_anything_platform::serve::serve_dir;
@@ -59,7 +58,6 @@ use brief::*;
 pub use kinds::{
     AppKind, BriefCx, BuildCheck, Check, CheckCx, DetectCx, GameKind, KindRegistry, KindWords, MechanicsCheck, TargetKind, WebVisualCheck, WebsiteKind,
 };
-pub use locate::game_folder;
 use locate::*;
 use output::*;
 pub use output::{built_program, launch, site_dir};
@@ -202,16 +200,6 @@ impl RebuildRun {
                 Some(hub.start_builder(&entry, opts.beginner, Some(ws.transcript_path()))?)
             }
         };
-        // A chosen extractor (an API backend, e.g. Kimi K3) takes a game's files out after a fresh
-        // study; the run only uses it in Deep mode on a game (see Worker::extract).
-        let fresh = opts.message.is_none() || !ws.capture_dir().exists();
-        let extractor = match hub.chosen(Role::Extractor).and_then(|n| hub.config().get(&n).cloned()) {
-            Some(e) if fresh && e.config.kind != BackendKind::AgentCli => {
-                let _ = std::fs::remove_file(ws.root.join(EXTRACT_TRANSCRIPT));
-                Some((e.config.name.clone(), hub.start_extractor(&e, opts.beginner, Some(ws.root.join(EXTRACT_TRANSCRIPT)))?))
-            }
-            _ => None,
-        };
         let (tx, rx) = std::sync::mpsc::channel();
         let stop = CancelToken::default();
         let running = Arc::new(AtomicBool::new(true));
@@ -235,7 +223,6 @@ impl RebuildRun {
             preview: preview.clone(),
             seen: HashSet::new(),
             inbox: inbox.clone(),
-            editor: None,
             notes: notes.clone(),
             feed: feed.clone(),
             assets: hub.has_asset_keys(),
@@ -252,7 +239,7 @@ impl RebuildRun {
                 // A clone can run for hours: keep the computer from sleeping until it ends.
                 let _awake = craft_anything_platform::keep_awake();
                 let _here = self_check::BuildingHere::new(&ws.root);
-                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| ctx.run(&mut ws, entry, api, extractor, &opts)));
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| ctx.run(&mut ws, entry, api, &opts)));
                 let (ok, message, paused) = match result {
                     Ok(Ok(m)) => (true, m, false),
                     Ok(Err(e)) if e.code == ErrorCode::Cancelled => {
@@ -405,8 +392,6 @@ struct Worker {
     preview: Arc<Mutex<Option<StaticServer>>>,
     seen: HashSet<String>,
     inbox: Inbox,
-    /// The game engine's editor for this run (Unity, Unreal or Godot stacks).
-    editor: Option<PathBuf>,
     notes: Arc<Mutex<Vec<Note>>>,
     feed: Arc<Mutex<feed::FeedLog>>,
     /// An asset provider's key is set up, so the builder can generate pictures and 3D models if the
@@ -529,20 +514,6 @@ impl Worker {
         })
     }
 
-    /// The editor for a game-engine stack. An engine that isn't ready stops the run before any
-    /// work, with the way to get it.
-    fn find_editor(&self, stack: &str) -> Result<Option<PathBuf>, ToolError> {
-        let Some(b) = game::Builder::from_stack(stack).filter(|b| *b != game::Builder::Rust) else { return Ok(None) };
-        let store = self.engine.session().settings.engine_store_dir();
-        let inv = game::inventory(&game::Places::here(store));
-        match inv.best(b) {
-            Some(i) if inv.ready(b) => Ok(Some(i.program.clone())),
-            _ => Err(ToolError::new(ErrorCode::BadSettings, format!("{} isn't ready on this computer yet.", b.name())).with_remediation(
-                "Get it (Settings → Engines in the app), or pick another engine (\"Build with\" in the app, --build-with in the CLI) and start again.",
-            )),
-        }
-    }
-
     /// How the builder's agent runs. Reads the session once: a lock taken twice in one statement
     /// is held by the first until the statement ends, and the second then waits forever.
     fn agent_spec(&self, ws: &Workspace, entry: &crate::BackendEntry, opts: &RunOptions) -> CliSpec {
@@ -571,7 +542,6 @@ impl Worker {
         ws: &mut Workspace,
         entry: crate::BackendEntry,
         api: Option<crate::agent::ApiConversation>,
-        extractor: Option<(String, crate::agent::ApiConversation)>,
         opts: &RunOptions,
     ) -> Result<String, ToolError> {
         // Fail before any work when the agent's tools are missing or it can't sign in.
@@ -601,14 +571,10 @@ impl Worker {
         let kind = opts.kinds.detect(&ws.manifest.request, &ws.manifest.target, &ws.manifest.stack).ok_or_else(no_kind)?;
         self.self_check = Some((kind.clone(), opts.good_enough));
         let kind = kind.as_ref();
-        self.editor = self.find_editor(&ws.manifest.stack)?;
         let carrying_on = opts.continuing || (opts.message.is_none() && ws.builder_started());
         let first = (opts.message.is_none() && !carrying_on) || !ws.capture_dir().exists();
         if first {
             self.study(ws, kind)?;
-            if let Some((name, ex)) = extractor {
-                self.extract(ws, kind, &name, ex)?;
-            }
         }
         // A coding agent resumes its own session; our loop resumes its kept transcript.
         let resumable = api.as_ref().is_none_or(crate::agent::ApiConversation::resumed);
@@ -626,7 +592,7 @@ impl Worker {
         let (deep, ghidra) = (!s.clean_room(), s.settings.ghidra_launcher().is_some());
         let image_model = s.settings.assets.image_model.clone();
         drop(s);
-        let cx = BriefCx { ws, deep, ghidra, editor: self.editor.as_deref(), assets: self.assets, image_model: image_model.as_deref() };
+        let cx = BriefCx { ws, deep, ghidra, assets: self.assets, image_model: image_model.as_deref() };
         // The project's settings as they are now, for an agent that carries on its session.
         let now = || kind.follow_up_sections(&cx).iter().map(|s| format!("\n\n{s}")).collect::<String>() + &pictures_reminder(ws);
         let mut prompt = match &opts.message {
@@ -640,10 +606,6 @@ impl Worker {
                 if api_loop { format!("{API_BUILDER}\n\n{b}") } else { b }
             }
         };
-        // The extraction step left the original's files in app/Original/: the builder starts from them.
-        if first && ws.app_dir().join(ORIGINALS_MANIFEST).is_file() {
-            prompt.push_str(ORIGINALS_READY);
-        }
         let mut round = ws.manifest.checks.iter().map(|c| c.round).max().unwrap_or(0);
         let mut refinements = 0;
         // Deep mode on a program: decompiling is required, so a build turn without any gets one reminder.
@@ -665,9 +627,9 @@ impl Worker {
                     ws.manifest.last_reply = reply.trim().to_string();
                 }
                 // The stack is recorded as the one the build uses, once it shows: left to the builder,
-                // or another than the default because the request asked for it. A game engine stays
-                // (it says the project is a game, and its editor is found for it).
-                if game::Builder::from_stack(&ws.manifest.stack).is_none()
+                // or another than the default because the request asked for it. The game stack stays
+                // (it says the project is a game).
+                if ws.manifest.stack != stacks::GAME_STACK
                     && let Some(s) = stacks::used_in(&ws.app_dir())
                 {
                     ws.manifest.stack = s.name.clone();
@@ -735,30 +697,6 @@ impl Worker {
         Ok(summary)
     }
 
-    /// One builder turn. Its session is kept even when the turn fails, so nothing is lost; a turn
-    /// cut short (a time limit, a crash, a dropped connection) is picked up where it stopped, up to
-    /// three times. Problems only the person can fix (sign-in, credit, a missing app) end the run.
-    /// Deep mode on a game: the chosen extractor takes the game's own files out into app/Original/
-    /// before the build (the person owns the game and chose this; nothing is decrypted).
-    fn extract(&mut self, ws: &mut Workspace, kind: &dyn kinds::TargetKind, name: &str, mut ex: crate::agent::ApiConversation) -> Result<(), ToolError> {
-        let TargetRef::Local { path } = ws.manifest.target.clone() else { return Ok(()) };
-        if kind.id() != kinds::GameKind::ID || self.engine.session().clean_room() {
-            return Ok(());
-        }
-        let folder = locate::game_folder(&path).unwrap_or(path);
-        self.step(ws, Step::Study, Status::Inspecting, &format!("{name} is taking the game's own files out…"))?;
-        std::fs::create_dir_all(ws.app_dir().join("Original")).map_err(|e| ToolError::io(ws.app_dir().display(), e))?;
-        // A failed extraction doesn't stop the build: it says why, and the builder uses what's there.
-        match self.converse(ws, &mut ex, &extract_brief(&folder)) {
-            Err(e) if e.code == ErrorCode::Cancelled => Err(e),
-            Err(e) => {
-                let why = e.message.chars().take(200).collect::<String>();
-                self.step(ws, Step::Study, Status::Inspecting, &format!("{name} couldn't finish taking the files out ({why}). Building with what's there."))
-            }
-            Ok(_) => Ok(()),
-        }
-    }
-
     /// The round's checks. A check that fails says what's wrong with the build; one that returns
     /// an error couldn't look at all (a browser that went away), which says nothing about the
     /// build, so it gets a second go before the run stops, and the run says what is really wrong.
@@ -777,6 +715,9 @@ impl Worker {
         })
     }
 
+    /// One builder turn. Its session is kept even when the turn fails, so nothing is lost; a turn
+    /// cut short (a time limit, a crash, a dropped connection) is picked up where it stopped, up to
+    /// three times. Problems only the person can fix (sign-in, credit, a missing app) end the run.
     fn turn(&mut self, ws: &mut Workspace, agent: &mut dyn Conversation, prompt: &str) -> Result<String, ToolError> {
         let mut prompt = prompt.to_string();
         let mut tries = 0u64;

@@ -17,10 +17,10 @@ pub enum Place<'a> {
     At(&'a Path, Option<ExistingFiles>),
 }
 
-/// A stack picked by name for `--build-with` / `build_with` (an engine id or a stack's full name).
+/// A stack picked by name for `--build-with` / `build_with` (a stack's full name).
 pub fn build_with(name: &str) -> Result<&'static stacks::Stack, ToolError> {
     stacks::resolve(name).ok_or_else(|| {
-        let known = stacks::catalogue().iter().map(|s| s.engine.clone().unwrap_or_else(|| s.name.clone())).collect::<Vec<_>>().join(", ");
+        let known = stacks::catalogue().iter().map(|s| s.name.clone()).collect::<Vec<_>>().join(", ");
         ToolError::invalid(format!("Unknown build-with {name:?}.")).with_remediation(format!("Use one of: {known}."))
     })
 }

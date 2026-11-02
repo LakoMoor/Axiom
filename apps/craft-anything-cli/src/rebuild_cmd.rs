@@ -47,7 +47,7 @@ pub struct RebuildArgs {
     /// Answer questions with the first choice and refuse approvals, without asking.
     #[arg(long)]
     pub unattended: bool,
-    /// What to build with: an engine (unity, unreal, godot, rust) or a stack's full name.
+    /// What to build with: an engine or a stack's full name.
     /// New projects only; otherwise it's chosen from the request and target.
     #[arg(long)]
     pub build_with: Option<String>,

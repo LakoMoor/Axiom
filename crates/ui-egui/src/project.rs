@@ -52,17 +52,7 @@ impl CraftApp {
             return;
         }
         let Some(backend) = self.builder_backend(draft.ai.as_deref()) else { return self.need_builder(true) };
-        // Games are built with an engine, unless the request names another way to build; one that
-        // isn't here yet is got first, then this starts.
         let game = make::is_game(&self.kinds, &draft);
-        let engine = if game { crate::engine_ui::chosen(&self.kinds, &draft) } else { None };
-        if let Some(b) = engine
-            && !self.game_engines.as_ref().is_some_and(|i| i.ready(b))
-        {
-            self.engine_flow.start_after = true;
-            self.state.modal = Some(Modal::Engine(b));
-            return;
-        }
         let target = resolve_target(&draft);
         // Deep mode reads a program's code with Ghidra: got first when it isn't here (asked once).
         if matches!(target, TargetRef::Local { .. }) && !draft.skip_ghidra && self.ghidra_missing() {
@@ -85,9 +75,6 @@ impl CraftApp {
             let mut ws = created.map_err(|e| e.for_people())?;
             // A new project starts with the asset budget from Settings and the person's choice of
             // generated assets.
-            if let Some(b) = engine {
-                ws.manifest.stack = b.stack().to_string();
-            }
             ws.set_person(|m| {
                 m.asset_budget_usd = budget;
                 m.generate_assets = generate;
@@ -486,13 +473,13 @@ pub struct Facts {
 }
 
 impl Facts {
-    pub fn read(ws: &Workspace, godot: Option<&Path>) -> Facts {
+    pub fn read(ws: &Workspace) -> Facts {
         let dir = ws.app_dir();
         let a = ws.assets();
         Facts {
             root: ws.root.clone(),
             site: rebuild::site_dir(&dir).is_some(),
-            program: rebuild::launch(&dir, godot).is_some(),
+            program: rebuild::launch(&dir).is_some(),
             references: ws.references().len(),
             // Summed from +0.0: an empty f64 `sum()` is -0.0, shown as "$-0.00".
             assets: (a.len(), a.iter().fold(0.0, |s, x| s + x.cost_usd)),
@@ -524,10 +511,9 @@ impl CraftApp {
             ctx.request_repaint_after(wait);
             return;
         }
-        let godot = self.game_engines.as_ref().and_then(|i| i.best(craft_anything_engines::game::Builder::Godot)).map(|i| i.program.clone());
         r.wanted = false;
         r.at = Some(std::time::Instant::now());
-        r.job = Some(self.jobs.spawn("Read the project", false, move |_| Ok(Done::Facts(Facts::read(&ws, godot.as_deref())))));
+        r.job = Some(self.jobs.spawn("Read the project", false, move |_| Ok(Done::Facts(Facts::read(&ws)))));
     }
 
     pub(crate) fn facts_read(&mut self, job: u64, facts: Option<Facts>) {
@@ -568,7 +554,7 @@ impl CraftApp {
 /// A game project's generated-assets switch, and "7 · $2.10 of $5.00" once it's on or assets were made.
 fn asset_line(app: &mut CraftApp, ui: &mut Ui, ws: &Workspace) {
     let t = Tokens::get(ui.ctx());
-    if craft_anything_engines::game::Builder::from_stack(&ws.manifest.stack).is_none() {
+    if ws.manifest.stack != craft_anything_ai::rebuild::stacks::GAME_STACK {
         return;
     }
     widgets::caption(ui, "Generated assets");

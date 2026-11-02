@@ -54,12 +54,10 @@ pub fn resolve_target(d: &MakeDraft) -> TargetRef {
     find_url(&d.request).map(|url| TargetRef::Website { url }).unwrap_or(TargetRef::None)
 }
 
-/// A game is being copied or made, so it's built with a game engine ("Build with").
+/// A game is being copied or made (built in Rust, with the option of generated art).
 pub fn is_game(kinds: &craft_anything_ai::rebuild::KindRegistry, d: &MakeDraft) -> bool {
     use craft_anything_ai::rebuild::GameKind;
-    d.found.is_some()
-        || (d.game && matches!(d.target, TargetRef::Local { .. }))
-        || kinds.choose(&d.request, &resolve_target(d), false).is_some_and(|(k, _)| k.id() == GameKind::ID)
+    (d.game && matches!(d.target, TargetRef::Local { .. })) || kinds.choose(&d.request, &resolve_target(d), false).is_some_and(|(k, _)| k.id() == GameKind::ID)
 }
 
 /// The front door: make your own version of something, or just look inside it.
@@ -132,8 +130,6 @@ pub fn hero(app: &mut CraftApp, ui: &mut Ui, w: f32) {
         }
         if is_game(&app.kinds, &app.state.make) {
             ui.add_space(22.0);
-            crate::engine_ui::build_with(app, ui);
-            ui.add_space(14.0);
             let on = app.state.make.generate_assets;
             crate::engine_ui::assets_toggle(app, ui, on);
         }
@@ -181,9 +177,6 @@ fn look(app: &mut CraftApp, ui: &mut Ui, w: f32) {
         {
             app.state.modal = Some(crate::state::Modal::Website);
         }
-        if widgets::choice_tile(ui, size, "package", "A game's files", "See what a game packs, and save its pictures as PNG files.", false).clicked() {
-            app.state.screen = crate::state::Screen::GameFiles;
-        }
     });
 }
 
@@ -228,11 +221,6 @@ fn choose_target(app: &mut CraftApp, ui: &mut Ui) {
         }
     });
     let m = &mut app.state.make;
-    if matches!(pick, Some(0) | Some(3)) {
-        // A different kind of start: forget the last game's engine and the engine picked for it.
-        m.found = None;
-        m.builder = None;
-    }
     match pick {
         Some(0) => {
             m.target = TargetRef::None;
@@ -395,9 +383,9 @@ pub fn status_colors(t: &Tokens, s: Status) -> (egui::Color32, egui::Color32) {
     }
 }
 
-/// A project's icon: a game (built with a game engine), a website, an app, or something new.
+/// A project's icon: a game (built with the game stack), a website, an app, or something new.
 pub fn project_icon(m: &craft_anything_engine::workspace::Manifest) -> &'static str {
-    if craft_anything_engines::game::Builder::from_stack(&m.stack).is_some() {
+    if m.stack == craft_anything_ai::rebuild::stacks::GAME_STACK {
         return "puzzle";
     }
     match m.target {

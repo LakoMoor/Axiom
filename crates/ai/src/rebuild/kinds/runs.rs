@@ -204,8 +204,7 @@ impl Check for RunsCheck {
 
     fn run(&self, cx: &mut CheckCx) -> Result<CheckResult, ToolError> {
         let (ws, round) = (cx.ws, cx.round);
-        let godot = cx.godot();
-        let Some((program, base)) = craft_anything_engine::outputs::launch(&ws.app_dir(), godot.as_deref()) else {
+        let Some((program, base)) = craft_anything_engine::outputs::launch(&ws.app_dir()) else {
             return Ok(CheckResult::new(self.id(), round, false, screenshot::NO_PROGRAM));
         };
         let out = ws.checks_dir().join(format!("round-{round}")).join(RUNS_DIR);

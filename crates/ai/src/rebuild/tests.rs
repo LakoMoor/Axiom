@@ -12,8 +12,8 @@ fn choose(request: &str, target: &TargetRef) -> (&'static str, &'static str) {
 fn kind_of(request: &str, target: &TargetRef, stack: &str) -> &'static str {
     KindRegistry::built_in().detect(request, target, stack).unwrap().id()
 }
-fn brief(ws: &Workspace, k: &str, deep: bool, ghidra: bool, editor: Option<&Path>, assets: bool, extra: Option<&str>) -> String {
-    super::brief(kind(k).as_ref(), &BriefCx { ws, deep, ghidra, editor, assets, image_model: None }, extra)
+fn brief(ws: &Workspace, k: &str, deep: bool, ghidra: bool, assets: bool, extra: Option<&str>) -> String {
+    super::brief(kind(k).as_ref(), &BriefCx { ws, deep, ghidra, assets, image_model: None }, extra)
 }
 fn refine(k: &str, check: &CheckResult) -> String {
     kind(k).refine(check)
@@ -31,14 +31,15 @@ fn stack_choice() {
     assert_eq!(choose("Clone this website", &web), ("website", stacks::BUILDERS_CHOICE), "the builder picks a website's stack, like the original's");
     assert_eq!(choose("Clone this website with React", &web).1, "React + TypeScript (Vite)");
     assert_eq!(choose(SAID_NEXT_SHADCN, &web), ("website", "Next.js + TypeScript"), "the stack the person named, not the default");
-    assert_eq!(choose("Recreate this Steam game's gameplay", &TargetRef::None), ("game", "Unity"), "games default to Unity");
+    assert_eq!(choose("Recreate this Steam game's gameplay", &TargetRef::None), ("game", "Rust + macroquad"), "games are built in Rust");
     assert_eq!(choose("Rebuild this desktop application in Rust", &TargetRef::None), ("app", "Rust + egui (eframe)"));
     assert_eq!(choose("make a tool in python", &TargetRef::None).1, "Python");
     assert_eq!(choose("Recreate this game's core gameplay as a small game in Rust", &TargetRef::None).1, "Rust + macroquad");
-    assert_eq!(choose("A platformer game with Godot", &TargetRef::None).1, "Godot");
-    assert_eq!(choose("Remake this game in Unreal Engine 5", &TargetRef::None).1, "Unreal Engine");
-    assert_eq!(choose("A snake game using unity", &TargetRef::None).1, "Unity");
-    assert_eq!(choose("A pirate game in rustic colours", &TargetRef::None).1, "Unity", "a word that only starts like an engine doesn't count");
+    assert_eq!(
+        choose("A pirate game in rustic colours", &TargetRef::None).1,
+        "Rust + macroquad",
+        "a word that only starts like Rust doesn't matter: games default to it"
+    );
     assert_eq!(choose("A racing game, made in Rust.", &TargetRef::None).1, "Rust + macroquad");
     assert_eq!(choose("a landing page for my bakery", &TargetRef::None).0, "website");
     // The request names how to build: that wins over every kind's default.
@@ -46,20 +47,19 @@ fn stack_choice() {
     assert_eq!(choose("An Electron app with React and shadcn", &TargetRef::None).1, "Electron", "the app's own stack before its page library");
     assert_eq!(choose("A racing game in Electron", &TargetRef::None), ("game", "Electron"));
     let kinds = KindRegistry::built_in();
-    assert_eq!(kinds.named("A racing game in Godot", &TargetRef::None), Some("Godot"));
     assert_eq!(kinds.named("a music player, built with electron", &TargetRef::None), Some("Electron"));
     assert_eq!(kinds.named("A racing game", &TargetRef::None), None, "nothing named: each kind's default applies");
-    // Built with a game engine means a game, even when the request never says "game".
+    // Built with the game stack means a game, even when the request never says "game".
     let folder = TargetRef::Local { path: PathBuf::from("D:/Games/Untitled Project") };
     assert_eq!(choose("Clone Untitled Project. Match the original as closely as possible 1:1.", &folder).0, "app");
-    assert_eq!(kind_of("Clone Untitled Project. Match the original as closely as possible 1:1.", &folder, "Unreal Engine"), "game");
+    assert_eq!(kind_of("Clone Untitled Project. Match the original as closely as possible 1:1.", &folder, "Rust + macroquad"), "game");
     assert_eq!(kind_of("Copy this tool", &folder, "Rust + egui (eframe)"), "app", "the app stack stays an app");
 }
 
 #[test]
 fn chinese_requests_keep_their_project_kind() {
     for request in ["一个简单的贪吃蛇游戏", "簡單的貪食蛇遊戲", "复刻它的玩法"] {
-        assert_eq!(choose(request, &TargetRef::None), ("game", "Unity"), "{request}");
+        assert_eq!(choose(request, &TargetRef::None), ("game", "Rust + macroquad"), "{request}");
     }
     for request in ["给面包店做一个网站", "為我的麵包店製作網站", "做一个网页", "製作網頁"] {
         assert_eq!(choose(request, &TargetRef::None), ("website", stacks::BUILDERS_CHOICE), "{request}");
@@ -200,55 +200,27 @@ fn a_launcher_leads_to_the_game_and_its_files() {
 }
 
 #[test]
-fn engine_stacks_get_their_own_steps_checks_and_play() {
-    let ed = Path::new("C:/Engines/Unity/Editor/Unity.exe");
-    let unity = stack_steps("Unity", Some(ed));
-    assert!(unity.contains("CraftBuild.Build") && unity.contains("Unity.exe") && unity.contains("app/Build/Game."));
-    assert!(stack_steps("Godot", Some(ed)).contains("--headless --path app"));
-    assert!(stack_steps("Unreal Engine", Some(ed)).contains("Game.uproject"));
-
+fn a_build_runs_the_projects_own_tool_and_says_when_there_is_none() {
     let d = tempfile::tempdir().unwrap();
     let stop = CancelToken::default();
-    assert_eq!(build_check(d.path(), "app/", "Unity", Some(ed), &stop), (false, "No Unity project found in app/ yet.".into()));
-    assert_eq!(build_check(d.path(), "app/", "Godot", Some(ed), &stop), (false, "No Godot project (project.godot) found in app/ yet.".into()));
-    assert!(build_check(d.path(), "app/", "Unreal Engine", Some(ed), &stop).1.contains(".uproject"));
     // #174: an app edited in place is said to be in the project folder, not in an app/ that isn't there.
-    let none = build_check(d.path(), "the project folder", "Builder's choice", None, &stop);
+    let none = build_check(d.path(), "the project folder", &stop);
     assert_eq!(none, (false, "No project to build found in the project folder yet.".into()));
-
-    // Play: a Godot project opens in Godot; a packaged Unity build runs its own program.
-    std::fs::write(d.path().join("project.godot"), "config_version=5").unwrap();
-    let g = Path::new("C:/godot.exe");
-    assert_eq!(launch(d.path(), Some(g)), Some((g.to_path_buf(), vec!["--path".into(), d.path().display().to_string()])));
-    assert_eq!(launch(d.path(), None), None, "no Godot, nothing to open it with");
-    std::fs::remove_file(d.path().join("project.godot")).unwrap();
-    let build = d.path().join("Build");
-    std::fs::create_dir_all(&build).unwrap();
-    let exe = |n: &str| if cfg!(windows) { format!("{n}.exe") } else { n.to_string() };
-    for n in ["Game", "UnityCrashHandler64"] {
-        let p = build.join(exe(n));
-        std::fs::write(&p, "x").unwrap();
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
-        }
-    }
-    assert_eq!(launch(d.path(), None).map(|l| l.0), Some(build.join(exe("Game"))), "crash reporters aren't the game");
+    assert_eq!(launch(d.path()), None, "nothing built, nothing to play");
 }
 
 #[test]
 fn games_hear_about_generated_assets_only_when_allowed_and_with_a_key() {
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "Game", "A snake game", TargetRef::None).unwrap();
-    ws.manifest.stack = "Unity".into();
-    assert!(!brief(&ws, "game", false, false, None, true, None).contains("assets_model_generate"), "a key alone isn't the person's choice");
+    ws.manifest.stack = stacks::GAME_STACK.into();
+    assert!(!brief(&ws, "game", false, false, true, None).contains("assets_model_generate"), "a key alone isn't the person's choice");
     ws.manifest.generate_assets = true;
-    let with = brief(&ws, "game", false, false, None, true, None);
-    assert!(with.contains("assets_model_generate") && with.contains("$5.00") && with.contains("Assets/Generated/"), "{with}");
+    let with = brief(&ws, "game", false, false, true, None);
+    assert!(with.contains("assets_model_generate") && with.contains("$5.00") && with.contains("assets/generated/"), "{with}");
     assert!(with.contains("never a recognisable character, logo or brand artwork"));
-    assert!(!brief(&ws, "game", false, false, None, false, None).contains("assets_model_generate"), "no key, no asset tools");
-    assert!(!brief(&ws, "app", false, false, None, true, None).contains("assets_model_generate"), "games only");
+    assert!(!brief(&ws, "game", false, false, false, None).contains("assets_model_generate"), "no key, no asset tools");
+    assert!(!brief(&ws, "app", false, false, true, None).contains("assets_model_generate"), "games only");
 }
 
 #[test]
@@ -256,7 +228,7 @@ fn a_new_project_keeps_the_persons_asset_choice() {
     let d = tempfile::tempdir().unwrap();
     let settings = craft_anything_engine::Settings::default();
     for allow in [false, true] {
-        let ws = project::new_project(&settings, "-", "A snake game", project::Place::In(d.path()), Some("unity"), allow, None).unwrap();
+        let ws = project::new_project(&settings, "-", "A snake game", project::Place::In(d.path()), Some("rust + macroquad"), allow, None).unwrap();
         assert_eq!(Workspace::open(&ws.root).unwrap().manifest.generate_assets, allow);
     }
 }
@@ -287,7 +259,6 @@ fn notes_added_while_it_works_reach_the_agent_at_its_next_step() {
         preview: Arc::default(),
         seen: HashSet::new(),
         inbox: Inbox::new(ws.inbox_dir()),
-        editor: None,
         notes: notes.clone(),
         feed: Arc::new(Mutex::new(feed::FeedLog::open(&ws))),
         assets: false,
@@ -312,14 +283,14 @@ fn notes_added_while_it_works_reach_the_agent_at_its_next_step() {
 fn pictures_of_the_original_reach_the_builder() {
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Game", "Copy this game", TargetRef::None).unwrap();
-    assert!(!brief(&ws, "game", false, false, None, false, None).contains("reference/picture"));
+    assert!(!brief(&ws, "game", false, false, false, None).contains("reference/picture"));
     assert!(pictures_reminder(&ws).is_empty());
     let pic = d.path().join("shot.webp");
     std::fs::write(&pic, "x").unwrap();
     ws.add_references(&[pic]).unwrap();
-    let b = brief(&ws, "game", false, false, None, false, None);
+    let b = brief(&ws, "game", false, false, false, None);
     assert!(b.contains("reference/picture-1.webp") && b.contains("--screenshot"), "{b}");
-    assert!(!brief(&ws, "website", false, false, None, false, None).contains("--screenshot"), "websites are photographed for it");
+    assert!(!brief(&ws, "website", false, false, false, None).contains("--screenshot"), "websites are photographed for it");
     assert!(pictures_reminder(&ws).contains("1 picture(s)"));
 }
 
@@ -358,20 +329,16 @@ fn a_services_requested_wait_is_read() {
 fn games_get_the_mechanics_sheet_and_decompile_only_in_deep_mode() {
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Game", "Copy this game", TargetRef::Local { path: d.path().join("game.exe") }).unwrap();
-    let deep = brief(&ws, "game", true, false, None, false, None);
-    let clean = brief(&ws, "game", false, false, None, false, None);
+    let deep = brief(&ws, "game", true, false, false, None);
+    let clean = brief(&ws, "game", false, false, false, None);
     for b in [&deep, &clean] {
         assert!(b.contains("MECHANICS.md"), "{b}");
     }
-    // Deep mode: 1:1 with the original's own files, for private use, never decrypting anything.
-    assert!(deep.contains("original game's own files") && deep.contains("Never decrypt") && deep.contains("must not be shared") && deep.contains("CREDITS.md"));
-    assert!(deep.contains(PRIVATE_USE_NOTE), "the README line the credits check looks for, as written");
-    // It points the builder at the app's own archive tools before any outside converter.
-    assert!(deep.contains("enable_toolset with \"formats\"") && deep.contains("game_pak_extract") && deep.contains("game_unreal_texture_export"));
-    assert!(!clean.contains("game_pak_extract"), "Clean room copies no files out of the game");
-    // Clean room copies none of the original's files: its own art, and it says Deep mode is needed.
-    assert!(clean.contains("take nothing from the original game's files") && clean.contains("Make your own simple versions"), "{clean}");
-    assert!(!clean.contains("original game's own files") && !clean.contains("must not be shared") && clean.contains("needs Deep mode"));
+    // Neither mode copies the original's files: its own art, and nothing is lifted from the game.
+    for b in [&deep, &clean] {
+        assert!(b.contains("take nothing from the original game's files") && b.contains("Make your own simple versions"), "{b}");
+        assert!(!b.contains("game_pak_extract") && !b.contains("must not be shared"), "{b}");
+    }
     assert!(deep.contains("native_function_pseudocode") && deep.contains("never paste decompiled code"));
     assert!(clean.contains("don't open, read, list or decompile the game's files or code") && !clean.contains("decompile the program before"));
     assert!(clean.contains("nothing inside the program, its files or its folder was read") && !clean.contains("core_target_open"), "{clean}");
@@ -379,35 +346,33 @@ fn games_get_the_mechanics_sheet_and_decompile_only_in_deep_mode() {
     assert!(deep.contains("decompile the program before you estimate anything") && deep.contains("only after you looked for it in the code"));
     // It says which decompiler it really has.
     assert!(deep.contains("Ghidra isn't installed") && deep.contains("built-in decompiler"));
-    // Generated assets replace the original's art; its sounds and the rest still come from the game.
+    // Generated assets: the builder makes the art with the asset tools; still nothing is copied.
     let mut gen_ws = ws.clone();
     gen_ws.manifest.generate_assets = true;
-    let generated = brief(&gen_ws, "game", true, false, None, true, None);
-    assert!(generated.contains("instead of copying the original's") && generated.contains("Realistic assets"), "{generated}");
-    assert!(!generated.contains("Art, sounds, models") && generated.contains("Sounds, music, fonts, animations and maps"), "{generated}");
-    // Clean room with generated assets: generated art, the rest its own; still nothing copied.
-    let generated = brief(&gen_ws, "game", false, false, None, true, None);
-    assert!(
-        generated.contains("take nothing from the original game's files") && generated.contains("with assets_model_generate and assets_image_generate"),
-        "{generated}"
-    );
-    assert!(generated.contains("Realistic assets") && !generated.contains("original game's own files"), "{generated}");
-    let with_ghidra = brief(&ws, "game", true, true, None, false, None);
+    for deep in [true, false] {
+        let generated = brief(&gen_ws, "game", deep, false, true, None);
+        assert!(
+            generated.contains("take nothing from the original game's files") && generated.contains("with assets_model_generate and assets_image_generate"),
+            "{generated}"
+        );
+        assert!(generated.contains("Realistic assets"), "{generated}");
+    }
+    let with_ghidra = brief(&ws, "game", true, true, false, None);
     assert!(with_ghidra.contains("reads the code with Ghidra") && with_ghidra.contains("never skip decompiling") && !with_ghidra.contains("isn't installed"));
     // An app rebuilt from a program gets the same rule in Deep mode, and only then.
-    let app = brief(&ws, "app", true, true, None, false, None);
+    let app = brief(&ws, "app", true, true, false, None);
     assert!(app.contains("decompile the program before you estimate anything") && app.contains("features the person asked for"), "{app}");
-    assert!(!brief(&ws, "app", false, true, None, false, None).contains("decompile the program before"));
+    assert!(!brief(&ws, "app", false, true, false, None).contains("decompile the program before"));
     assert!(!clean.contains("Ghidra"), "Clean room never mentions Ghidra");
     // Without a target there is nothing to decompile or license; the sheet still helps.
     let none = Workspace::create(d.path(), "Fresh", "a snake game", TargetRef::None).unwrap();
-    let b = brief(&none, "game", true, true, None, false, None);
+    let b = brief(&none, "game", true, true, false, None);
     assert!(b.contains("MECHANICS.md") && !b.contains("decompile") && !b.contains("CREDITS.md"));
     // Every game, the snake demo too, plays its core loop for the self-test check.
     for b in [&b, &deep, &clean] {
         assert!(b.contains(kinds::self_test::SELF_TEST_CONTRACT), "{b}");
     }
-    assert!(!brief(&ws, "app", false, false, None, false, None).contains("MECHANICS.md"), "apps get the sheet only in Deep mode");
+    assert!(!brief(&ws, "app", false, false, false, None).contains("MECHANICS.md"), "apps get the sheet only in Deep mode");
 }
 
 /// What a person typed in the app when the clone came out in Vite without shadcn.
@@ -419,15 +384,15 @@ fn a_named_stack_and_component_library_reach_the_builder() {
     let web = TargetRef::Website { url: "https://example.com".into() };
     let mut ws = Workspace::create(d.path(), "ex", SAID_NEXT_SHADCN, web.clone()).unwrap();
     ws.manifest.stack = choose(SAID_NEXT_SHADCN, &web).1.into();
-    let b = brief(&ws, "website", false, false, None, false, None);
+    let b = brief(&ws, "website", false, false, false, None);
     assert!(b.contains("Use Next.js") && b.contains("output: 'export'") && b.contains("app/out") && !b.contains("Vite"), "{b}");
     assert!(b.contains("shadcn/ui components") && b.contains("npx shadcn@latest init --yes --defaults"), "{b}");
     // Without the library in the request, no shadcn; with a stack it doesn't fit, none either.
     ws.manifest.request = "Clone this website in Next.js".into();
-    assert!(!brief(&ws, "website", false, false, None, false, None).contains("shadcn"));
+    assert!(!brief(&ws, "website", false, false, false, None).contains("shadcn"));
     ws.manifest.request = "A tool in python with shadcn".into();
     ws.manifest.stack = "Python".into();
-    assert!(!brief(&ws, "app", false, false, None, false, None).contains("shadcn@latest"));
+    assert!(!brief(&ws, "app", false, false, false, None).contains("shadcn@latest"));
 }
 
 #[test]
@@ -435,7 +400,7 @@ fn prompts_carry_the_request_rules_and_measurements() {
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "ex", "Clone this website", TargetRef::Website { url: "https://example.com".into() }).unwrap();
     ws.manifest.stack = "React + TypeScript (Vite)".into();
-    let b = brief(&ws, "website", false, false, None, false, Some("make it blue"));
+    let b = brief(&ws, "website", false, false, false, Some("make it blue"));
     assert!(b.contains("Clone this website") && b.contains("https://example.com") && b.contains("core_person_ask") && b.contains("npm run build"));
     assert!(b.contains("make it blue") && b.contains("Never start dev servers"));
     // A part of the request that won't fit is asked about, never dropped silently.
@@ -507,17 +472,17 @@ fn a_registered_kind_is_chosen_from_its_words_and_brings_its_checks() {
     let ws = Workspace::create(d.path(), "Deck", "Make slides", TargetRef::None).unwrap();
     let checks = kinds.get("slides").unwrap().checks(&ws);
     assert_eq!(checks.iter().map(|c| c.id()).collect::<Vec<_>>(), ["outline"]);
-    let b = super::brief(&SlidesKind, &BriefCx { ws: &ws, deep: false, ghidra: false, editor: None, assets: false, image_model: None }, None);
+    let b = super::brief(&SlidesKind, &BriefCx { ws: &ws, deep: false, ghidra: false, assets: false, image_model: None }, None);
     assert!(b.contains("What to build: a slide deck."), "{b}");
 }
 
 #[test]
 fn the_brief_puts_the_request_before_the_default_stack() {
     let d = tempfile::tempdir().unwrap();
-    for (k, stack) in [("app", "Rust + egui (eframe)"), ("game", "Unity"), ("website", stacks::BUILDERS_CHOICE)] {
+    for (k, stack) in [("app", "Rust + egui (eframe)"), ("game", "Rust + macroquad"), ("website", stacks::BUILDERS_CHOICE)] {
         let mut ws = Workspace::create(d.path(), k, "A music player in Tauri", TargetRef::None).unwrap();
         ws.manifest.stack = stack.into();
-        let b = brief(&ws, k, false, false, Some(Path::new("/ed/Unity")), false, None);
+        let b = brief(&ws, k, false, false, false, None);
         let at = |s: &str| b.find(s).unwrap_or_else(|| panic!("{k}: no {s:?} in {b}"));
         assert!(at("Their request: \"A music player in Tauri\"") < at("How to build it, unless their request says otherwise: "), "{k}");
         assert!(b.contains("Their request comes first. When it says how to build"), "{k}");
@@ -533,7 +498,7 @@ fn an_electron_app_starts_in_its_own_electron_and_is_no_website() {
     std::fs::create_dir_all(app.join("dist")).unwrap();
     std::fs::write(app.join("dist/index.html"), "x").unwrap();
     assert!(site_dir(app).is_none(), "its bundled page is its window, not a site");
-    assert!(launch(app, None).is_none(), "nothing to start before npm install");
+    assert!(launch(app).is_none(), "nothing to start before npm install");
     let dist = app.join("node_modules/electron/dist");
     let exe = if cfg!(windows) {
         dist.join("electron.exe")
@@ -544,10 +509,10 @@ fn an_electron_app_starts_in_its_own_electron_and_is_no_website() {
     };
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
     std::fs::write(&exe, "").unwrap();
-    assert_eq!(launch(app, None), Some((exe, vec![app.display().to_string()])));
+    assert_eq!(launch(app), Some((exe, vec![app.display().to_string()])));
     assert_eq!(stacks::used_in(app).map(|s| s.name.as_str()), Some("Electron"), "recorded as Electron, not Vite");
     std::fs::write(app.join("package.json"), "not json").unwrap();
-    assert!(launch(app, None).is_none() && site_dir(app).is_some(), "a broken package.json is no Electron app");
+    assert!(launch(app).is_none() && site_dir(app).is_some(), "a broken package.json is no Electron app");
 }
 
 #[test]
@@ -558,19 +523,6 @@ fn website_kind_compares_only_when_there_is_an_original() {
     let ids = |ws: &Workspace| kinds::WebsiteKind.checks(ws).iter().map(|c| c.id()).collect::<Vec<_>>();
     assert_eq!(ids(&site), [CheckResult::WEB_VISUAL]);
     assert_eq!(ids(&scratch), [CheckResult::BUILD]);
-}
-
-#[test]
-fn a_picked_game_is_rebuilt_with_its_own_engine_when_we_can() {
-    let d = tempfile::tempdir().unwrap();
-    let game = d.path().join("Arena");
-    std::fs::create_dir_all(game.join("Content").join("Paks")).unwrap();
-    std::fs::write(game.join("Content").join("Paks").join("Arena-Windows.pak"), b"pak").unwrap();
-    let target = TargetRef::Local { path: game.clone() };
-    assert_eq!(choose("Recreate this game", &target), ("game", "Unreal Engine"), "an Unreal game is rebuilt in Unreal");
-    assert_eq!(choose("Recreate this game in Godot", &target).1, "Godot", "an engine the person names still wins");
-    let empty = tempfile::tempdir().unwrap();
-    assert_eq!(choose("Recreate this game", &TargetRef::Local { path: empty.path().to_path_buf() }).1, "Unity", "no engine found: Unity");
 }
 
 #[test]
@@ -590,7 +542,6 @@ fn an_api_backend_builds_with_the_build_tools() {
         preview: Arc::default(),
         seen: HashSet::new(),
         inbox: Inbox::new(ws.inbox_dir()),
-        editor: None,
         notes: Arc::default(),
         feed: Arc::new(Mutex::new(feed::FeedLog::open(&ws))),
         assets: false,
@@ -648,7 +599,7 @@ fn other_pages_of_the_same_site_are_picked_from_its_links() {
     // The brief mentions the other pages only when some were captured.
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Shop", "Clone it", TargetRef::Website { url: "https://shop.example.com/".into() }).unwrap();
-    let cx = |ws| BriefCx { ws, deep: false, ghidra: false, editor: None, assets: false, image_model: None };
+    let cx = |ws| BriefCx { ws, deep: false, ghidra: false, assets: false, image_model: None };
     assert!(kinds::WebsiteKind.brief_sections(&cx(&ws)).is_empty());
     std::fs::create_dir_all(ws.capture_dir()).unwrap();
     std::fs::write(ws.capture_dir().join(ROUTES_FILE), serde_json::to_vec(&r).unwrap()).unwrap();
@@ -706,7 +657,6 @@ fn the_mechanics_sheet_is_required_and_held_against_the_code() {
         preview: Arc::default(),
         seen: HashSet::new(),
         inbox: Inbox::new(ws.inbox_dir()),
-        editor: None,
         notes: Arc::default(),
         feed: Arc::new(Mutex::new(feed::FeedLog::open(&ws))),
         assets: false,
@@ -766,7 +716,6 @@ fn clean_room_studies_nothing_inside_and_deep_mode_looks() {
     let game = d.path().join("Some Game");
     std::fs::create_dir_all(game.join("Game_Data")).unwrap();
     std::fs::write(game.join("Game.exe"), b"MZ").unwrap();
-    std::fs::write(game.join("Game_Data/globalgamemanagers"), b"\0\0\0\0\x16\0\x002022.3.62f2\0").unwrap();
     for (deep, name) in [(false, "clean"), (true, "deep")] {
         let mut ws = Workspace::create(&d.path().join("projects"), name, "Recreate this game", TargetRef::Local { path: game.clone() }).unwrap();
         let mut w = check_worker(&ws, deep);
@@ -774,9 +723,9 @@ fn clean_room_studies_nothing_inside_and_deep_mode_looks() {
         let notes = std::fs::read_to_string(ws.capture_dir().join("README.md")).unwrap();
         let files: Vec<_> = std::fs::read_dir(ws.capture_dir()).unwrap().flatten().map(|e| e.file_name().to_string_lossy().into_owned()).collect();
         if deep {
-            assert!(notes.contains("# What we found") && notes.contains("Unity"), "Deep mode looks inside: {notes}");
+            assert!(notes.contains("# What we found"), "Deep mode looks inside: {notes}");
         } else {
-            assert!(notes.starts_with("# Clean room") && !notes.contains("Unity") && !notes.contains("Game_Data"), "{notes}");
+            assert!(notes.starts_with("# Clean room") && !notes.contains("Game_Data"), "{notes}");
             assert_eq!(files, ["README.md"], "nothing else was written from the original");
         }
     }
@@ -1019,7 +968,6 @@ fn check_worker(ws: &Workspace, deep: bool) -> Worker {
         preview: Arc::default(),
         seen: HashSet::new(),
         inbox: Inbox::new(ws.inbox_dir()),
-        editor: None,
         notes: Arc::default(),
         feed: Arc::new(Mutex::new(feed::FeedLog::open(ws))),
         assets: false,
@@ -1062,8 +1010,8 @@ fn apps_keep_the_sheet_only_when_deep_mode_decompiles_a_program() {
     let prog = Workspace::create(d.path(), "Tool", "Rebuild this app", TargetRef::Local { path: d.path().join("tool.exe") }).unwrap();
     let ids = AppKind.checks(&prog).iter().map(|c| c.id()).collect::<Vec<_>>();
     assert_eq!(ids, ["build", "app-runs", "app-screenshot", "mechanics"]);
-    assert!(brief(&prog, "app", true, false, None, false, None).contains(kinds::mechanics::MECHANICS_CONTRACT));
-    assert!(!brief(&prog, "app", false, false, None, false, None).contains("app/mechanics.json"), "Clean room doesn't ask for it");
+    assert!(brief(&prog, "app", true, false, false, None).contains(kinds::mechanics::MECHANICS_CONTRACT));
+    assert!(!brief(&prog, "app", false, false, false, None).contains("app/mechanics.json"), "Clean room doesn't ask for it");
 
     // Deep mode on a program: the sheet is checked (and missing here).
     let r = check_worker(&prog, true).run_checks(&prog, &APP_SHEET_ONLY, 1).unwrap();
@@ -1080,50 +1028,22 @@ fn games_are_asked_for_the_sheet_checks_read() {
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Arena", "Recreate this game", TargetRef::Local { path: d.path().to_path_buf() }).unwrap();
     let ids = |ws: &Workspace| GameKind.checks(ws).iter().map(|c| c.id()).collect::<Vec<_>>();
-    assert_eq!(ids(&ws), ["build", "app-screenshot", "game-self-test", "mechanics", "credits"]);
-    let b = brief(&ws, "game", false, false, None, false, None);
+    assert_eq!(ids(&ws), ["build", "app-screenshot", "game-self-test", "mechanics"]);
+    let b = brief(&ws, "game", false, false, false, None);
     assert!(b.contains("app/mechanics.json") && b.contains(kinds::mechanics::MECHANICS_CONTRACT), "{b}");
     let web = Workspace::create(d.path(), "Web game", "A game of this site", TargetRef::Website { url: "https://example.com".into() }).unwrap();
-    assert_eq!(ids(&web), ["build", "app-screenshot", "game-self-test"], "a website's game has no sheet and no original's files");
-    let web_brief = brief(&web, "game", true, true, None, false, None);
-    assert!(web_brief.contains(kinds::self_test::SELF_TEST_CONTRACT) && !web_brief.contains("CREDITS.md"), "{web_brief}");
+    assert_eq!(ids(&web), ["build", "app-screenshot", "game-self-test"], "a website's game has no sheet");
+    let web_brief = brief(&web, "game", true, true, false, None);
+    assert!(web_brief.contains(kinds::self_test::SELF_TEST_CONTRACT) && !web_brief.contains("mechanics.json"), "{web_brief}");
 }
 
 #[test]
-fn a_game_is_ready_only_when_it_plays_and_credits_the_originals_files() {
+fn a_game_is_ready_only_when_it_plays() {
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Caves", "Copy this game", TargetRef::Local { path: d.path().join("game.exe") }).unwrap();
     // The self-test needs a built game to start.
     let r = check_worker(&ws, false).run_checks(&ws, &LaterChecks(&GameKind, 2), 1).unwrap();
     assert!(r[0].check == "game-self-test" && !r[0].passed && r[0].note == "There's no built program to start yet.", "{:?}", r[0]);
-
-    // Deep mode on a program: the original's files must be credited and the README says they're private.
-    const CREDITS_ONLY: LaterChecks = LaterChecks(&GameKind, 4);
-    let r = check_worker(&ws, true).run_checks(&ws, &CREDITS_ONLY, 1).unwrap();
-    assert_eq!(r.len(), 1);
-    assert!(r[0].check == "credits" && !r[0].passed && r[0].note.contains("app/CREDITS.md") && r[0].note.contains(PRIVATE_USE_NOTE), "{:?}", r[0]);
-    std::fs::create_dir_all(ws.app_dir()).unwrap();
-    std::fs::write(
-        ws.app_dir().join("README.md"),
-        format!(
-            "# Caves
-
-{PRIVATE_USE_NOTE}
-"
-        ),
-    )
-    .unwrap();
-    std::fs::write(
-        ws.app_dir().join("CREDITS.md"),
-        "- Content/Rock.uasset from the game's Paks folder
-",
-    )
-    .unwrap();
-    assert!(check_worker(&ws, true).run_checks(&ws, &CREDITS_ONLY, 2).unwrap()[0].passed);
-    // Clean room copies none of the original's files, and a game without a target has none: skipped.
-    assert!(check_worker(&ws, false).run_checks(&ws, &CREDITS_ONLY, 1).unwrap().is_empty());
-    let snake = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
-    assert!(check_worker(&snake, true).run_checks(&snake, &CREDITS_ONLY, 1).unwrap().is_empty());
 }
 
 #[test]
@@ -1263,7 +1183,7 @@ fn a_resumed_game_builder_hears_the_asset_choice_as_it_is_now() {
     let mut ws = Workspace::create(d.path(), "Game", "A snake game", TargetRef::None).unwrap();
     let game = kind("game");
     fn cx(ws: &Workspace, assets: bool) -> BriefCx<'_> {
-        BriefCx { ws, deep: false, ghidra: false, editor: None, assets, image_model: None }
+        BriefCx { ws, deep: false, ghidra: false, assets, image_model: None }
     }
     assert!(game.follow_up_sections(&cx(&ws, true)).is_empty(), "off and never used: nothing to say");
     // Turned on after the first build, with a key: the follow-up carries the asset note and budget.
@@ -1283,15 +1203,6 @@ fn a_resumed_game_builder_hears_the_asset_choice_as_it_is_now() {
 fn a_stopped_build_is_told_to_carry_on_not_start_over() {
     let p = continue_prompt(kind("website").as_ref());
     assert!(p.contains("stopped before it finished") && p.contains("Pick up where you left off") && p.contains("app/"));
-}
-
-#[test]
-fn the_extractor_takes_the_originals_out_and_the_builder_is_told_where() {
-    let b = extract_brief(Path::new("D:/Games/Cave Game"));
-    assert!(b.contains("D:/Games/Cave Game") && b.contains("app/Original/") && b.contains("permission: true"), "{b}");
-    assert!(b.contains("Never decrypt") && b.contains("You don't build the game") && b.contains(&format!("app/{ORIGINALS_MANIFEST}")), "{b}");
-    assert!(b.contains("never write your own archive reader") && b.contains("ending in `/`"), "{b}");
-    assert!(ORIGINALS_READY.contains("app/Original/MANIFEST.md") && ORIGINALS_READY.contains("CREDITS.md"));
 }
 
 #[test]
@@ -1405,7 +1316,6 @@ fn preparing_the_builders_agent_does_not_lock_up() {
         preview: Arc::default(),
         seen: HashSet::new(),
         inbox: Inbox::new(ws.inbox_dir()),
-        editor: None,
         notes: Arc::default(),
         feed: Arc::new(Mutex::new(feed::FeedLog::open(&ws))),
         assets: false,
@@ -1445,7 +1355,6 @@ fn the_run_answers_the_builders_own_check_during_its_turn() {
         preview: Arc::default(),
         seen: HashSet::new(),
         inbox: Inbox::new(ws.inbox_dir()),
-        editor: None,
         notes: Arc::default(),
         feed: Arc::new(Mutex::new(feed::FeedLog::open(&ws))),
         assets: false,
@@ -1467,18 +1376,19 @@ fn the_run_answers_the_builders_own_check_during_its_turn() {
 fn every_kind_leads_tests_its_own_build_and_keeps_its_unknowns() {
     let d = tempfile::tempdir().unwrap();
     let web = TargetRef::Website { url: "https://example.com".into() };
-    for (k, target, stack) in [("website", web, stacks::BUILDERS_CHOICE), ("app", TargetRef::None, "Rust + egui (eframe)"), ("game", TargetRef::None, "Godot")]
+    for (k, target, stack) in
+        [("website", web, stacks::BUILDERS_CHOICE), ("app", TargetRef::None, "Rust + egui (eframe)"), ("game", TargetRef::None, stacks::GAME_STACK)]
     {
         let mut ws = Workspace::create(d.path(), k, "Rebuild it", target).unwrap();
         ws.manifest.stack = stack.into();
-        let b = brief(&ws, k, false, false, None, false, None);
+        let b = brief(&ws, k, false, false, false, None);
         assert!(b.contains("you lead the investigation") && b.contains("Don't repeat a call that already answered"), "{k}: {b}");
         assert!(b.contains("core_unknown_add") && b.contains("core_unknown_edit") && b.contains("Missing evidence is never proof"), "{k}");
         assert!(b.contains("go through your checklist and core_unknowns_show"), "{k}");
         assert!(b.contains("Test it against the original with rebuild_check") && b.contains("Before you reply, go through your checklist"), "{k}");
         if k == "website" {
             assert!(b.contains("Work from these pictures and measurements.\n\nMatch it exactly"), "one clean paragraph break: {b}");
-            let deep = brief(&ws, k, true, false, None, false, None);
+            let deep = brief(&ws, k, true, false, false, None);
             assert!(deep.contains("(the rendered HTML).\n\nMatch it exactly"), "one clean paragraph break: {deep}");
         }
     }
@@ -1568,7 +1478,7 @@ fn each_thing_a_page_must_do_is_a_claim_of_its_own() {
 fn a_console_original_is_compared_by_its_runs_not_pictured() {
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Tool", "Rebuild this tool", TargetRef::Local { path: d.path().join("tool.exe") }).unwrap();
-    let b = brief(&ws, "app", false, false, None, false, None);
+    let b = brief(&ws, "app", false, false, false, None);
     assert!(b.contains("--screenshot") && !b.contains("capture/runs/"), "a windowed app is pictured");
     let runs = ws.capture_dir().join(kinds::runs::RUNS_DIR);
     std::fs::create_dir_all(&runs).unwrap();
@@ -1577,7 +1487,7 @@ fn a_console_original_is_compared_by_its_runs_not_pictured() {
         br#"{"name": "--help", "arguments": ["--help"], "reason": "exited", "exit_code": 0, "lines": ["Usage: tool <file>"]}"#,
     )
     .unwrap();
-    let b = brief(&ws, "app", false, false, None, false, None);
+    let b = brief(&ws, "app", false, false, false, None);
     assert!(b.contains(kinds::RUNS_BRIEF) && !b.contains("Give the program a `--screenshot"), "{b}");
     assert_eq!(kinds::runs::captured(&ws).len(), 1, "the runs check applies, the picture check doesn't");
 }
@@ -1586,18 +1496,18 @@ fn a_console_original_is_compared_by_its_runs_not_pictured() {
 fn deep_mode_hands_the_builder_every_tool_and_clean_room_none_that_look_inside() {
     let d = tempfile::tempdir().unwrap();
     let web = Workspace::create(d.path(), "Site", "Clone it", TargetRef::Website { url: "https://example.com".into() }).unwrap();
-    let b = brief(&web, "website", true, false, None, false, None);
+    let b = brief(&web, "website", true, false, false, None);
     assert!(b.contains("every craft-anything tool is yours") && b.contains("capture/how-it-works.md"), "{b}");
     assert!(b.contains("web_listeners_list") && b.contains("web_coverage_measure") && b.contains("js_sources_restore"), "{b}");
     assert!(b.contains("never paste the original's code into app/") && !b.contains("enable_toolset with"), "{b}");
-    let clean = brief(&web, "website", false, false, None, false, None);
+    let clean = brief(&web, "website", false, false, false, None);
     assert!(clean.contains("what a visitor of the live site sees") && clean.contains("don't open or fetch the original site"), "{clean}");
     for deep_only in ["web_page_show", "web_listeners_list", "page.html", "breakpoints", "how-it-works"] {
         assert!(!clean.contains(deep_only), "{deep_only} in a Clean room brief: {clean}");
     }
     assert!(clean.contains("never open, read, list, fetch, run or decompile its files"), "{clean}");
     let prog = Workspace::create(d.path(), "Tool", "Rebuild it", TargetRef::Local { path: d.path().join("tool.exe") }).unwrap();
-    let b = brief(&prog, "app", true, false, None, false, None);
+    let b = brief(&prog, "app", true, false, false, None);
     assert!(
         b.contains("core_target_triage")
             && b.contains("native_function_pseudocode")
@@ -1605,7 +1515,7 @@ fn deep_mode_hands_the_builder_every_tool_and_clean_room_none_that_look_inside()
             && !b.contains("web_listeners_list"),
         "{b}"
     );
-    let clean = brief(&prog, "app", false, false, None, false, None);
+    let clean = brief(&prog, "app", false, false, false, None);
     assert!(!clean.contains("core_target_triage") && !clean.contains("native_") && clean.contains("ask the person with core_person_ask"), "{clean}");
 }
 
@@ -1617,7 +1527,7 @@ fn a_console_original_is_rebuilt_as_a_console_program() {
     std::fs::write(&app, craft_anything_testkit::pe64_subsystem(2)).unwrap();
     assert_eq!(choose("Rebuild this tool", &TargetRef::Local { path: tool }), ("app", "Rust (console)"));
     assert_eq!(choose("Rebuild this tool", &TargetRef::Local { path: app }).1, "Rust + egui (eframe)", "a windowed program stays a windowed app");
-    let steps = stacks::steps("Rust (console)", None);
+    let steps = stacks::steps("Rust (console)");
     assert!(steps.contains("console program") && steps.contains("exit codes") && steps.contains("draw no window"), "{steps}");
     assert_eq!(choose("A notes tool", &TargetRef::None).1, "Rust + egui (eframe)");
 }
@@ -1635,7 +1545,6 @@ fn a_note_the_builder_took_at_a_step_joins_the_feed_and_isnt_sent_again() {
         preview: Arc::default(),
         seen: HashSet::new(),
         inbox: Inbox::new(ws.inbox_dir()),
-        editor: None,
         notes: Arc::new(Mutex::new(vec![
             Note { id: 1, text: "make the header blue".into(), shown: "make the header blue".into() },
             Note { id: 2, text: "add a footer".into(), shown: "add a footer".into() },
@@ -1692,18 +1601,18 @@ fn a_project_in_a_picked_folder_tells_the_builder_what_its_files_are() {
         f
     };
     let usual = project::new_project(&settings, "-", "A notes app", project::Place::In(d.path()), None, false, None).unwrap();
-    assert!(!brief(&usual, "app", false, false, None, false, None).contains("folder of their own"), "a usual project says nothing about it");
+    assert!(!brief(&usual, "app", false, false, false, None).contains("folder of their own"), "a usual project says nothing about it");
 
     let mine = folder("mine");
     let refused = project::new_project(&settings, "-", "Add a contact form", project::Place::At(&mine, None), None, false, None);
     assert!(refused.is_err(), "a folder with files needs to know what they are");
     let ws = project::new_project(&settings, "-", "Add a contact form", project::Place::At(&mine, Some(ExistingFiles::Edit)), None, false, None).unwrap();
-    let b = brief(&ws, "website", false, false, None, false, None);
+    let b = brief(&ws, "website", false, false, false, None);
     assert!(b.contains("already has their files (index.html)") && b.contains("use the workspace folder itself (./)") && b.contains("craft.json"), "{b}");
 
     let start = folder("start");
     let ws = project::new_project(&settings, "-", "A site like this", project::Place::At(&start, Some(ExistingFiles::StartFrom)), None, false, None).unwrap();
-    let b = brief(&ws, "website", false, false, None, false, None);
+    let b = brief(&ws, "website", false, false, false, None);
     assert!(b.contains("which already had these files: index.html") && b.contains("bring into app/"), "{b}");
     assert!(!b.contains("use the workspace folder itself"));
 }
@@ -1719,11 +1628,6 @@ fn a_project_started_in_a_picked_folder_stays_in_the_list() {
     assert_eq!(saved.project_folders, std::slice::from_ref(&ws.root), "saved in the session's own settings");
     let listed = Workspace::list_in(&session.settings.project_locations());
     assert!(listed.iter().any(|w| w.root == ws.root));
-}
-
-#[test]
-fn the_extractors_transcript_is_one_of_craft_anythings_own_files() {
-    assert!(craft_anything_engine::workspace::OWN_NAMES.contains(&brief::EXTRACT_TRANSCRIPT), "a picked folder with this name would be overwritten");
 }
 
 #[test]

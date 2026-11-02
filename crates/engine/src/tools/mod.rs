@@ -46,9 +46,6 @@ pub mod database_tools;
 pub mod sbpf_tools;
 // Firmware images (built-in signature scan, entropy, carving).
 pub mod firmware_tools;
-pub mod game_archive_tools;
-// Unity IL2CPP global-metadata.dat: images, types, methods and string literals.
-pub mod il2cpp_tools;
 // What an installed app of unknown make is built on, from its folder alone.
 pub mod install_tools;
 // JavaScript, web, archive and app graph tools.
@@ -150,8 +147,6 @@ pub fn all() -> Vec<crate::ToolSpec> {
     v.extend(firmware_tools::specs());
     v.extend(packed_tools::specs());
     v.extend(python_tools::specs());
-    v.extend(game_archive_tools::specs());
-    v.extend(il2cpp_tools::specs());
     v.extend(install_tools::specs());
     v.extend(managed_tools::specs());
     v.extend(process_tools::specs());

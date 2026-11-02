@@ -18,8 +18,6 @@ pub enum Screen {
     Ask,
     /// One thing being made: progress, questions, checks, preview.
     Project,
-    /// A game's archives, and saving its pictures.
-    GameFiles,
     /// Advanced mode's workbench: every tool on the open target. Projects and their builds keep
     /// their own screens beside it, so nothing being built goes out of sight.
     Workbench,
@@ -37,12 +35,6 @@ pub struct MakeDraft {
     /// Pictures of the original to match (copied into the project when it starts).
     #[serde(default)]
     pub pictures: Vec<PathBuf>,
-    /// The engine the chosen game was made with (looked up when it's picked).
-    #[serde(default)]
-    pub found: Option<craft_anything_engines::game::Found>,
-    /// The engine the person picked to build with (else the original's own, or Unity).
-    #[serde(default)]
-    pub builder: Option<craft_anything_engines::game::Builder>,
     /// The builder may generate pictures and 3D models for this game (saved with the project).
     #[serde(default)]
     pub generate_assets: bool,
@@ -81,8 +73,6 @@ impl Default for MakeDraft {
             request: String::new(),
             editing_url: false,
             pictures: Vec::new(),
-            found: None,
-            builder: None,
             generate_assets: false,
             skip_ghidra: false,
             look: false,
@@ -355,14 +345,10 @@ pub enum Modal {
     Website,
     Tutorial(usize),
     About,
-    /// Getting a game engine (Unity, Unreal, Godot, Rust), step by step.
-    Engine(craft_anything_engines::game::Builder),
     /// Asking for a fal.ai key when generated assets are turned on without one.
     Assets,
     /// Getting Ghidra for Deep mode.
     Ghidra,
-    /// "Do you have permission?" before a game's files are unpacked.
-    GamePermission,
     /// Clean room refused a look inside: turn on Deep mode?
     DeepMode,
     /// The folder picked for a new project has files: the app itself, or material to start from?
@@ -457,43 +443,6 @@ pub struct UiState {
     /// Settings → Plugins: the plugin being added.
     #[serde(default)]
     pub plugin_form: PluginForm,
-    /// The Game files screen.
-    #[serde(default)]
-    pub game: GameFiles,
-}
-
-/// The Game files screen: a game's folder, its archives, the one open and its rows.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
-pub struct GameFiles {
-    pub folder: Option<PathBuf>,
-    /// game_archives_list's rows.
-    pub archives: Vec<Value>,
-    pub looking: bool,
-    /// The archive shown (its path) and its kind.
-    pub open: Option<String>,
-    pub open_kind: String,
-    /// Its files (a pak) or objects (a Unity file).
-    pub rows: Vec<Value>,
-    pub loading: bool,
-    pub filter: String,
-    /// The game folder the person said they may unpack.
-    pub permitted: Option<PathBuf>,
-    /// The picture to save once a place is picked.
-    pub pending: Option<PendingPicture>,
-    /// What the game is made of (triage's result for its folder).
-    #[serde(default)]
-    pub profile: Option<Value>,
-}
-
-/// A picture waiting for where to be saved.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct PendingPicture {
-    pub archive: String,
-    pub kind: String,
-    /// Its row (a pak file's `path`, a Unity object's `path_id`).
-    pub item: Value,
-    /// The file name to suggest.
-    pub name: String,
 }
 
 /// What the person typed to add a plugin: an id, and a command or an https address.
@@ -561,7 +510,6 @@ impl Default for UiState {
             pin_draft: Default::default(),
             answers: BTreeMap::new(),
             plugin_form: PluginForm::default(),
-            game: GameFiles::default(),
         }
     }
 }

@@ -228,16 +228,9 @@ impl ControlsLikeness {
     }
 }
 
-/// The arguments that ask the program for one of its own options (`--screenshot <file>`); a
-/// Godot project passes its own after `--`.
-pub fn option_args(godot_project: bool, option: &str, file: &Path) -> Vec<String> {
-    let mut v = Vec::new();
-    if godot_project {
-        v.push("--".to_string());
-    }
-    v.push(option.to_string());
-    v.push(file.display().to_string());
-    v
+/// The arguments that ask the program for one of its own options (`--screenshot <file>`).
+pub fn option_args(option: &str, file: &Path) -> Vec<String> {
+    vec![option.to_string(), file.display().to_string()]
 }
 
 /// What a run of the built program with one of its own options left behind.
@@ -256,14 +249,13 @@ pub(super) const NO_PROGRAM: &str = "There's no built program to start yet.";
 /// removed first, so only this run's counts).
 pub(super) fn run_with(cx: &CheckCx, option: &str, file: &Path) -> Result<OwnRun, ToolError> {
     let app = cx.ws.app_dir();
-    let godot = cx.godot();
-    let Some((program, args)) = launch(&app, godot.as_deref()) else { return Ok(OwnRun::NoProgram) };
+    let Some((program, args)) = launch(&app) else { return Ok(OwnRun::NoProgram) };
     if let Some(dir) = file.parent() {
         std::fs::create_dir_all(dir).map_err(|e| ToolError::io(dir.display(), e))?;
     }
     let _ = std::fs::remove_file(file);
     let mut with = args.clone();
-    with.extend(option_args(godot.is_some() && app.join("project.godot").is_file(), option, file));
+    with.extend(option_args(option, file));
     let stop = cx.stop().clone();
     let out = Process::new(&program).args(&with).cwd(&app).timeout(RUN_LIMIT).stdout_cap(256 * 1024).cancel_when(move || stop.is_cancelled()).run();
     let Ok(bytes) = std::fs::read(file) else {
@@ -352,10 +344,9 @@ mod tests {
     }
 
     #[test]
-    fn a_godot_project_gets_its_screenshot_flag_after_a_double_dash() {
+    fn the_option_comes_first_then_the_file() {
         let p = Path::new("/p/checks/round-1/screenshot.png");
-        assert_eq!(option_args(false, "--screenshot", p), ["--screenshot", "/p/checks/round-1/screenshot.png"]);
-        assert_eq!(option_args(true, "--screenshot", p).first().map(String::as_str), Some("--"));
+        assert_eq!(option_args("--screenshot", p), ["--screenshot", "/p/checks/round-1/screenshot.png"]);
     }
 
     #[test]
