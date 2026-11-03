@@ -381,6 +381,8 @@ pub struct CraftApp {
     pub pins: Vec<pins::PinRow>,
     /// The models hub screen's data.
     pub models: models_ui::View,
+    /// The version of a newer release, once the check has found one.
+    pub update_available: Option<String>,
     /// What the open project's latest run changed.
     pub changes: changes_ui::View,
     /// Earlier chats, listed in the sidebar (newest first).
@@ -463,6 +465,7 @@ impl CraftApp {
             preview: None,
             pins: Vec::new(),
             models: models_ui::View::default(),
+            update_available: None,
             changes: changes_ui::View::default(),
             chats: Vec::new(),
             asked: Default::default(),
@@ -834,6 +837,11 @@ impl CraftApp {
             return self.models_acted(tool, result);
         }
         match (tool, result) {
+            ("app_update_check", Ok(v)) => {
+                self.update_available = (v["newer"] == true).then(|| v["latest"].as_str().unwrap_or_default().to_string());
+            }
+            // Offline or rate-limited: no pill, no message.
+            ("app_update_check", Err(_)) => {}
             ("project_preview", Ok(v)) => {
                 let url = v.get("url").and_then(Value::as_str).map(str::to_string);
                 self.preview.clone_from(&url);
@@ -1452,6 +1460,8 @@ impl CraftApp {
                 self.refresh_backends();
                 self.refresh_projects();
                 self.check_asset_keys();
+                // One anonymous look for a newer release per start; never in tests (headless).
+                self.act("app_update_check", json!({}), "Looking for a newer Axiom".into());
                 if !self.settings.first_run_done {
                     self.detect_backends();
                 }

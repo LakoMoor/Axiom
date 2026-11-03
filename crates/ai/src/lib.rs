@@ -23,6 +23,7 @@ pub mod price;
 pub mod prompt;
 pub mod rebuild;
 pub mod ssh;
+pub mod update;
 
 pub use config::{AiConfig, BackendEntry, BackendOptions, Price};
 pub use keys::KeyStore;
@@ -266,6 +267,7 @@ pub fn tools() -> Vec<axiom_engine::ToolSpec> {
     let mut v = rebuild::tools::specs();
     v.extend(key_tools::specs());
     v.extend(models::tools::specs());
+    v.extend(update::specs());
     v
 }
 

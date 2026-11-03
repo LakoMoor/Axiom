@@ -833,7 +833,7 @@ fn the_agent_console_keeps_its_size() {
     });
     h.run_steps(4);
     assert!(wait(&mut h, |a| a.jobs.running().all(|j| !j.visible)), "the lists finished loading");
-    h.get_by_label("Agent").click();
+    h.get_all_by_label("Agent").last().expect("the switch has an Agent side").click();
     h.run_steps(2);
     let top = h.get_by_label("Agent").rect().top();
     h.run_steps(10);
@@ -2117,4 +2117,28 @@ fn agent_mode_asks_for_a_folder_and_names_what_is_missing() {
     h.state_mut().agent_send("make a file");
     h.run_steps(2);
     assert!(matches!(h.state().agent.items.last(), Some(axiom_ui_egui::state::ChatItem::Error { .. }) | Some(axiom_ui_egui::state::ChatItem::User(_))));
+}
+
+#[test]
+fn the_sidebar_switches_between_building_and_the_agent_and_says_who_answers() {
+    let mut h = harness(|| demo::app(demo::engine(Mode::Beginner, true)));
+    h.run_steps(3);
+    h.get_by_label("Your profile and settings");
+    h.get_all_by_label("Agent").last().expect("the switch has an Agent side").click();
+    h.run_steps(3);
+    assert_eq!(h.state().state.screen, Screen::Agent);
+    h.get_by_label("Build").click();
+    h.run_steps(3);
+    assert_eq!(h.state().state.screen, Screen::Home);
+}
+
+#[test]
+fn a_newer_release_shows_an_update_pill_that_opens_its_page() {
+    let mut h = harness(|| demo::app(demo::engine(Mode::Beginner, true)));
+    h.run_steps(3);
+    assert!(h.query_by_label("Update available").is_none(), "no pill until a newer release is found");
+    h.state_mut().update_available = Some("9.9.9".into());
+    h.run_steps(3);
+    h.get_by_label("Update available").click();
+    h.run_steps(2);
 }
