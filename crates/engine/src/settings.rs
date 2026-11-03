@@ -262,11 +262,23 @@ pub fn read_settings(text: &str) -> Result<Settings, String> {
     table.try_into::<Settings>().map_err(|e| e.to_string())
 }
 
-/// Where settings, logs and the engine store live: `AXIOM_CONFIG_DIR`, then a portable
+static CONFIG_DIR_OVERRIDE: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+
+/// Where the platform says settings live, for a program that can't use the environment (an
+/// Android app is told its private folder by the activity). Only the first call counts, and
+/// `AXIOM_CONFIG_DIR` still wins.
+pub fn set_config_dir(dir: PathBuf) {
+    let _ = CONFIG_DIR_OVERRIDE.set(dir);
+}
+
+/// Where settings, logs and the engine store live: `AXIOM_CONFIG_DIR`, then the folder the program was told to use, then a portable
 /// `portable.txt` marker next to the executable, then the platform config dir.
 pub fn config_dir() -> PathBuf {
     if let Some(dir) = std::env::var_os("AXIOM_CONFIG_DIR") {
         return PathBuf::from(dir);
+    }
+    if let Some(dir) = CONFIG_DIR_OVERRIDE.get() {
+        return dir.clone();
     }
     if let Some(exe_dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(Path::to_path_buf))
         && exe_dir.join("portable.txt").exists()

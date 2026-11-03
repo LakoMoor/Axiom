@@ -26,6 +26,7 @@ axiom-mcp = { path = "crates/mcp" }
 axiom-setup = { path = "crates/setup" }
 axiom-ui-egui = { path = "crates/ui-egui" }
 axiom-testkit = { path = "crates/testkit" }
+axiom-android-glue = { path = "crates/android-glue" }
 
 # external
 thiserror = "2"
