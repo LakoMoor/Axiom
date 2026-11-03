@@ -10,6 +10,7 @@
 
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{ErrorCode, ToolError};
+#[cfg(target_os = "macos")]
 use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::Deserialize;
