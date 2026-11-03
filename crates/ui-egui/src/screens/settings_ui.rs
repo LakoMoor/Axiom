@@ -17,12 +17,15 @@ pub fn show(app: &mut CraftApp, ctx: &egui::Context) {
     }
     let t = Tokens::get(ctx);
     let mut open = true;
+    let phone = crate::phone::is_phone(ctx);
+    let mut chosen = None;
     // A modal (dimmed backdrop, Esc or a click outside closes) with a full-size close button;
     // egui's window close box is 14 px.
     let resp = egui::Modal::new(egui::Id::new("settings-window"))
         .frame(egui::Frame::new().fill(t.card).corner_radius(t.r_lg()).inner_margin(egui::Margin::same(20)).stroke(egui::Stroke::new(1.0, t.card_border)))
         .show(ctx, |ui| {
-            ui.set_width(680.0);
+            // A phone's window is the screen's width (less the margins and the modal's own padding).
+            ui.set_width(if phone { (ctx.content_rect().width() - 2.0 * 20.0 - 24.0).max(240.0) } else { 680.0 });
             ui.horizontal(|ui| {
                 ui.label(theme::heading(tr("Settings"), theme::SECTION));
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -44,92 +47,125 @@ pub fn show(app: &mut CraftApp, ctx: &egui::Context) {
                 });
             }
             ui.add_space(12.0);
-            ui.horizontal_top(|ui| {
-                ui.vertical(|ui| {
-                    ui.set_width(150.0);
-                    for (tab, icon, title) in [
-                        (SettingsTab::General, "settings", "General"),
-                        (SettingsTab::Engines, "cpu", "Engines"),
-                        (SettingsTab::Ai, "bot", "AI"),
-                        (SettingsTab::Builds, "hammer", "Builds"),
-                        (SettingsTab::Plugins, "puzzle", "Plugins"),
-                        (SettingsTab::Safety, "shield", "Safety"),
-                    ] {
-                        let on = app.state.settings_tab == tab;
-                        let (rect, r) = ui.allocate_exact_size(Vec2::new(150.0, 34.0), egui::Sense::click());
-                        r.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::SelectableLabel, true, on, tr(title)));
-                        if on {
-                            ui.painter().rect_filled(rect, t.radius, t.accent_soft);
-                        } else if r.hovered() {
-                            ui.painter().rect_filled(rect, t.radius, t.hover);
-                        }
-                        icons::paint(
-                            ui,
-                            egui::Rect::from_min_size(egui::pos2(rect.left() + 10.0, rect.center().y - 8.0), Vec2::splat(16.0)),
-                            icon,
-                            16.0,
-                            if on { t.accent_ink } else { t.icon },
-                        );
-                        ui.painter().text(
-                            egui::pos2(rect.left() + 36.0, rect.center().y),
-                            egui::Align2::LEFT_CENTER,
-                            tr(title),
-                            theme::medium(theme::SMALL),
-                            if on { t.text } else { t.text_dim },
-                        );
-                        if r.clicked() {
-                            app.state.settings_tab = tab;
-                            if tab == SettingsTab::Ai && app.detected.is_none() {
-                                app.detect_backends();
-                            }
+            let tabs = [
+                (SettingsTab::General, "settings", "General"),
+                (SettingsTab::Engines, "cpu", "Engines"),
+                (SettingsTab::Ai, "bot", "AI"),
+                (SettingsTab::Builds, "hammer", "Builds"),
+                (SettingsTab::Plugins, "puzzle", "Plugins"),
+                (SettingsTab::Safety, "shield", "Safety"),
+            ];
+            if phone {
+                // Tabs along the top, wrapping, then the tab under them: a phone has no room for a column.
+                ui.horizontal_wrapped(|ui| {
+                    for (tab, _icon, title) in tabs {
+                        if ui.selectable_label(app.state.settings_tab == tab, tr(title)).clicked() {
+                            chosen = Some(tab);
                         }
                     }
                 });
-                ui.separator();
-                ui.vertical(|ui| {
-                    // Exactly what's left of the window, with room for the scroll bar a long tab
-                    // gets, so no tab can widen the window (#68).
-                    let w = ui.available_width();
-                    ui.set_width(w);
-                    let content_w = w - ui.spacing().scroll.allocated_width();
-                    // As tall as the window allows, so a tab's settings aren't cut off at the fold.
-                    let h = (ctx.content_rect().height() - 220.0).clamp(280.0, 560.0);
-                    // Not shrunk to the tab's content: that gave each tab its own width and put the
-                    // scroll bar in a different place on every page.
-                    let tab = app.state.settings_tab;
-                    egui::ScrollArea::vertical().auto_shrink([false, false]).min_scrolled_height(h).max_height(h).max_width(w).show(ui, |ui| {
-                        // The bar sits at the edge of the area, so the air between it and the
-                        // settings is taken from the settings' side.
-                        ui.set_max_width(content_w - 14.0);
-                        match tab {
-                            SettingsTab::General => general(app, ui),
-                            SettingsTab::Engines => engines(app, ui),
-                            SettingsTab::Ai => ai(app, ui),
-                            SettingsTab::Builds => builds(app, ui),
-                            SettingsTab::Plugins => plugins(app, ui),
-                            SettingsTab::Safety => safety(app, ui),
+                ui.add_space(8.0);
+                tab_body(app, ui, ctx);
+            } else {
+                ui.horizontal_top(|ui| {
+                    ui.vertical(|ui| {
+                        ui.set_width(150.0);
+                        for (tab, icon, title) in tabs {
+                            let on = app.state.settings_tab == tab;
+                            let (rect, r) = ui.allocate_exact_size(Vec2::new(150.0, 34.0), egui::Sense::click());
+                            r.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::SelectableLabel, true, on, tr(title)));
+                            if on {
+                                ui.painter().rect_filled(rect, t.radius, t.accent_soft);
+                            } else if r.hovered() {
+                                ui.painter().rect_filled(rect, t.radius, t.hover);
+                            }
+                            icons::paint(
+                                ui,
+                                egui::Rect::from_min_size(egui::pos2(rect.left() + 10.0, rect.center().y - 8.0), Vec2::splat(16.0)),
+                                icon,
+                                16.0,
+                                if on { t.accent_ink } else { t.icon },
+                            );
+                            ui.painter().text(
+                                egui::pos2(rect.left() + 36.0, rect.center().y),
+                                egui::Align2::LEFT_CENTER,
+                                tr(title),
+                                theme::medium(theme::SMALL),
+                                if on { t.text } else { t.text_dim },
+                            );
+                            if r.clicked() {
+                                chosen = Some(tab);
+                            }
                         }
                     });
+                    ui.separator();
+                    tab_body(app, ui, ctx);
                 });
-            });
+            }
         });
+    if let Some(tab) = chosen {
+        app.state.settings_tab = tab;
+        if tab == SettingsTab::Ai && app.detected.is_none() {
+            app.detect_backends();
+        }
+    }
     if !open || resp.should_close() {
         app.state.settings_open = false;
     }
 }
 
-fn row(ui: &mut Ui, title: &str, sub: &str, add: impl FnOnce(&mut Ui)) {
-    let t = Tokens::get(ui.ctx());
-    ui.horizontal(|ui| {
-        ui.vertical(|ui| {
-            ui.set_width(220.0);
-            ui.label(RichText::new(tr(title)).font(theme::medium(theme::SMALL)));
-            if !sub.is_empty() {
-                ui.add(egui::Label::new(RichText::new(tr(sub)).color(t.text_faint).size(theme::CAPTION)).wrap());
+/// The open tab: a scroll area as tall as the window allows.
+fn tab_body(app: &mut CraftApp, ui: &mut Ui, ctx: &egui::Context) {
+    ui.vertical(|ui| {
+        // Exactly what's left of the window, with room for the scroll bar a long tab
+        // gets, so no tab can widen the window (#68).
+        let w = ui.available_width();
+        ui.set_width(w);
+        let content_w = w - ui.spacing().scroll.allocated_width();
+        // As tall as the window allows, so a tab's settings aren't cut off at the fold.
+        let h = (ctx.content_rect().height() - 220.0).clamp(280.0, 560.0);
+        // Not shrunk to the tab's content: that gave each tab its own width and put the
+        // scroll bar in a different place on every page.
+        let tab = app.state.settings_tab;
+        egui::ScrollArea::vertical().auto_shrink([false, false]).min_scrolled_height(h).max_height(h).max_width(w).show(ui, |ui| {
+            // The bar sits at the edge of the area, so the air between it and the
+            // settings is taken from the settings' side.
+            ui.set_max_width(content_w - 14.0);
+            match tab {
+                SettingsTab::General => general(app, ui),
+                SettingsTab::Engines => engines(app, ui),
+                SettingsTab::Ai => ai(app, ui),
+                SettingsTab::Builds => builds(app, ui),
+                SettingsTab::Plugins => plugins(app, ui),
+                SettingsTab::Safety => safety(app, ui),
             }
         });
-        add(ui);
     });
+}
+
+fn row(ui: &mut Ui, title: &str, sub: &str, add: impl FnOnce(&mut Ui)) {
+    let t = Tokens::get(ui.ctx());
+    // On a phone the title and its note sit above the control, each as wide as the screen.
+    let phone = crate::phone::is_phone(ui.ctx());
+    let heading = |ui: &mut Ui| {
+        ui.label(RichText::new(tr(title)).font(theme::medium(theme::SMALL)));
+        if !sub.is_empty() {
+            ui.add(egui::Label::new(RichText::new(tr(sub)).color(t.text_faint).size(theme::CAPTION)).wrap());
+        }
+    };
+    if phone {
+        heading(ui);
+        ui.add_space(4.0);
+        add(ui);
+    } else {
+        ui.horizontal(|ui| {
+            ui.vertical(|ui| {
+                ui.set_width(220.0);
+                heading(ui);
+            });
+            add(ui);
+        });
+    }
     ui.add_space(10.0);
 }
 

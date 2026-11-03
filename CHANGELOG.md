@@ -4,6 +4,7 @@ All notable changes, newest first. Each line says what the person notices.
 
 ## Unreleased
 
+- Interface: Settings and Agent fit a phone's screen (the settings tabs wrap along the top and each setting's title sits above its control).
 - Interface: a phone layout for narrow screens (and always on Android): no title bar or side panel, navigation along the bottom, the welcome, prompt box and tiles fit a narrow screen, and arrows now draw in the app's font.
 - Android: an app for phones (`apps/axiom-android`), the same interface in a native activity, built as an APK by `packaging/android/package.sh`. It starts on the Android 14 emulator; a phone layout, a file picker and local models there are still to do.
 - Builder: when a project is ported to Rust the agent lays it out as a Cargo workspace (`crates/`, `apps/`, `docs/`, `scripts/`), the way a well-kept Rust application repository does.

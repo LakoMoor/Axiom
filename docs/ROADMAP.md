@@ -1305,9 +1305,12 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
       along the bottom instead), the welcome cards, choice rows, prompt box and target tiles fit a
       narrow screen, and arrows draw (`phone::is_phone`: always on Android, and in any window
       narrower than 640 points). Checked by tapping through setup, Home and Models on the emulator.
-- [ ] Android app, the rest of the phone layout: go through every screen (Project, Agent, Settings,
-      the chat and the evidence views) on a narrow screen, the soft keyboard (the window should
-      move up for it), landscape, and a back-button / back-gesture that goes up a screen
+- [x] Android app: the Agent screen and the Settings window fit a narrow screen (tabs wrap along the
+      top, each setting's title sits above its control), checked on the emulator
+- [ ] Android app, the rest of the phone layout: Settings → AI and Engines have rows wider than the
+      screen (they stretch the window to its edges), and the Project, chat and evidence views, "Just
+      look inside", the soft keyboard (the window should move up for it), landscape, and a
+      back-button / back-gesture that goes up a screen have not been looked at on a phone
 - [ ] Android app: choosing a file (the system's document picker; `rfd` has no Android backend, so
       the Open button says so for now) and saving the report
 - [ ] Android app: the models hub cannot run llama.cpp's server there as built; needs an in-process
