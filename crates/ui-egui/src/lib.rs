@@ -24,10 +24,13 @@ pub mod glossary;
 pub mod i18n;
 pub mod jobs;
 pub mod state;
+#[cfg(target_arch = "wasm32")]
+pub mod web;
 
 use axiom_ai::{AgentEvent, AiHub, BackendConfig, Conversation, Detected};
 use axiom_engine::evidence::{ErrorCode, Evidence, ToolError, Unknown};
 use axiom_engine::{CallOptions, Caller, Consent, Engine, Mode, Settings, TargetKind, ToolOutput, clean_room};
+use axiom_platform::fs::AbsolutePath;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use state::{CenterTab, ChatItem, ConsentAnswer, Fill, RailKind, Screen, UiState};
@@ -926,7 +929,7 @@ impl CraftApp {
 
     /// Open a file or folder as the active target.
     pub fn open_path(&mut self, path: PathBuf) {
-        let path = if path.is_absolute() { path } else { std::env::current_dir().map(|d| d.join(&path)).unwrap_or(path) };
+        let path = if path.is_absolute_path() { path } else { std::env::current_dir().map(|d| d.join(&path)).unwrap_or(path) };
         let engine = self.engine.clone();
         let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| path.display().to_string());
         self.toast(i18n::trf("Opening {name}…", &[("name", &name)]), false);
@@ -944,6 +947,11 @@ impl CraftApp {
     pub fn pick(&mut self, pick: Pick) {
         if self.headless {
             return;
+        }
+        #[cfg(target_arch = "wasm32")]
+        match (pick, self.jobs.repaint_ctx().cloned()) {
+            (Pick::OpenFile | Pick::TargetFile, Some(ctx)) => web::pick_file(pick, ctx),
+            _ => self.toast(tr("A web page can't choose a folder or other places. Pick or drop a file instead."), true),
         }
         #[cfg(not(target_arch = "wasm32"))]
         self.jobs.spawn("Choose a file", false, move |_| {
@@ -1492,7 +1500,22 @@ impl CraftApp {
             ctx.request_repaint_after(Duration::from_secs(1));
         }
         // Dropped pictures go to the prompt box on Make or a project; anything else opens.
+        #[cfg(target_arch = "wasm32")]
+        for f in ctx.input_mut(|i| std::mem::take(&mut i.raw.dropped_files)) {
+            web::read_dropped(f, ctx.clone());
+        }
+        // What the browser's picker and drops delivered (kept in memory under /web/).
+        #[cfg(target_arch = "wasm32")]
+        let arrived = web::take_arrived();
+        #[cfg(not(target_arch = "wasm32"))]
+        let arrived: Vec<(Option<Pick>, PathBuf)> = Vec::new();
+        for (pick, path) in arrived.iter().filter_map(|(k, p)| k.map(|k| (k, p.clone()))) {
+            self.jobs.spawn("Choose a file", false, move |_| Ok(Done::Picked { pick, path: Some(path) }));
+        }
+        #[cfg(not(target_arch = "wasm32"))]
         let dropped: Vec<PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).filter(|p| !p.as_os_str().is_empty()).collect());
+        #[cfg(target_arch = "wasm32")]
+        let dropped: Vec<PathBuf> = arrived.into_iter().filter(|(k, _)| k.is_none()).map(|(_, p)| p).collect();
         let pictures = !dropped.is_empty() && dropped.iter().all(|p| axiom_engine::workspace::is_picture(p));
         match self.state.screen {
             Screen::Project if pictures => self.attach(dropped),

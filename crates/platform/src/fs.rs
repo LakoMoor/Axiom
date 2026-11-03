@@ -31,6 +31,100 @@ pub fn read_to_string(path: &Path) -> std::io::Result<String> {
     }
 }
 
+/// `is_absolute` that also holds for `/web/report.md` in a browser page, where the standard library
+/// (which has no idea what the system is) wants a drive prefix and so calls no path absolute.
+pub trait AbsolutePath {
+    fn is_absolute_path(&self) -> bool;
+}
+
+impl AbsolutePath for Path {
+    fn is_absolute_path(&self) -> bool {
+        if cfg!(target_arch = "wasm32") { self.has_root() } else { self.is_absolute() }
+    }
+}
+
+impl AbsolutePath for std::path::PathBuf {
+    fn is_absolute_path(&self) -> bool {
+        self.as_path().is_absolute_path()
+    }
+}
+
+/// What [`metadata`] says about a path.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Meta {
+    pub is_dir: bool,
+    pub len: u64,
+}
+
+/// Facts about a file or folder. In a browser page only the files given to the page are there.
+pub fn metadata(path: &Path) -> std::io::Result<Meta> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        pagefiles::meta(path)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::fs::metadata(path).map(|m| Meta { is_dir: m.is_dir(), len: m.len() })
+    }
+}
+
+/// A file's bytes. In a browser page: a file the person gave the page (see [`stage_file`]).
+pub fn read(path: &Path) -> std::io::Result<Vec<u8>> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        pagefiles::read(path)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::fs::read(path)
+    }
+}
+
+/// Keep a file the person gave the page (picked or dropped) in memory and return the path it can
+/// be opened by. Browser only: a page has no disk to put it on.
+#[cfg(target_arch = "wasm32")]
+pub fn stage_file(name: &str, bytes: Vec<u8>) -> std::path::PathBuf {
+    pagefiles::stage(name, bytes)
+}
+
+/// The files given to a browser page, kept in memory under `/web/`.
+#[cfg(target_arch = "wasm32")]
+mod pagefiles {
+    use crate::sync::Mutex;
+    use std::collections::BTreeMap;
+    use std::path::{Path, PathBuf};
+    use std::sync::{Arc, LazyLock};
+
+    static FILES: LazyLock<Mutex<BTreeMap<PathBuf, Arc<[u8]>>>> = LazyLock::new(|| Mutex::new(BTreeMap::new()));
+
+    fn not_found(path: &Path) -> std::io::Error {
+        std::io::Error::new(std::io::ErrorKind::NotFound, format!("{} isn't one of the files given to this page", path.display()))
+    }
+
+    pub fn stage(name: &str, bytes: Vec<u8>) -> PathBuf {
+        let clean: String = name.chars().map(|c| if matches!(c, '/' | '\\' | ':') { '_' } else { c }).collect();
+        let clean = if clean.trim().is_empty() { "file".to_string() } else { clean };
+        let path = PathBuf::from("/web").join(clean);
+        if let Ok(mut files) = FILES.lock() {
+            files.insert(path.clone(), Arc::from(bytes));
+        }
+        path
+    }
+
+    pub fn read(path: &Path) -> std::io::Result<Vec<u8>> {
+        FILES.lock().ok().and_then(|f| f.get(path).map(|b| b.to_vec())).ok_or_else(|| not_found(path))
+    }
+
+    pub fn meta(path: &Path) -> std::io::Result<super::Meta> {
+        let files = FILES.lock().map_err(|_| not_found(path))?;
+        match files.get(path) {
+            Some(b) => Ok(super::Meta { is_dir: false, len: b.len() as u64 }),
+            None if path == Path::new("/web") => Ok(super::Meta { is_dir: true, len: 0 }),
+            None => Err(not_found(path)),
+        }
+    }
+}
+
 /// The page's local storage standing in for a disk (browser only).
 #[cfg(target_arch = "wasm32")]
 mod browser {
@@ -171,6 +265,19 @@ mod tests {
         }
         // no temp files left behind
         assert_eq!(std::fs::read_dir(dir.path().join("sub")).unwrap().count(), 1);
+    }
+
+    #[test]
+    fn absolute_paths_are_told_from_relative_ones_and_metadata_and_read_agree() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("x.bin");
+        std::fs::write(&file, b"abc").unwrap();
+        assert!(file.is_absolute_path() && file.as_path().is_absolute_path());
+        assert!(!Path::new("x.bin").is_absolute_path());
+        assert_eq!(metadata(&file).unwrap(), Meta { is_dir: false, len: 3 });
+        assert!(metadata(dir.path()).unwrap().is_dir);
+        assert_eq!(read(&file).unwrap(), b"abc");
+        assert!(read(&dir.path().join("missing")).is_err());
     }
 
     #[test]

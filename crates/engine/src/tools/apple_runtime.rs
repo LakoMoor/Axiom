@@ -10,6 +10,8 @@
 
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{ErrorCode, ToolError};
+#[cfg(target_os = "macos")]
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::Value;
@@ -280,7 +282,7 @@ mod macos {
 
     pub fn apple_calls_observe(ctx: &mut Ctx<'_>, p: ObserveCallsParams) -> Result<ToolOutput, ToolError> {
         let exe = std::path::Path::new(&p.executable);
-        if !exe.is_absolute() {
+        if !exe.is_absolute_path() {
             return Err(ToolError::invalid("executable must be an absolute path"));
         }
         let lldb = axiom_engines::locate("lldb", &ctx.session.settings.engines.tools, &ctx.session.settings.engine_store_dir()).ok_or_else(|| {

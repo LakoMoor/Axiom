@@ -7,6 +7,7 @@ use super::native_common::{hex, params_json, spec};
 use super::static_input::builder;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{Authority, Confidence, Coverage, Limitation, Location, Subject, ToolError};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -254,7 +255,7 @@ fn js_electron_fuses_show(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput
     let (path, subject) = match &p.path {
         Some(s) => {
             let pb = PathBuf::from(s);
-            if !pb.is_absolute() {
+            if !pb.is_absolute_path() {
                 return Err(ToolError::invalid(format!("{s:?} is not an absolute path"))
                     .with_remediation("Pass the full path, for example C:\\Program Files\\App\\App.exe."));
             }

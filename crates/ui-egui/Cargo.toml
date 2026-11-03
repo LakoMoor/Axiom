@@ -33,6 +33,11 @@ pollster = "0.4"
 # Safe, small OS-language lookup; MIT OR Apache-2.0, no native runtime dependency.
 sys-locale = "0.3.2"
 
+# A page picks and receives files asynchronously and keeps them in memory (`web.rs`).
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+rfd = { workspace = true }
+wasm-bindgen-futures = "0.4"
+
 [dev-dependencies]
 axiom-testkit = { workspace = true }
 egui_kittest = { workspace = true, features = ["wgpu", "snapshot", "eframe"] }

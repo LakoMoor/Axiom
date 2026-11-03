@@ -5,6 +5,7 @@ use super::artifact_tools::resolve_evidence_input;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, Environment, EvidenceBuilder, Limitation, Location, Subject, ToolError, host_triple};
 use axiom_platform::capture::{self, Event, EventKind, Limits, SandboxRequest, Sig, Spec, Terminal};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -316,12 +317,12 @@ fn runtime_walkthrough_record(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOu
         }
     }
     for path in &p.watched_paths {
-        if !std::path::Path::new(path).is_absolute() {
+        if !std::path::Path::new(path).is_absolute_path() {
             return Err(ToolError::invalid(format!("observation path must be absolute: {path}")));
         }
     }
     if let Some(wd) = &p.working_directory
-        && !std::path::Path::new(wd).is_absolute()
+        && !std::path::Path::new(wd).is_absolute_path()
     {
         return Err(ToolError::invalid("working_directory must be absolute"));
     }

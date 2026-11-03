@@ -8,6 +8,7 @@ use super::native_common::spec;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_engines::gdb::GdbSession;
 use axiom_evidence::{Authority, Confidence, Coverage, Environment, ErrorCode, EvidenceBuilder, Limitation, Subject, ToolError, sha256_hex};
+use axiom_platform::fs::AbsolutePath;
 use axiom_platform::sync::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -140,7 +141,7 @@ fn unknown_session() -> ToolError {
 
 fn abs_file(p: &str, what: &str) -> Result<PathBuf, ToolError> {
     let pb = PathBuf::from(p);
-    if !pb.is_absolute() {
+    if !pb.is_absolute_path() {
         return Err(ToolError::invalid(format!("{what} {p:?} is not an absolute path")));
     }
     if !pb.is_file() {

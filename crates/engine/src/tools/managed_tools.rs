@@ -9,6 +9,7 @@ use super::static_input::{Input, builder, format_err, load, load_path};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, ErrorCode, Limitation, Location, Subject, ToolError};
 use axiom_formats::dotnet::{self, Assembly, MemberOptions, Members, MethodInfo, NativeBoundaries, csharp};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -755,7 +756,7 @@ fn read_sources(p: &ImportParams, ctx: &Ctx<'_>) -> Result<Sources, ToolError> {
         }
         (None, Some(sp)) => {
             let path = PathBuf::from(sp);
-            if !path.is_absolute() {
+            if !path.is_absolute_path() {
                 return Err(ToolError::invalid(format!("source_path must be absolute, got {sp:?}")));
             }
             let meta = std::fs::metadata(&path).map_err(|e| ToolError::io(sp, e))?;

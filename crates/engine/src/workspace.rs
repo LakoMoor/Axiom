@@ -21,6 +21,7 @@ use crate::inbox::now_ms;
 use crate::project::write_atomic;
 use crate::versioned::{self, upgrade};
 use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -130,7 +131,7 @@ impl TargetRef {
             return TargetRef::Website { url: t.to_string() };
         }
         let p = PathBuf::from(t);
-        if !t.is_empty() && p.is_absolute() && p.exists() { TargetRef::Local { path: p } } else { TargetRef::None }
+        if !t.is_empty() && p.is_absolute_path() && p.exists() { TargetRef::Local { path: p } } else { TargetRef::None }
     }
 
     pub fn label(&self) -> String {

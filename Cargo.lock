@@ -813,6 +813,7 @@ dependencies = [
  "serde_json",
  "sys-locale",
  "tempfile",
+ "wasm-bindgen-futures",
  "web-time",
 ]
 

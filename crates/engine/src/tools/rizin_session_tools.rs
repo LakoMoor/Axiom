@@ -7,6 +7,7 @@ use super::native_common::spec;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_engines::rizin::{RizinSession, Target};
 use axiom_evidence::{Authority, Confidence, Coverage, Environment, ErrorCode, EvidenceBuilder, Limitation, Subject, ToolError, sha256_hex};
+use axiom_platform::fs::AbsolutePath;
 use axiom_platform::sync::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -152,7 +153,7 @@ fn target(p: &StartParams) -> Result<Target, ToolError> {
         }
         (Some(prog), None) => {
             let path = PathBuf::from(prog);
-            if !path.is_absolute() {
+            if !path.is_absolute_path() {
                 return Err(ToolError::invalid(format!("program {prog:?} is not an absolute path")));
             }
             if !path.is_file() {

@@ -6,6 +6,7 @@ use crate::target::{Target, TargetKind};
 use crate::tool::Ctx;
 use axiom_evidence::{Coverage, CoverageStatus, Environment, ErrorCode, EvidenceBuilder, Subject, ToolError};
 use axiom_formats::FormatError;
+use axiom_platform::fs::AbsolutePath;
 use serde_json::Value;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -43,7 +44,7 @@ pub fn load(ctx: &Ctx<'_>, path: Option<&str>, max: u64) -> Result<Input, ToolEr
 /// Read one absolute file path with a size cap.
 pub fn load_path(p: &str, max: u64) -> Result<Input, ToolError> {
     let pb = PathBuf::from(p);
-    if !pb.is_absolute() {
+    if !pb.is_absolute_path() {
         return Err(ToolError::invalid(format!("{p:?} is not an absolute path")).with_remediation("Pass the full path, for example /home/me/app.apk."));
     }
     let meta = std::fs::metadata(&pb).map_err(|e| ToolError::io(p, e))?;
@@ -94,7 +95,7 @@ pub fn load_prefix(ctx: &Ctx<'_>, path: Option<&str>, max: u64) -> Result<Prefix
         return Ok(PrefixInput { bytes, file_size: t.bytes.len() as u64, whole, subject, path: t.path.clone(), name: t.name.clone() });
     };
     let pb = PathBuf::from(p);
-    if !pb.is_absolute() {
+    if !pb.is_absolute_path() {
         return Err(ToolError::invalid(format!("{p:?} is not an absolute path")).with_remediation("Pass the full path, for example /home/me/model.gguf."));
     }
     let meta = std::fs::metadata(&pb).map_err(|e| ToolError::io(p, e))?;

@@ -11,6 +11,7 @@ use super::investigation_tools::{self, Finding, HypothesisStatus, Investigation}
 use crate::project::write_atomic;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{Confidence, Evidence, ToolError, Unknown};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -58,7 +59,7 @@ fn core_report_save(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, Too
     let p: SaveParams = parse_params(params)?;
     let path = PathBuf::from(&p.path);
     let ext = path.extension().and_then(|e| e.to_str()).map(str::to_ascii_lowercase).unwrap_or_default();
-    if !path.is_absolute() || !["md", "html", "htm", "txt"].contains(&ext.as_str()) {
+    if !path.is_absolute_path() || !["md", "html", "htm", "txt"].contains(&ext.as_str()) {
         return Err(ToolError::invalid("path must be absolute and end in .md, .html, .htm or .txt"));
     }
     if p.text.len() > 64 * 1024 * 1024 {
@@ -131,7 +132,7 @@ fn core_report_write(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, Too
 
     if let Some(path) = p.path {
         let path = PathBuf::from(&path);
-        if !path.is_absolute() {
+        if !path.is_absolute_path() {
             return Err(
                 ToolError::invalid(format!("{} is not an absolute path", path.display())).with_remediation("Pass a full path, e.g. /Users/me/report.md.")
             );

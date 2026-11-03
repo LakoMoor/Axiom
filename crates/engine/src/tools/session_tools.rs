@@ -4,6 +4,7 @@ use crate::project::write_atomic;
 use crate::target::{RawSpec, Target, TargetKind};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, empty_schema, parse_params, schema_of};
 use axiom_evidence::{ErrorCode, Evidence, Severity, ToolError, Unknown, UnknownStatus};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -186,7 +187,7 @@ pub struct OpenParams {
 fn core_target_open(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: OpenParams = parse_params(params)?;
     let path = PathBuf::from(&p.path);
-    if !path.is_absolute() {
+    if !path.is_absolute_path() {
         return Err(ToolError::invalid(format!("{} is not an absolute path", p.path))
             .with_remediation("Pass the full path, e.g. /Users/me/Downloads/app.exe or C:\\Apps\\app.exe."));
     }
@@ -368,7 +369,7 @@ pub struct ExportParams {
 fn core_evidence_export(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: ExportParams = parse_params(params)?;
     let path = PathBuf::from(&p.path);
-    if !path.is_absolute() {
+    if !path.is_absolute_path() {
         return Err(ToolError::invalid("path must be absolute"));
     }
     if path.exists() && !p.overwrite {

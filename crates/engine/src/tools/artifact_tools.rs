@@ -8,6 +8,7 @@ use axiom_evidence::{
     Authority, Confidence, Coverage, Environment, ErrorCode, Evidence, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex,
 };
 use axiom_formats::{asar, zip};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -64,7 +65,7 @@ pub(crate) fn rel_to(root: &Path, p: &Path) -> String {
 /// Require an absolute path.
 pub(crate) fn abs_path(p: &str, what: &str) -> Result<PathBuf, ToolError> {
     let path = PathBuf::from(p);
-    if !path.is_absolute() {
+    if !path.is_absolute_path() {
         return Err(ToolError::invalid(format!("{what} must be an absolute path, got {p:?}"))
             .with_remediation("Pass the full path, for example /Users/me/Downloads/app.asar."));
     }
