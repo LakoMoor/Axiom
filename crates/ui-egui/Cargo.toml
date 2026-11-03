@@ -20,18 +20,25 @@ egui = { workspace = true }
 # SVG icons (Lucide) rasterised at the exact on-screen size with resvg (pure Rust).
 egui_extras = { workspace = true, features = ["svg"] }
 # `links`: without it `ctx.open_url` is a silent no-op (the workspace turns eframe's defaults off).
-eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit", "links"] }
+eframe = { workspace = true, features = ["default_fonts", "wgpu", "links"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }
 web-time = { workspace = true }
 
+# Screen-reader support; eframe offers it on Android only with the game activity, which needs Java.
+[target.'cfg(not(target_os = "android"))'.dependencies]
+eframe = { workspace = true, features = ["accesskit"] }
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# Native open/save dialogs, always shown from a worker thread (never blocks a frame).
-rfd = { workspace = true }
 pollster = "0.4"
 # Safe, small OS-language lookup; MIT OR Apache-2.0, no native runtime dependency.
 sys-locale = "0.3.2"
+
+# Native open/save dialogs, always shown from a worker thread (never blocks a frame). rfd has no
+# Android backend, so a phone has none yet (see `pick`).
+[target.'cfg(not(any(target_arch = "wasm32", target_os = "android")))'.dependencies]
+rfd = { workspace = true }
 
 # A page picks and receives files asynchronously and keeps them in memory (`web.rs`).
 [target.'cfg(target_arch = "wasm32")'.dependencies]

@@ -4,6 +4,7 @@ All notable changes, newest first. Each line says what the person notices.
 
 ## Unreleased
 
+- Android: an app for phones (`apps/axiom-android`), the same interface in a native activity, built as an APK by `packaging/android/package.sh`. It starts on the Android 14 emulator; a phone layout, a file picker and local models there are still to do.
 - Builder: when a project is ported to Rust the agent lays it out as a Cargo workspace (`crates/`, `apps/`, `docs/`, `scripts/`), the way a well-kept Rust application repository does.
 - Repository: the licence-bundle config moved to `release/`; added `GOVERNANCE.md`, `TRADEMARKS.md`, `CODEOWNERS` and `dependabot.yml`.
 - Interface: a Build / Agent switch on top of the sidebar, a profile card at its foot, and an "Update available" pill in the title bar when a newer release is out (one anonymous check per start).

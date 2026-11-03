@@ -1296,6 +1296,16 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
 - [ ] Remote screen: copy and paste between the browser and the app, window resize from the browser,
       touch input, and a check on Linux and Windows; a standalone browser version (no app running)
       still needs the UI off the engine's types
-- [ ] Android app (none exists yet; the models hub cannot run llama.cpp's server there as built —
-      needs an in-process runner or a remote engine). Needs an emulator or device to check
+- [x] Android app starts: `apps/axiom-android` is the same `CraftApp` in a native activity, packed as
+      an APK by `packaging/android/package.sh` (arm64, a throwaway signing key). Checked on the
+      Android 14 emulator: it opens to the welcome screen. The entry point is the macro in
+      `axiom-android-glue`, so no crate writes unsafe code.
+- [ ] Android app, made for a phone: keep the content out of the status bar and navigation bar
+      (safe-area insets), no custom title bar, a layout for a narrow portrait screen (the welcome
+      cards are sized for a wide window), touch targets, and the soft keyboard
+- [ ] Android app: choosing a file (the system's document picker; `rfd` has no Android backend, so
+      the Open button says so for now) and saving the report
+- [ ] Android app: the models hub cannot run llama.cpp's server there as built; needs an in-process
+      runner or a remote engine. Then check chat against a model on a real phone
+- [ ] Android app: a release key, an `x86_64` build for emulators on Intel, and the APK in the release workflow
 - [ ] Models hub: run and check on Linux and Windows (pins exist, only macOS arm64 was run live)

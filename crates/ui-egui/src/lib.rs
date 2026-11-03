@@ -953,7 +953,12 @@ impl CraftApp {
             (Pick::OpenFile | Pick::TargetFile, Some(ctx)) => web::pick_file(pick, ctx),
             _ => self.toast(tr("A web page can't choose a folder or other places. Pick or drop a file instead."), true),
         }
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(target_os = "android")]
+        {
+            let _ = pick;
+            self.toast(tr("This phone can't choose files here yet. Ask a question or open a project instead."), true);
+        }
+        #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
         self.jobs.spawn("Choose a file", false, move |_| {
             let d = rfd::AsyncFileDialog::new();
             if matches!(pick, Pick::Pictures | Pick::Attach) {
@@ -1213,7 +1218,7 @@ impl CraftApp {
         }
         let name = self.view.active_target().map(|t| format!("{} report.md", t.name)).unwrap_or_else(|| "Axiom report.md".into());
         let engine = self.engine.clone();
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
         self.jobs.spawn("Export report", true, move |_| {
             let picked = pollster::block_on(
                 rfd::AsyncFileDialog::new().set_title(tr("Save the report")).set_file_name(&name).add_filter("Markdown", &["md"]).save_file(),
@@ -1225,6 +1230,11 @@ impl CraftApp {
             engine.call("core_report_save", params, CallOptions::new(Caller::Ui)).map_err(|e| e.message)?;
             Ok(Done::Wrote { what: "report".into(), path: Some(path) })
         });
+        #[cfg(target_os = "android")]
+        {
+            let _ = (md, name, engine);
+            self.toast(tr("This phone can't choose files here yet. Ask a question or open a project instead."), true);
+        }
     }
 
     // ---- results ----------------------------------------------------------------------------

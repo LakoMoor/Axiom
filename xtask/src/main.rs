@@ -13,6 +13,7 @@ mod secrets;
 /// (L0 format crates depend on nothing in the workspace).
 const LAYERS: &[(&str, u8)] = &[
     ("axiom-evidence", 0),
+    ("axiom-android-glue", 0),
     ("axiom-formats", 0),
     ("axiom-disasm", 1),
     ("axiom-js", 1),
@@ -184,7 +185,7 @@ const APP_LAYER: u8 = 7;
 
 /// Apps that are user interfaces of their own. The browser app may use only the crates that build
 /// for wasm (`WASM_CRATES`, which now include the engine and the UI).
-const UI_APPS: &[&str] = &["axiom", "axiom-web"];
+const UI_APPS: &[&str] = &["axiom", "axiom-web", "axiom-android"];
 const WASM_APPS: &[&str] = &["axiom-web"];
 
 fn layers(root: &Path) -> bool {
