@@ -1532,7 +1532,7 @@ impl CraftApp {
         self.stuck_banner(ui, &ctx);
         if !self.settings.first_run_done {
             egui::CentralPanel::default().frame(egui::Frame::new().inner_margin(egui::Margin { left: 8, right: 8, top: 0, bottom: 8 })).show(ui, |ui| {
-                theme::glass_card(ui.painter(), ui.max_rect(), t.radius_lg, &t);
+                theme::glass_card(ui.painter(), ui.max_rect(), theme::CARD_RADIUS, &t);
                 guard_ui(ui, "first run", |ui| first_run::show(self, ui))
             });
             titlebar::window_edge(&ctx);
@@ -1549,12 +1549,12 @@ impl CraftApp {
                 .show(ui, |ui| {
                     guard_ui(ui, "sidebar", |ui| {
                         let card = ui.max_rect();
-                        theme::glass_card(ui.painter(), card, t.radius_lg, &t);
+                        theme::glass_card(ui.painter(), card, theme::CARD_RADIUS, &t);
                         ui.scope_builder(egui::UiBuilder::new().max_rect(card.shrink2(egui::vec2(8.0, 0.0))), |ui| sidebar::show(self, ui));
                     })
                 });
             egui::CentralPanel::default().frame(egui::Frame::new().inner_margin(egui::Margin { left: 4, right: 8, top: 0, bottom: 8 })).show(ui, |ui| {
-                theme::glass_card(ui.painter(), ui.max_rect(), t.radius_lg, &t);
+                theme::glass_card(ui.painter(), ui.max_rect(), theme::CARD_RADIUS, &t);
                 guard_ui(ui, "simple", |ui| match self.state.screen {
                     Screen::Home | Screen::Workbench => home::show(self, ui),
                     Screen::Ask => chat::ask_screen(self, ui),

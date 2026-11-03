@@ -97,8 +97,12 @@ pub const RADIUS_SM: f32 = 10.0;
 pub const RADIUS: f32 = 14.0;
 pub const RADIUS_LG: f32 = 20.0;
 /// The window's own corners, and the gap between the glass panels floating in it.
-pub const WINDOW_RADIUS: f32 = 18.0;
+/// Concentric corners, as Apple's guidance has them: the window's radius minus the gap to a
+/// panel is the panel's radius, and the panel's minus the padding to a row is the row's.
+pub const WINDOW_RADIUS: f32 = 26.0;
 pub const GAP: f32 = 8.0;
+pub const CARD_RADIUS: f32 = WINDOW_RADIUS - GAP;
+pub const ROW_RADIUS: f32 = CARD_RADIUS - GAP;
 
 /// The app colour: the deep accent (#1659c4). White on it passes WCAG AA; on its
 /// bright accent (#2d81ff, used for hover) it doesn't.
