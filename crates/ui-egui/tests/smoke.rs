@@ -509,9 +509,9 @@ fn a_finished_build_can_be_pinned_and_opened_from_the_sidebar() {
     assert_eq!(h.get_by_label("Snake · pin 1").rect().top(), pin.top());
     let folded_refresh = h.get_by_label("Look for projects again").rect();
     assert_eq!(folded_refresh.top(), refresh.top(), "the refresh button stays, on the same line");
-    // Everything is centred on the row icons.
-    let row = h.get_by_label("New project").rect().center().x;
-    for name in ["Show the sidebar", "Pinned builds", "Look for projects again"] {
+    // Everything is centred on the pinned build's icon (New project lives in the icon rail).
+    let row = h.get_by_label("Pinned builds").rect().center().x;
+    for name in ["Show the sidebar", "Look for projects again"] {
         let x = h.get_by_label(name).rect().center().x;
         assert!((x - row).abs() <= 1.0, "{name} is at {x}, the rows at {row}");
     }
