@@ -694,7 +694,7 @@ fn base_limitations() -> Vec<Limitation> {
     vec![
         Limitation::new(
             "decompiler_inferred",
-            "This pseudo-Java is reconstructed from bytecode by Craft Anything's built-in decompiler; it is a best guess, not the original source. The bytecode disassembly is the evidence.",
+            "This pseudo-Java is reconstructed from bytecode by Axiom's built-in decompiler; it is a best guess, not the original source. The bytecode disassembly is the evidence.",
         ),
         Limitation::new("generics_erased", "Generic type arguments are erased in bytecode and are not shown."),
         Limitation::new("names_and_types_inferred", "Local variables are named v0, v1, … (no debug names); their declared types are not reconstructed."),

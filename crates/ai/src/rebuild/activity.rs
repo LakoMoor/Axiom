@@ -344,7 +344,7 @@ impl ActivityFile {
             let mut file = options.open(&path)?;
             self.written = file.metadata()?.len();
             let (_, date, time) = journal::now_utc();
-            let head = format!("--- Craft Anything {}: a run started {date} {time} UTC ---\n", env!("CARGO_PKG_VERSION"));
+            let head = format!("--- Axiom {}: a run started {date} {time} UTC ---\n", env!("CARGO_PKG_VERSION"));
             file.write_all(head.as_bytes())?;
             self.file = Some(file);
         }

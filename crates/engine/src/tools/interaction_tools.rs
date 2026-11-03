@@ -283,7 +283,8 @@ fn decide_command(cmd: &str, app: &Path) -> Decision {
     let parts: Vec<&str> = c.split("&&").map(str::trim).collect();
     if parts.iter().any(|p| never_exits(p)) {
         return Decision::Deny(
-            "Don't start dev servers or watchers: they never exit. Run `npm run build` (or `cargo build`) instead; Craft Anything serves and checks the build itself.".into(),
+            "Don't start dev servers or watchers: they never exit. Run `npm run build` (or `cargo build`) instead; Axiom serves and checks the build itself."
+                .into(),
         );
     }
     if c.contains(['|', ';', '<', '>', '`', '$', '\n']) || c.replace("&&", "").contains('&') {
@@ -476,7 +477,7 @@ pub fn never_unasked(ws: Option<&Workspace>, tool: &str, input: &Value) -> Optio
             let system = SYSTEM_DIRS.iter().any(|d| inside(Path::new(d), &p));
             // The inbox (where answers are written), the manifest and the other records stay out of reach.
             let ours = ws.is_some_and(|w| w.is_own_record(&p));
-            (system || ours).then(|| refuse("changes system files or Craft Anything's own records")).flatten()
+            (system || ours).then(|| refuse("changes system files or Axiom's own records")).flatten()
         }
         "Bash" | "PowerShell" => {
             let c = s("command").to_ascii_lowercase();

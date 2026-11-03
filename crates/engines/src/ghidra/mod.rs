@@ -216,9 +216,9 @@ fn ghidra_heap(cfg: &Config) -> String {
     format!("{gb}G")
 }
 
-/// This computer's memory in GB, looked up once (only when Ghidra starts with the automatic
-/// amount: asking the system starts a program).
-fn machine_memory_gb() -> Option<u64> {
+/// This computer's memory in GB, looked up once (asking the system may start a program, so call
+/// this from a worker, never while drawing).
+pub fn machine_memory_gb() -> Option<u64> {
     static MACHINE_GB: std::sync::OnceLock<Option<u64>> = std::sync::OnceLock::new();
     *MACHINE_GB.get_or_init(physical_memory_gb)
 }

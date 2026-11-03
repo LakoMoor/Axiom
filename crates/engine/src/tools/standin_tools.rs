@@ -104,7 +104,7 @@ pub fn parse_standin(bytes: &[u8]) -> Result<StandIn, ToolError> {
     let version = doc.get("version").and_then(Value::as_u64).and_then(|v| u32::try_from(v).ok()).ok_or_else(|| not_one("it has no version".into()))?;
     if version > STANDIN_VERSION {
         return Err(ToolError::unsupported(format!("This stand-in file is version {version}; this build reads up to {STANDIN_VERSION}."))
-            .with_remediation("Update Craft Anything, or make the file again with web_standin_build."));
+            .with_remediation("Update Axiom, or make the file again with web_standin_build."));
     }
     upgrade(&mut doc, version, FIRST_STANDIN_VERSION, STANDIN_STEPS).map_err(not_one)?;
     let mut standin: StandIn = serde_json::from_value(doc).map_err(|e| not_one(e.to_string()))?;
@@ -167,8 +167,8 @@ fn web_standin_build(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, Too
         && let Ok(v) = serde_json::from_slice::<Value>(&existing)
         && v.get("version").and_then(Value::as_u64).is_some_and(|n| n > u64::from(STANDIN_VERSION))
     {
-        return Err(ToolError::unsupported(format!("{} was made by a newer Craft Anything, so it isn't replaced.", out.display()))
-            .with_remediation("Update Craft Anything, or use another folder."));
+        return Err(ToolError::unsupported(format!("{} was made by a newer Axiom, so it isn't replaced.", out.display()))
+            .with_remediation("Update Axiom, or use another folder."));
     }
     ctx.report(None, format!("Reading {}", path.display()));
     let bytes = read_capped(&path, MAX_RECORDING_BYTES)?;

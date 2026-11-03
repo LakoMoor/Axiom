@@ -72,7 +72,7 @@ pub fn install(
     }
     let engine = crate::engine(engine_id).ok_or_else(|| {
         ToolError::new(ErrorCode::NotSupported, format!("There is no engine called {engine_id:?}."))
-            .with_remediation("See Settings → Engines for the engines Craft Anything knows.")
+            .with_remediation("See Settings → Engines for the engines Axiom knows.")
     })?;
     let pins = match engine.install {
         Install::Pinned(pins) => pins,
@@ -80,7 +80,7 @@ pub fn install(
             return Err(ToolError::new(ErrorCode::NotSupported, format!("{} is installed by its own setup, not here.", engine.name)).with_remediation(how));
         }
         Install::Manual => {
-            return Err(ToolError::new(ErrorCode::NotSupported, format!("Craft Anything doesn't install {} for you.", engine.name))
+            return Err(ToolError::new(ErrorCode::NotSupported, format!("Axiom doesn't install {} for you.", engine.name))
                 .with_remediation("Install it by hand and set its path in Settings → Engines."));
         }
     };
@@ -402,6 +402,23 @@ fn unpack_tar(data: &[u8], dest: &Path, strip_prefix: Option<&str>, cancel: Opti
         write_member(&path, bytes)?;
         written += 1;
     }
+    // A link to a file beside it (`libx.0.dylib -> libx.0.8.0.dylib`) becomes a copy of that file:
+    // programs name their libraries this way. Links to anywhere else are still skipped, and no link
+    // is ever created.
+    for m in listing.members.iter().filter(|m| m.kind == MemberKind::Symlink) {
+        let Some(target) = m.link_target.as_deref().filter(|t| !t.is_empty() && !t.contains(['/', '\\']) && *t != "." && *t != "..") else { continue };
+        let Some(path) = member_path(dest, &m.name, strip_prefix) else { continue };
+        let folder = m.name.rsplit_once('/').map_or("", |(f, _)| f);
+        let wanted = if folder.is_empty() { target.to_string() } else { format!("{folder}/{target}") };
+        let Some(from) = listing.members.iter().find(|o| o.kind == MemberKind::File && o.name == wanted) else { continue };
+        if from.size > MAX_ENTRY_BYTES {
+            continue;
+        }
+        if let Some(bytes) = tarcpio::member_data(data, from) {
+            write_member(&path, bytes)?;
+            written += 1;
+        }
+    }
     if written == 0 {
         return Err(ToolError::new(ErrorCode::GarbledOutput, "The archive contained no usable files."));
     }
@@ -546,6 +563,42 @@ mod tests {
 
     /// A ustar archive compressed with xz (CRC64 check), built with Python's tarfile and lzma.
     const TAR_XZ: &str = "fd377a585a000004e6d6b4460200210116000000742fe5a3e027ff00b95d00381ac91598acd1b234b7cf2f9dad0e287d129d13e5581d0f65aacbc6993ed65c623bb34f1cec998f414b193ae8d64e266bd6a04145e33d28c8b0f03106162354da1e0244e42f3bfa05dce43926c9b28039e5719c8a26e70d04b2ed7073f11a50f3f0e4679408db9327796c40719e04310e15eb36b3663fe42e616563e2ffbe3ccca4ceda11b6140a97d1412818e287480942a93c90ef60056a8a2f34f413d850e4add9e54f0541ac9ac93abcafdaaabdb075c3e49ce4a1f60000000000f2d8b968b3c5292a0001d501805000007ae8233db1c467fb020000000004595a";
+
+    /// One ustar member: `kind` is b'0' (file) or b'2' (symlink to `link`).
+    fn ustar(name: &str, kind: u8, link: &str, body: &[u8]) -> Vec<u8> {
+        let mut h = vec![0u8; 512];
+        h[..name.len()].copy_from_slice(name.as_bytes());
+        h[100..107].copy_from_slice(b"0000755");
+        h[124..135].copy_from_slice(format!("{:011o}", body.len()).as_bytes());
+        h[136..147].copy_from_slice(b"00000000000");
+        h[156] = kind;
+        h[157..157 + link.len()].copy_from_slice(link.as_bytes());
+        h[257..262].copy_from_slice(b"ustar");
+        h[263..265].copy_from_slice(b"00");
+        h[148..156].copy_from_slice(b"        ");
+        let sum: u32 = h.iter().map(|b| u32::from(*b)).sum();
+        h[148..155].copy_from_slice(format!("{sum:06o}\0").as_bytes());
+        let mut out = h;
+        out.extend_from_slice(body);
+        out.resize(out.len().div_ceil(512) * 512, 0);
+        out
+    }
+
+    #[test]
+    fn a_link_to_a_file_beside_it_becomes_a_copy_and_other_links_stay_skipped() {
+        let mut tar = Vec::new();
+        tar.extend(ustar("pkg/libx.0.8.0.dylib", b'0', "", b"LIB"));
+        tar.extend(ustar("pkg/libx.0.dylib", b'2', "libx.0.8.0.dylib", b""));
+        tar.extend(ustar("pkg/evil", b'2', "/etc/passwd", b""));
+        tar.extend(ustar("pkg/up", b'2', "../libx.0.8.0.dylib", b""));
+        tar.extend(vec![0u8; 1024]);
+        let dir = tempfile::tempdir().unwrap();
+        let n = unpack_tar(&tar, dir.path(), None, None, &|_| {}).unwrap();
+        assert_eq!(n, 2);
+        assert_eq!(std::fs::read(dir.path().join("pkg/libx.0.dylib")).unwrap(), b"LIB");
+        assert!(!dir.path().join("pkg/evil").exists() && !dir.path().join("pkg/up").exists());
+        assert!(!std::fs::symlink_metadata(dir.path().join("pkg/libx.0.dylib")).unwrap().file_type().is_symlink());
+    }
 
     #[test]
     fn safe_components_rejects_traversal() {

@@ -260,7 +260,7 @@ fn engines(app: &mut CraftApp, ui: &mut Ui) {
         },
     );
     ui.add_space(12.0);
-    row(ui, "Ghidra", "Adds its decompiler to Deep mode. Craft Anything can download and set it up for you.", |ui| {
+    row(ui, "Ghidra", "Adds its decompiler to Deep mode. Axiom can download and set it up for you.", |ui| {
         crate::engine_ui::ghidra_status(app, ui);
     });
     row(
@@ -271,7 +271,7 @@ fn engines(app: &mut CraftApp, ui: &mut Ui) {
     );
     ui.label(RichText::new(crate::engine_ui::ghidra_memory_guide()).color(t.text_faint).size(theme::CAPTION));
     ui.add_space(8.0);
-    row(ui, "Ghidra folder", "Leave empty to use the one Craft Anything sets up.", |ui| {
+    row(ui, "Ghidra folder", "Leave empty to use the one Axiom sets up.", |ui| {
         if path_field(ui, &mut app.settings.engines.ghidra.install_dir, "Ghidra folder", "managed") {
             app.settings_changed();
         }
@@ -634,7 +634,7 @@ fn plugins(app: &mut CraftApp, ui: &mut Ui) {
     ui.add(
         egui::Label::new(
             RichText::new(tr(
-                "Plugins add tools Craft Anything offers as its own: MCP servers (a command or an address; read their tools after adding) or WebAssembly components (a .wasm file, which can't touch your files or the network).",
+                "Plugins add tools Axiom offers as its own: MCP servers (a command or an address; read their tools after adding) or WebAssembly components (a .wasm file, which can't touch your files or the network).",
             ))
             .color(t.text_faint)
             .size(theme::CAPTION),

@@ -26,7 +26,7 @@ pub fn specs() -> Vec<ToolSpec> {
         ToolSpec {
             id: "engines_install",
             title: "Install an engine",
-            summary: "Download and install an engine into Craft Anything's own folder: `ghidra` (Deep mode, with its Java), or any engine with a pinned download (`adb`, `jadx`…). Every download is checked against its published SHA-256.",
+            summary: "Download and install an engine into Axiom's own folder: `ghidra` (Deep mode, with its Java), or any engine with a pinned download (`adb`, `jadx`…). Every download is checked against its published SHA-256.",
             beginner: "Installs a helper program for you.",
             toolset: Toolset::Setup,
             effects: Effects::ACCESSES_NETWORK.union(Effects::WRITES_FILESYSTEM).union(Effects::LAUNCHES_PROCESS),
@@ -82,7 +82,7 @@ pub fn specs() -> Vec<ToolSpec> {
             id: "plugins_add",
             title: "Add a plugin",
             summary: "Add an external MCP server as a plugin ([[plugins.mcp]] in config.toml): an id, and either a command (a local server, with args, env and cwd) or a url (a remote https server, with headers). A plugin added here always asks before each call. replace overwrites a plugin with the same id. Run plugins_refresh next to read its tools.",
-            beginner: "Adds an add-on: another program or server whose tools Craft Anything can use.",
+            beginner: "Adds an add-on: another program or server whose tools Axiom can use.",
             toolset: Toolset::Setup,
             effects: Effects::WRITES_FILESYSTEM.union(Effects::MUTATES_SESSION),
             requires: Requires::Nothing,

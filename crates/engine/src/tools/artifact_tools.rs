@@ -30,7 +30,7 @@ pub fn specs() -> Vec<ToolSpec> {
         ToolSpec {
             id: "core_archive_extract",
             title: "Extract an archive",
-            summary: "Extract every regular file of a ZIP/APK/IPA/JAR or ASAR (plus its .asar.unpacked files) into a fresh private temporary folder chosen by Craft Anything, and return its path. Bounded size and count; entries that would escape the folder are refused.",
+            summary: "Extract every regular file of a ZIP/APK/IPA/JAR or ASAR (plus its .asar.unpacked files) into a fresh private temporary folder chosen by Axiom, and return its path. Bounded size and count; entries that would escape the folder are refused.",
             beginner: "Unpack an app or archive into a new folder so you can look at the files.",
             toolset: Toolset::Core,
             effects: Effects::MUTATES_SESSION.union(Effects::WRITES_FILESYSTEM),

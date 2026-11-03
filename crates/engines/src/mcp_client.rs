@@ -1,4 +1,4 @@
-//! A small client for external MCP servers, so their tools can be offered as Craft Anything
+//! A small client for external MCP servers, so their tools can be offered as Axiom
 //! tools. Two transports implement [`Transport`]: a local server over stdio (newline-delimited
 //! JSON-RPC 2.0), run through `craft_anything_platform::process` like every external program and
 //! killed when the client is dropped; and a remote server over Streamable HTTP (JSON or

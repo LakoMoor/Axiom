@@ -29,6 +29,10 @@ pub struct PromptBox<'a> {
     /// Earlier prompts, oldest first, for Up and Down; read only when a key asks for them.
     pub history: Option<&'a dyn Fn() -> Vec<String>>,
     pub font_size: f32,
+    /// The AIs to pick from (names, and which is chosen), shown as a chip beside Send.
+    pub choices: Option<(&'a [String], Option<&'a str>)>,
+    /// Deep mode on or off, shown as a mode chip (a click flips it); `None` hides the chip.
+    pub deep: Option<bool>,
 }
 
 /// Going through earlier prompts: how far back, and what the box holds for it to still count.
@@ -103,6 +107,12 @@ pub struct PromptOut {
     pub recall: bool,
     /// The attachment to remove.
     pub remove: Option<usize>,
+    /// An AI was picked from the chip.
+    pub choose: Option<String>,
+    /// "Models…" was picked from the chip.
+    pub open_models: bool,
+    /// The mode chip was clicked.
+    pub flip_mode: bool,
 }
 
 pub fn show(ui: &mut Ui, text: &mut String, attachments: &[PathBuf], b: PromptBox) -> PromptOut {
@@ -218,11 +228,48 @@ pub fn show(ui: &mut Ui, text: &mut String, attachments: &[PathBuf], b: PromptBo
                     {
                         out.stop = true;
                     }
+                    if let Some((names, chosen)) = b.choices {
+                        model_chip(ui, names, chosen, &mut out);
+                    }
+                    if let Some(deep) = b.deep {
+                        let (text, tip, col) = if deep {
+                            ("Deep mode", "Deep mode: tools may look inside the original. Click for Clean room.", t.accent)
+                        } else {
+                            ("Clean room mode", "Clean room: nothing inside the original is read. Click for Deep mode.", t.success)
+                        };
+                        let r = ui.add(egui::Button::new(RichText::new(tr(text)).size(theme::CAPTION).color(col)).frame(false)).on_hover_text(tr(tip));
+                        if r.clicked() {
+                            out.flip_mode = true;
+                        }
+                    }
                 });
             });
         })
     });
     out
+}
+
+/// The AI in use as a small chip; a click lists the others and a way to the models hub.
+fn model_chip(ui: &mut Ui, names: &[String], chosen: Option<&str>, out: &mut PromptOut) {
+    let t = Tokens::get(ui.ctx());
+    let label = chosen.map_or_else(|| tr("Built-in engines"), str::to_string);
+    let short: String = if label.chars().count() > 28 { label.chars().take(27).chain(std::iter::once('…')).collect() } else { label };
+    ui.menu_button(RichText::new(short).size(theme::CAPTION).color(t.text_dim), |ui| {
+        ui.set_min_width(220.0);
+        for n in names {
+            if ui.selectable_label(chosen == Some(n.as_str()), n).clicked() {
+                out.choose = Some(n.clone());
+                ui.close();
+            }
+        }
+        if !names.is_empty() {
+            ui.separator();
+        }
+        if ui.button(tr("Models on this computer…")).clicked() {
+            out.open_models = true;
+            ui.close();
+        }
+    });
 }
 
 /// What Tab would complete the box to, when it starts with a partial command name. Only the

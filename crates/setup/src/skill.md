@@ -1,13 +1,13 @@
 ---
 name: craft-anything
-description: Investigate how shipped software works (programs, apps, packages, firmware, web bundles) with evidence-backed answers through the Craft Anything MCP tools, keeping a durable brief, plan, hypotheses, findings and handoff in the project.
+description: Investigate how shipped software works (programs, apps, packages, firmware, web bundles) with evidence-backed answers through the Axiom MCP tools, keeping a durable brief, plan, hypotheses, findings and handoff in the project.
 metadata:
   version: "1"
 ---
 
-# Craft Anything: evidence-first investigation
+# Axiom: evidence-first investigation
 
-Use Craft Anything when an answer depends on something that was *built and shipped*: an executable, a
+Use Axiom when an answer depends on something that was *built and shipped*: an executable, a
 library, an app bundle, an APK, an Electron app, a WebAssembly module, firmware, a crash dump or a
 network capture. If you have the source code and the question is about the source, read the source
 instead; that is faster and more direct.

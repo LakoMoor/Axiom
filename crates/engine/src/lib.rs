@@ -1,10 +1,11 @@
-//! The Craft Anything engine: one session, one registry of tools, one way in.
+//! The Axiom engine: one session, one registry of tools, one way in.
 //!
 //! The desktop UI, the CLI, the MCP server and the built-in AI agent all call [`Engine::call`]
 //! with a tool id and JSON params. The engine checks availability and consent, runs the tool,
 //! records the evidence it returns, and turns any escaped panic into an error.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
+pub mod changes;
 pub mod clean_room;
 pub mod feed;
 pub mod inbox;

@@ -154,7 +154,7 @@ fn deep_mode_without_ghidra_asks_to_get_it_before_using_it() {
     h.run_steps(3);
     // An app or a game offers Clean room or Deep right on the Make screen; picking Deep offers
     // Ghidra instead of quietly going without it.
-    h.get_by_label("How closely may Craft Anything look at it?");
+    h.get_by_label("How closely may Axiom look at it?");
     h.get_by_label("Deep").click();
     h.run_steps(3);
     assert_eq!(h.state().state.modal, Some(Modal::Ghidra));
@@ -168,7 +168,7 @@ fn deep_mode_without_ghidra_asks_to_get_it_before_using_it() {
     assert_eq!(h.state().state.modal, None);
     assert!(h.state().settings.deep_mode && h.state_mut().ghidra_missing(), "Deep stays on, without Ghidra");
     // Starting a build of a program asks again, and the project waits for the answer.
-    h.get_by_label("Start").click();
+    h.get_by_label("Send (Enter)").click();
     h.run_steps(4);
     assert_eq!(h.state().state.modal, Some(Modal::Ghidra));
     assert!(h.state().ghidra.start_after.is_some(), "the build starts once Ghidra is ready");
@@ -636,12 +636,12 @@ fn website_choice_stays_picked_while_the_address_is_empty() {
         assert!(h.state().state.make.editing_url);
         h.get_by_label("Type the website's address:");
         // A website is looked at as a visitor sees it, or read in Deep mode: asked.
-        h.get_by_label("How closely may Craft Anything look at it?");
+        h.get_by_label("How closely may Axiom look at it?");
     }
     h.get_by_label("Nothing — start fresh").click();
     h.run_steps(3);
     assert!(!h.state().state.make.editing_url);
-    assert!(h.query_by_label("How closely may Craft Anything look at it?").is_none(), "nothing to look at");
+    assert!(h.query_by_label("How closely may Axiom look at it?").is_none(), "nothing to look at");
     assert!(h.query_by_label("Type the website's address:").is_none());
 }
 
@@ -1464,7 +1464,7 @@ fn the_front_door_makes_something_or_just_looks_inside() {
     use craft_anything_ui_egui::state::Modal;
     let mut h = harness(|| demo::app(demo::engine(Mode::Beginner, true)));
     h.run_steps(3);
-    h.get_by_label("What do you want to make?");
+    h.get_by_label("What do you want to build?");
     h.get_by_label("Just look inside").click();
     h.run_steps(3);
     assert!(h.state().state.make.look);
@@ -1816,7 +1816,7 @@ fn start_is_in_view_at_a_common_window_height() {
             a
         });
         h.run_steps(3);
-        let bottom = h.get_by_label("Start").rect().max.y;
+        let bottom = h.get_by_label("Send (Enter)").rect().max.y;
         assert!(bottom <= 900.0 - 16.0, "Start ends at {bottom} px with an app picked: {app_target}");
     }
 }
@@ -2055,4 +2055,44 @@ fn a_narrow_window_folds_the_sidebar_and_puts_the_project_details_above_the_feed
     assert!(h.query_by_label("Open folder").is_none(), "folded away until opened");
     let send = h.get_by_label("Send (Enter)").rect();
     assert!(send.max.x <= 760.0 && send.max.y <= 820.0, "the prompt box fits: {send:?}");
+}
+
+#[test]
+fn the_models_hub_shows_cards_and_switches_tabs() {
+    let mut h = harness(|| {
+        let mut a = demo::app(demo::engine(Mode::Beginner, true));
+        demo::fill_models(&mut a);
+        a
+    });
+    h.run_steps(3);
+    h.get_by_label("Qwen3 14B");
+    h.get_by_label("Stop");
+    h.get_by_label("Search").click();
+    h.run_steps(3);
+    assert_eq!(h.state().models.tab, craft_anything_ui_egui::models_ui::Tab::Search);
+    h.get_by_label("On this computer").click();
+    h.run_steps(3);
+    h.get_by_label("No models yet");
+}
+
+#[test]
+fn earlier_chats_are_listed_and_open_again() {
+    use craft_anything_ui_egui::state::{ChatItem, Screen};
+    let mut h = harness(|| {
+        let mut a = demo::app(demo::engine(Mode::Beginner, true));
+        a.state.chat =
+            vec![ChatItem::User("How does the % key work?".into()), ChatItem::Assistant { text: "It divides by 100.".into(), backend: None, streaming: false }];
+        a.archive_chat();
+        a.state.chat.clear();
+        a
+    });
+    h.run_steps(3);
+    assert_eq!(h.state().chats.len(), 1);
+    h.get_by_label("How does the % key work?").click();
+    h.run_steps(3);
+    assert_eq!(h.state().state.screen, Screen::Ask);
+    assert_eq!(h.state().state.chat.len(), 2);
+    assert!(h.state().chats.is_empty(), "the opened chat is the one on the screen now");
+    // It comes back into the list from the screen's chat when the preferences are saved.
+    assert_eq!(h.state().chats_to_save().len(), 1);
 }

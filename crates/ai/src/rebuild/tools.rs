@@ -104,7 +104,7 @@ pub fn specs() -> Vec<ToolSpec> {
         ToolSpec {
             id: "rebuild_check",
             title: "Check my build",
-            summary: "For the builder: test the project's current build against the original now, with the same checks Craft Anything runs after each turn (a website's likeness at each width with the padding, colour, font and layout differences; an app's or game's picture against the original's; whether it builds; the mechanics sheet; credits). The project's running build answers it, so the builder can fix what it lists and check again before replying. Not counted as a round. project defaults to the project this tool server works for.",
+            summary: "For the builder: test the project's current build against the original now, with the same checks Axiom runs after each turn (a website's likeness at each width with the padding, colour, font and layout differences; an app's or game's picture against the original's; whether it builds; the mechanics sheet; credits). The project's running build answers it, so the builder can fix what it lists and check again before replying. Not counted as a round. project defaults to the project this tool server works for.",
             beginner: "Lets the builder test its work against the original while it builds.",
             toolset: Toolset::Core,
             effects: Effects::WRITES_FILESYSTEM,
@@ -447,7 +447,7 @@ fn rebuild_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolErr
     let ws = open(&project)?;
     if self_check::building_here(&ws.root) {
         return Err(ToolError::new(ErrorCode::FeatureMissing, "This builder can't check its own work while it builds.")
-            .with_remediation("Finish the turn: Craft Anything checks the build after it."));
+            .with_remediation("Finish the turn: Axiom checks the build after it."));
     }
     let asks = Inbox::new(self_check::asks_dir(&ws.root));
     let id = asks.post(craft_anything_engine::inbox::RequestKind::Question, "Check the build", "", Vec::new(), false, None)?;
@@ -457,7 +457,7 @@ fn rebuild_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolErr
         Some(a) => Ok(ToolOutput::Value(json!({"project": ws.root.display().to_string(), "report": a.text.unwrap_or_default()}))),
         None if ctx.cancel.is_cancelled() => Err(ToolError::new(ErrorCode::Cancelled, "Stopped.")),
         None => Err(ToolError::new(ErrorCode::NotFound, "No answer: no build is running for this project, or the check took too long.")
-            .with_remediation("Use this while Craft Anything is building the project; otherwise build it and finish the turn, and it is checked after.")),
+            .with_remediation("Use this while Axiom is building the project; otherwise build it and finish the turn, and it is checked after.")),
     }
 }
 

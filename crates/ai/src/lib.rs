@@ -17,6 +17,7 @@ pub mod http;
 pub mod key_tools;
 pub mod keys;
 pub mod model;
+pub mod models;
 pub mod openai;
 pub mod price;
 pub mod prompt;
@@ -264,6 +265,7 @@ impl ChatModel for Tunneled {
 pub fn tools() -> Vec<craft_anything_engine::ToolSpec> {
     let mut v = rebuild::tools::specs();
     v.extend(key_tools::specs());
+    v.extend(models::tools::specs());
     v
 }
 

@@ -51,7 +51,7 @@ fn stream(name: &str, bytes: &[u8]) -> String {
 }
 
 fn render(r: &Report, date: &str, time: &str) -> String {
-    let mut s = format!("Craft Anything {} failure log\nWhen: {date} {time} UTC\nWhat: {}\n", env!("CARGO_PKG_VERSION"), r.what);
+    let mut s = format!("Axiom {} failure log\nWhen: {date} {time} UTC\nWhat: {}\n", env!("CARGO_PKG_VERSION"), r.what);
     if let Some(d) = &r.diagnosis {
         s.push_str(&format!("Diagnosis: {d}\n"));
     }

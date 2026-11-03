@@ -392,7 +392,7 @@ fn load_bundle(path: &str) -> Result<Vec<Rec>, ToolError> {
     let bytes = std::fs::read(&pb).map_err(|e| ToolError::io(pb.display(), e))?;
     let v: Value = serde_json::from_slice(&bytes).map_err(|e| ToolError::invalid(format!("not a bundle: {e}")))?;
     if v.get("format").and_then(Value::as_str) != Some(super::session_tools::BUNDLE_FORMAT) {
-        return Err(ToolError::invalid(format!("{path} is not a Craft Anything evidence bundle")));
+        return Err(ToolError::invalid(format!("{path} is not a Axiom evidence bundle")));
     }
     let mut out = Vec::new();
     for r in v.get("records").and_then(Value::as_array).into_iter().flatten() {

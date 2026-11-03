@@ -131,7 +131,7 @@ pub fn setup(a: &SetupArgs, f: Format) -> u8 {
         }
         out(&format!("status: {}", report.status));
         if !report.restart.is_empty() {
-            out(&format!("Restart {} to load Craft Anything.", report.restart.join(", ")));
+            out(&format!("Restart {} to load Axiom.", report.restart.join(", ")));
         }
     } else {
         emit(&serde_json::to_value(&report).unwrap_or(Value::Null), f);

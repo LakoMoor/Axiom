@@ -60,9 +60,13 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             app.state.screen = Screen::Workbench;
             app.ensure_rail_loaded();
         }
+        if row(ui, "cpu", "Models", None, app.state.screen == Screen::Models).clicked() {
+            app.state.screen = Screen::Models;
+        }
         section_gap(ui, fold, 18.0);
         // Pinned builds, between the screens and the projects, to open in one click.
         crate::pins::section(app, ui, fold);
+        chats_section(app, ui, fold);
         // Folded, the heading's words don't fit: the rule and the icon stay, on the same line, so
         // nothing moves when the sidebar folds.
         let refresh = |ui: &mut Ui| icons::button(ui, "refresh-cw", 22.0, false, "Look for projects again").clicked();
@@ -191,4 +195,37 @@ pub(crate) fn row(ui: &mut Ui, icon: &str, label: &str, status: Option<(egui::Co
     widgets::focus_ring(ui, &resp, rect);
     resp.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Button, true, on, &name));
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
+}
+
+/// Earlier chats, newest first: a click opens one (the one on the screen goes into the list);
+/// right-click forgets it. Folded, the section isn't shown.
+fn chats_section(app: &mut CraftApp, ui: &mut Ui, fold: bool) {
+    if fold || app.chats.is_empty() {
+        return;
+    }
+    ui.horizontal(|ui| {
+        ui.add_space(12.0);
+        widgets::caption(ui, "Chats");
+    });
+    ui.add_space(2.0);
+    let mut open = None;
+    let mut forget = None;
+    for (i, c) in app.chats.iter().take(8).enumerate() {
+        let r = row(ui, "message-square", &c.title, None, false);
+        r.context_menu(|ui| {
+            if ui.button(tr("Forget this chat")).clicked() {
+                forget = Some(i);
+                ui.close();
+            }
+        });
+        if r.clicked() {
+            open = Some(i);
+        }
+    }
+    if let Some(i) = forget {
+        app.delete_chat(i);
+    } else if let Some(i) = open {
+        app.open_chat(i);
+    }
+    section_gap(ui, fold, 14.0);
 }

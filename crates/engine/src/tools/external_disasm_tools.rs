@@ -204,10 +204,8 @@ fn text_evidence(
     let total = text.lines().count();
     let page: Vec<&str> = text.lines().skip(offset).take(limit).collect();
     let stderr = out.stderr_text();
-    let mut lims = vec![Limitation::new(
-        "raw_tool_output",
-        "This is the external tool's own text; its format can change between versions and is not checked by Craft Anything.",
-    )];
+    let mut lims =
+        vec![Limitation::new("raw_tool_output", "This is the external tool's own text; its format can change between versions and is not checked by Axiom.")];
     if out.stdout_truncated {
         lims.push(Limitation::new(
             "output_capped",

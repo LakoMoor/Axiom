@@ -65,7 +65,7 @@ macro_rules! tool_paths {
 }
 
 // Ghidra is not here: its folder is `GhidraSettings::install_dir`.
-tool_paths!(adb, jadx, apktool, chromium, frida, gdb, lldb, mitmdump, binwalk, unblob, ilspy, java, tshark, objdump, rizin, rtl433, vineflower);
+tool_paths!(adb, llamaserver, jadx, apktool, chromium, frida, gdb, lldb, mitmdump, binwalk, unblob, ilspy, java, tshark, objdump, rizin, rtl433, vineflower);
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
@@ -113,7 +113,7 @@ pub struct Settings {
     pub runtime_study: bool,
     /// Recently opened projects and targets.
     pub recent: Vec<PathBuf>,
-    /// Where new projects are created; `None` = `Documents/Craft Anything`.
+    /// Where new projects are created; `None` = `Documents/Axiom`.
     pub projects_dir: Option<PathBuf>,
     /// More places projects are listed from: folders of projects, or projects started in a folder
     /// the person picked (added when they start one there).
@@ -123,7 +123,7 @@ pub struct Settings {
     pub existing_files: Option<crate::workspace::ExistingFiles>,
     /// Generated game assets: the budget a new project starts with and the picture model.
     pub assets: AssetSettings,
-    /// External MCP servers whose tools are offered as Craft Anything tools (`[[plugins.mcp]]`).
+    /// External MCP servers whose tools are offered as Axiom tools (`[[plugins.mcp]]`).
     pub plugins: crate::plugins::PluginSettings,
     /// How builds are checked and when refining stops (`[build]`).
     pub build: BuildSettings,
@@ -325,7 +325,7 @@ impl Settings {
             Ok(text) => match read_settings(&text) {
                 Ok(s) => {
                     if s.version > SETTINGS_VERSION {
-                        log::warn!("{} is from a newer Craft Anything (version {}); changes won't be saved over it", path.display(), s.version);
+                        log::warn!("{} is from a newer Axiom (version {}); changes won't be saved over it", path.display(), s.version);
                     }
                     s
                 }
@@ -336,10 +336,7 @@ impl Settings {
                         .and_then(|t| t.get("version").and_then(toml::Value::as_integer))
                         .and_then(|n| u32::try_from(n).ok());
                     if let Some(version) = newer.filter(|v| *v > SETTINGS_VERSION) {
-                        log::warn!(
-                            "{} is from a newer Craft Anything (version {version}) and unreadable here ({e}); using defaults without saving",
-                            path.display()
-                        );
+                        log::warn!("{} is from a newer Axiom (version {version}) and unreadable here ({e}); using defaults without saving", path.display());
                         return Settings { version, ..Settings::default() };
                     }
                     log::warn!("{} is unreadable ({e}); using defaults and keeping a copy", path.display());
@@ -359,9 +356,9 @@ impl Settings {
         if self.version > SETTINGS_VERSION {
             return Err(ToolError::new(
                 ErrorCode::BadSettings,
-                format!("{} was written by a newer Craft Anything (version {}), so this one doesn't change it.", path.display(), self.version),
+                format!("{} was written by a newer Axiom (version {}), so this one doesn't change it.", path.display(), self.version),
             )
-            .with_remediation("Update Craft Anything to change settings, or move config.toml aside to start fresh. Nothing was written."));
+            .with_remediation("Update Axiom to change settings, or move config.toml aside to start fresh. Nothing was written."));
         }
         let text = toml::to_string_pretty(self).map_err(|e| ToolError::new(ErrorCode::BadSettings, e.to_string()))?;
         crate::project::write_atomic(path, text.as_bytes())

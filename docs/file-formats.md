@@ -18,6 +18,7 @@ version up to the current one, then turn the document into Rust types. The step 
 | `<project>/pinned/<n>/pin.json` | `engine::pins` (`Pin`) | `PIN_VERSION` = 1 (`version`; missing = 1) | brought forward | read as far as its fields are known |
 | `<folder>/standin.json` | `engine::tools::standin_tools` (`analysis::standin::StandIn`; written only by `web_standin_build`) | `STANDIN_VERSION` = 1 (`version`, required) | brought forward | refused, with "update Craft Anything", and never written over |
 | `<project>/feed.json` | `ai::rebuild::feed` (written by the run) | `FEED_VERSION` = 1 (`{version, items}`; a bare list = 0) | read as before, saved as current | never written over; the conversation is rebuilt from the project for display |
+| `<project>/changes-baseline.json` | `engine::changes` (`Snapshot`; written when a build run starts) | `VERSION` = 1 (`version`) | — | ignored (no baseline); the next run replaces it |
 
 Other JSON in a project (`assets.json`, `inbox/`, `checks/`, evidence records) has no version yet;
 add one the first time its shape changes.

@@ -1,4 +1,4 @@
-//! JavaScript, Electron and web-bundle analysis for Craft Anything.
+//! JavaScript, Electron and web-bundle analysis for Axiom.
 //!
 //! Everything here is static and runs nothing: sources are parsed (with oxc, a pure-Rust
 //! parser) or, when parsing is refused or fails, tokenized; facts are read from the result.

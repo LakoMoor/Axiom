@@ -49,8 +49,8 @@ fn resolve<'a>(exports: impl Iterator<Item = &'a str>, base: &str) -> Result<Opt
         incompatible = Some(version.to_string());
     }
     match incompatible {
-        Some(v) => Err(ToolError::new(ErrorCode::NotSupported, format!("The plugin exports {base} for API {v}; this Craft Anything speaks {API_VERSION}."))
-            .with_remediation("Rebuild the plugin against this version's plugin.wit, or use a Craft Anything that matches it.")),
+        Some(v) => Err(ToolError::new(ErrorCode::NotSupported, format!("The plugin exports {base} for API {v}; this Axiom speaks {API_VERSION}."))
+            .with_remediation("Rebuild the plugin against this version's plugin.wit, or use a Axiom that matches it.")),
         None => Ok(None),
     }
 }

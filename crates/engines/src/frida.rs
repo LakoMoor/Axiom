@@ -2,7 +2,7 @@
 //!
 //! This is **not** a native binding: every operation shells out to the Frida CLI through
 //! [`craft_anything_platform::process`] with a deadline, closed stdin and capped output, so a hung
-//! or chatty session can never lock Craft Anything up. The companion CLIs (`frida-ps`,
+//! or chatty session can never lock Axiom up. The companion CLIs (`frida-ps`,
 //! `frida-ls-devices`) are found next to the located `frida` binary.
 //!
 //! Remote-device authentication (token, certificate, origin) is accepted only to be forwarded to

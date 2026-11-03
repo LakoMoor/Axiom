@@ -1,4 +1,4 @@
-//! The Craft Anything egui interface: Simple mode (make something from a prompt, or ask about a
+//! The Axiom egui interface: Simple mode (make something from a prompt, or ask about a
 //! target) and Advanced mode (the full workbench). Both drive the same engine.
 //!
 //! Threading: the UI thread never waits. Engine tools, AI detection, file dialogs and file writes
@@ -8,7 +8,9 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 pub mod builders;
+pub mod changes_ui;
 pub mod chat;
+pub mod chats;
 pub mod demo;
 pub mod engine_ui;
 pub mod evidence_ui;
@@ -23,6 +25,7 @@ pub mod jobs;
 pub mod just_ask;
 pub mod make;
 pub mod manage;
+pub mod models_ui;
 pub mod palette;
 pub mod pins;
 pub mod project;
@@ -204,6 +207,12 @@ pub enum Done {
     PicturesAdded(Result<usize, String>),
     /// The open project's files were read for the Project screen.
     Facts(project::Facts),
+    /// What the open project's latest run changed (and, with `detail`, one file's diff lines).
+    Changes {
+        root: PathBuf,
+        report: craft_anything_engine::changes::Report,
+        detail: Option<String>,
+    },
     /// A screenshot thumbnail was decoded (`None` when it couldn't be).
     Thumb {
         path: PathBuf,
@@ -309,6 +318,9 @@ pub struct Prefs {
     /// What was typed in each project's box and not sent yet, by project folder.
     #[serde(default)]
     pub unsent: std::collections::BTreeMap<PathBuf, String>,
+    /// Earlier chats (questions and answers), newest first.
+    #[serde(default)]
+    pub chats: Vec<chats::SavedChat>,
 }
 
 pub const PREFS_KEY: &str = "craft-anything-ui";
@@ -363,6 +375,12 @@ pub struct CraftApp {
     pub asked: std::collections::HashMap<PathBuf, Vec<just_ask::Asked>>,
     /// Every project's pinned builds, and whether they're running (read by `refresh_pins`).
     pub pins: Vec<pins::PinRow>,
+    /// The models hub screen's data.
+    pub models: models_ui::View,
+    /// What the open project's latest run changed.
+    pub changes: changes_ui::View,
+    /// Earlier chats, listed in the sidebar (newest first).
+    pub chats: Vec<chats::SavedChat>,
     pub pins_read_at: Option<Instant>,
     /// An address to open in the browser on the next frame (set from a worker's result).
     open_url: Option<String>,
@@ -439,6 +457,9 @@ impl CraftApp {
             projects: Vec::new(),
             preview: None,
             pins: Vec::new(),
+            models: models_ui::View::default(),
+            changes: changes_ui::View::default(),
+            chats: Vec::new(),
             asked: Default::default(),
             pins_read_at: None,
             open_url: None,
@@ -491,6 +512,7 @@ impl CraftApp {
         }
         self.state.sidebar_folded = p.sidebar_folded;
         self.state.pins_collapsed = p.pins_collapsed;
+        self.chats = p.chats;
         // Typed drafts come back, so a restart doesn't lose them.
         if let Some(d) = p.make {
             self.state.make = d;
@@ -513,6 +535,7 @@ impl CraftApp {
         let m = &self.state.make;
         let make = (!m.request.trim().is_empty() || !m.url.trim().is_empty() || !m.pictures.is_empty()).then(|| m.clone());
         Prefs {
+            chats: self.chats_to_save(),
             make,
             unsent,
             sidebar_folded: self.state.sidebar_folded,
@@ -776,7 +799,35 @@ impl CraftApp {
         });
     }
 
+    /// A `models_*` tool a button started has finished.
+    fn models_acted(&mut self, tool: &str, result: Result<Value, ToolError>) {
+        match result {
+            Ok(v) => {
+                if tool == "models_server_start" {
+                    self.models.starting.clear();
+                    self.toast(tr("The model is running. Pick it in the AI list."), false);
+                    self.refresh_backends();
+                } else if tool == "models_server_stop" {
+                    self.refresh_backends();
+                } else if tool == "models_file_download" {
+                    self.toast(tr("Downloaded."), false);
+                }
+                if self.models.took(tool, &v) {
+                    models_ui::refresh(self);
+                }
+            }
+            Err(e) => {
+                self.models.starting.clear();
+                self.models.searching = false;
+                self.toast(e.for_people(), true);
+            }
+        }
+    }
+
     fn acted(&mut self, tool: &str, result: Result<Value, ToolError>) {
+        if tool.starts_with("models_") {
+            return self.models_acted(tool, result);
+        }
         match (tool, result) {
             ("project_preview", Ok(v)) => {
                 let url = v.get("url").and_then(Value::as_str).map(str::to_string);
@@ -1156,7 +1207,7 @@ impl CraftApp {
         if self.headless {
             return;
         }
-        let name = self.view.active_target().map(|t| format!("{} report.md", t.name)).unwrap_or_else(|| "Craft Anything report.md".into());
+        let name = self.view.active_target().map(|t| format!("{} report.md", t.name)).unwrap_or_else(|| "Axiom report.md".into());
         let engine = self.engine.clone();
         #[cfg(not(target_arch = "wasm32"))]
         self.jobs.spawn("Export report", true, move |_| {
@@ -1203,6 +1254,7 @@ impl CraftApp {
                 self.refresh_pins();
             }
             Done::Facts(f) => self.facts_read(job, Some(f)),
+            Done::Changes { root, report, detail } => self.changes_read(root, report, detail),
             Done::PicturesAdded(added) => self.pictures_added(added),
             Done::Created { ws, request, backend, pictures } => self.created(*ws, request, backend, pictures),
             Done::Thumb { path, image } => self.thumb_ready(path, image),
@@ -1212,6 +1264,7 @@ impl CraftApp {
                 Ok(v) => {
                     // Another target: a new conversation, so answers about two things don't mix.
                     if self.view.active_target().is_some_and(|t| t.path != path) {
+                        self.archive_chat();
                         self.state.chat.clear();
                         if let Some(mut c) = self.conversation.take() {
                             c.stop();
@@ -1421,6 +1474,8 @@ impl CraftApp {
             self.facts = project::Facts { root: root.clone(), ..Default::default() };
             self.thumbs.clear();
             self.refresh_side_panel();
+            self.changes = changes_ui::View::default();
+            self.load_changes(None);
         }
         self.read_facts(ctx);
         self.flush_settings(ctx);
@@ -1479,6 +1534,7 @@ impl CraftApp {
                     Screen::Home | Screen::Workbench => home::show(self, ui),
                     Screen::Ask => chat::ask_screen(self, ui),
                     Screen::Project => project::show(self, ui),
+                    Screen::Models => models_ui::show(self, ui),
                 })
             });
         } else {

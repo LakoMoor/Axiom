@@ -107,7 +107,7 @@ pub fn duration_words(d: Duration) -> String {
 }
 
 /// The tooltip for usage: what each number is, and what it counts (`counts`, e.g. "Every build
-/// of this project." or "Since Craft Anything opened.").
+/// of this project." or "Since Axiom opened.").
 pub fn explain(u: &ProjectUsage, counts: &str) -> String {
     let mut lines = vec![trf("{in} in, {out} out.", &[("in", &tokens_words(u.input_tokens)), ("out", &tokens_words(u.output_tokens))])];
     if u.priced && u.estimated_usd() >= NOT_MONEY {

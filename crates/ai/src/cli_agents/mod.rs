@@ -98,14 +98,14 @@ impl McpCommand {
 /// that ran out of time says nothing about the program, so the build goes ahead. Stopping the
 /// build ends the check, as `ErrorCode::Cancelled`.
 pub fn cli_can_start(cli: Option<&Path>, stop: &CancelToken) -> Result<(), ToolError> {
-    const REINSTALL: &str = "Install the latest Craft Anything again: it keeps this helper next to the app. If you built the app yourself, run `cargo build -p craft-anything-cli` too.";
+    const REINSTALL: &str =
+        "Install the latest Axiom again: it keeps this helper next to the app. If you built the app yourself, run `cargo build -p craft-anything-cli` too.";
     let Some(cli) = cli else {
-        return Err(ToolError::new(ErrorCode::EngineMissing, "Craft Anything's helper program (craft-anything-cli) is missing, so the builder can't start.")
+        return Err(ToolError::new(ErrorCode::EngineMissing, "Axiom's helper program (craft-anything-cli) is missing, so the builder can't start.")
             .with_remediation(REINSTALL));
     };
     let failed = |why: String| {
-        ToolError::new(ErrorCode::EngineMissing, format!("Craft Anything's helper program at {} wouldn't start: {why}", cli.display()))
-            .with_remediation(REINSTALL)
+        ToolError::new(ErrorCode::EngineMissing, format!("Axiom's helper program at {} wouldn't start: {why}", cli.display())).with_remediation(REINSTALL)
     };
     let stop = stop.clone();
     match Process::new(cli.as_os_str()).arg("--version").timeout(Duration::from_secs(30)).stdout_cap(64 * 1024).cancel_when(move || stop.is_cancelled()).run() {
@@ -211,7 +211,7 @@ pub fn claude_code_failure(why: &str) -> (String, Option<String>) {
     (format!("Claude Code stopped: {why}"), sign_in_hint(why))
 }
 
-/// Variables a Claude Code session sets for its own child processes. When Craft Anything itself
+/// Variables a Claude Code session sets for its own child processes. When Axiom itself
 /// runs inside such a session, they'd make the person's `claude` act as part of that session
 /// instead of as their own install, so they're removed. The person's own settings (provider
 /// choice `CLAUDE_CODE_USE_*`, `CLAUDE_CONFIG_DIR`, `ANTHROPIC_*`) are kept.

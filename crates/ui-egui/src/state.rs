@@ -21,6 +21,8 @@ pub enum Screen {
     /// Advanced mode's workbench: every tool on the open target. Projects and their builds keep
     /// their own screens beside it, so nothing being built goes out of sight.
     Workbench,
+    /// The hub of local models.
+    Models,
 }
 
 /// What the person is about to make (the Home prompt).

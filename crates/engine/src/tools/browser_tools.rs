@@ -23,7 +23,7 @@ pub fn specs() -> Vec<ToolSpec> {
             "web_browser_connect",
             "Connect to a browser",
             "Attach to a loopback CDP endpoint (a browser started with --remote-debugging-port) or launch a located Chromium headless, and report the product, protocol version and debuggable target count. A quick connectivity check before the other browser tools.",
-            "Check Craft Anything can talk to a web browser for live inspection.",
+            "Check Axiom can talk to a web browser for live inspection.",
             Toolset::Browser,
             Effects::NETWORK_EVIDENCE.union(Effects::LAUNCHES_PROCESS),
             Requires::Nothing,

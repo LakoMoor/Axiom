@@ -1,7 +1,7 @@
 //! Helper engines in the UI: getting Ghidra for Deep mode, a generated-assets switch with the
 //! fal.ai key it needs, and the download progress shown everywhere.
 //!
-//! Craft Anything downloads only what it can check (against the publisher's checksums).
+//! Axiom downloads only what it can check (against the publisher's checksums).
 
 use crate::i18n::{tr, trf};
 use crate::state::{Modal, Screen};
@@ -77,7 +77,7 @@ pub fn deep_needed(app: &mut CraftApp, ui: &mut Ui) {
         ui,
         "shield-check",
         "Looking inside needs Deep mode",
-        "Clean room never reads the original's code, files or page source. Deep mode reads them with every tool Craft Anything has.",
+        "Clean room never reads the original's code, files or page source. Deep mode reads them with every tool Axiom has.",
     );
     ui.vertical_centered(|ui| {
         if widgets::primary_icon(ui, Some("microscope"), "Turn on Deep mode", true).clicked() {
@@ -139,7 +139,7 @@ pub fn ghidra_modal(app: &mut CraftApp, ui: &mut Ui, close: &mut bool) {
         body(
             ui,
             trf(
-                "It isn't on this computer yet. Craft Anything can download Ghidra {version} and the Java runtime it needs (about {mb} MB), check both against their publishers' checksums, and set them up in its own folder. Nothing else on your computer changes.",
+                "It isn't on this computer yet. Axiom can download Ghidra {version} and the Java runtime it needs (about {mb} MB), check both against their publishers' checksums, and set them up in its own folder. Nothing else on your computer changes.",
                 &[("version", get::VERSION), ("mb", &get::DOWNLOAD_MB.to_string())],
             ),
         );
@@ -150,7 +150,7 @@ pub fn ghidra_modal(app: &mut CraftApp, ui: &mut Ui, close: &mut bool) {
         }
     }
     if !ready && downloading.is_none() {
-        body(ui, tr("Without it, Deep mode uses Craft Anything's own decompiler, which is rougher."));
+        body(ui, tr("Without it, Deep mode uses Axiom's own decompiler, which is rougher."));
     }
     ui.add_space(14.0);
     ui.horizontal(|ui| {

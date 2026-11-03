@@ -13,7 +13,7 @@ use craft_anything_engine::workspace::Claim;
 use craft_anything_platform::process::Process;
 
 /// What every app and game brief asks for, so the check can see the result.
-pub const SCREENSHOT_CONTRACT: &str = "Give the program a `--screenshot <file.png>` option: start normally, draw about 120 frames, save the window's picture as a PNG to that file and exit. Craft Anything runs it that way after each build to check the result, and a build without the option, or with a blank picture, doesn't pass. Try it yourself: run it with a file inside app/ (for example app/shots/now.png) and look at the picture.";
+pub const SCREENSHOT_CONTRACT: &str = "Give the program a `--screenshot <file.png>` option: start normally, draw about 120 frames, save the window's picture as a PNG to that file and exit. Axiom runs it that way after each build to check the result, and a build without the option, or with a blank picture, doesn't pass. Try it yourself: run it with a file inside app/ (for example app/shots/now.png) and look at the picture.";
 
 /// How long the program may take to start, draw and save its picture (or play its self-test).
 const RUN_LIMIT: Duration = Duration::from_secs(90);

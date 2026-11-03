@@ -7,9 +7,9 @@
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleDisplayName</key>
-  <string>Craft Anything</string>
+  <string>Axiom</string>
   <key>CFBundleName</key>
-  <string>Craft Anything</string>
+  <string>Axiom</string>
   <key>CFBundleExecutable</key>
   <string>craft-anything</string>
   <key>CFBundleIdentifier</key>
@@ -43,7 +43,7 @@
   <key>NSRequiresAquaSystemAppearance</key>
   <false/>
   <key>NSHumanReadableCopyright</key>
-  <string>Copyright © the ArtCraft Team and the Craft Anything contributors. MIT OR Apache-2.0.</string>
+  <string>Copyright © the ArtCraft Team and the Axiom contributors. MIT OR Apache-2.0.</string>
 
 </dict>
 </plist>

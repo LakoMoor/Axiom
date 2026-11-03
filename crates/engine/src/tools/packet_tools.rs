@@ -388,7 +388,7 @@ fn engines_tshark_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, 
     let summary = match (&found, &version) {
         (Some(p), Some(v)) => format!("{v} is available at {}. packets_inventory_show will use it; the built-in decoder works without it.", p.display()),
         (Some(p), None) => format!("tshark was found at {} but did not report a version. The built-in decoder works without it.", p.display()),
-        (None, _) => "Wireshark's tshark is not installed. That's fine: the packet tools use Craft Anything's built-in decoder.".into(),
+        (None, _) => "Wireshark's tshark is not installed. That's fine: the packet tools use Axiom's built-in decoder.".into(),
     };
     let mut lims = Vec::new();
     if let Some(e) = &error {

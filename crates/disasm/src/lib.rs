@@ -1,4 +1,4 @@
-//! Craft Anything's own native engine: decoding, functions, control flow, references, pseudo-C.
+//! Axiom's own native engine: decoding, functions, control flow, references, pseudo-C.
 //!
 //! [`Image`] wraps a parsed container and its bytes; [`Program::analyze`] discovers functions
 //! (entry, symbols, exports, container function lists, call targets, code pointers, prologue

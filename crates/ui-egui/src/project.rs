@@ -271,6 +271,9 @@ impl CraftApp {
         }
         self.refresh_projects();
         for root in finished {
+            if self.workspace.as_ref().is_some_and(|w| w.root == root) {
+                self.load_changes(None);
+            }
             // Every note of a finished run was read or goes next: none can be taken back now.
             self.drafts.retain(|_, d| d.root != root);
             // Notes the builder didn't get to (it finished, or "Send now" stopped it) go next.
@@ -676,6 +679,8 @@ fn side(app: &mut CraftApp, ui: &mut Ui, ws: &Workspace) {
     });
     ui.add_space(14.0);
     steps(app, ui, ws);
+    ui.add_space(14.0);
+    crate::changes_ui::card(app, ui);
     ui.add_space(14.0);
     open_questions(app, ui);
     asset_line(app, ui, ws);
@@ -1217,10 +1222,7 @@ pub fn can_continue(app: &CraftApp, ws: &Workspace) -> bool {
 fn continue_card(app: &mut CraftApp, ui: &mut Ui, ws: &Workspace) {
     let t = Tokens::get(ui.ctx());
     let (title, body) = if interrupted(app, ws) {
-        (
-            "This build stopped part-way",
-            "Craft Anything or the computer closed while it was working. Everything so far is kept; Continue picks up where it stopped.",
-        )
+        ("This build stopped part-way", "Axiom or the computer closed while it was working. Everything so far is kept; Continue picks up where it stopped.")
     } else {
         ("Paused", "Everything so far is kept. Continue picks up where it stopped.")
     };
@@ -1522,6 +1524,8 @@ fn composer(app: &mut CraftApp, ui: &mut Ui, width: f32, t: &Tokens) {
                 recall: !waiting.is_empty(),
                 history: Some(&history),
                 font_size: theme::BODY,
+                choices: None,
+                deep: None,
             },
         );
         // Like the x on a note: the last one waiting comes back into the box to be edited.

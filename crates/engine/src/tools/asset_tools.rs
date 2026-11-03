@@ -133,7 +133,7 @@ fn job(ctx: &Ctx<'_>) -> Result<Job, ToolError> {
     if !providers.ids().iter().any(|id| keys.get(id).is_some()) {
         return Err(no_key("fal.ai"));
     }
-    let not_project = || ToolError::new(ErrorCode::FeatureMissing, "Assets can only be generated inside a Craft Anything project.");
+    let not_project = || ToolError::new(ErrorCode::FeatureMissing, "Assets can only be generated inside a Axiom project.");
     let inbox = inbox(ctx).ok_or_else(not_project)?;
     let ws = workspace_of(&inbox).ok_or_else(not_project)?;
     if !ws.manifest.generate_assets {

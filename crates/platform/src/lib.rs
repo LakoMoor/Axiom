@@ -1,6 +1,6 @@
-//! Native platform services for Craft Anything: owned processes, file safety and program lookup.
+//! Native platform services for Axiom: owned processes, file safety and program lookup.
 //!
-//! Every external program Craft Anything runs goes through [`process`]: stdin is closed or fed from
+//! Every external program Axiom runs goes through [`process`]: stdin is closed or fed from
 //! bytes we own, every run has wall and idle deadlines, output is capped and drained on threads,
 //! and the whole process group (Unix) or Job Object (Windows) is killed on timeout, cancel or drop.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]

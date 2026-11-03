@@ -54,6 +54,17 @@ pub fn specs() -> Vec<ToolSpec> {
             run: project_inbox_answer,
         },
         ToolSpec {
+            id: "project_changes_show",
+            title: "Show what the last build changed",
+            summary: "The files the latest build run added, changed or deleted in a project's app folder, with line counts. A snapshot is taken when a run starts and compared with the folder now. Give `path` (relative to the app folder) to list the lines of that file's diff; the others give counts only. `has_baseline` is false until a run has started.",
+            beginner: "Shows which files the builder changed.",
+            toolset: Toolset::Projects,
+            effects: Effects::READ_ONLY,
+            requires: Requires::Nothing,
+            input_schema: schema_of::<ChangesParams>,
+            run: project_changes_show,
+        },
+        ToolSpec {
             id: "project_play",
             title: "Play a project's result",
             summary: "Start the finished game or app a project built (its program, a Unity or Unreal package, or a Godot project in Godot), in its own window. If it's already running, says so instead of starting a second copy, unless `another` is true. A start that quits within two seconds is reported with its exit code and last output. It runs the code the builder wrote, so it needs the person's consent. Websites use project_preview instead. Known limit on Windows: when the caller's output is a pipe, the started program inherits it, so a caller reading that output to its end waits until the program exits (#207).",
@@ -111,7 +122,7 @@ pub fn specs() -> Vec<ToolSpec> {
         ToolSpec {
             id: "project_delete",
             title: "Delete a project",
-            summary: "Delete a project: everything Craft Anything made in its folder (its records, checks, and what was built in app/). The person's own files stay (an app edited in place, the files a project started from). Can't be undone, so `confirm` must be true; stop a build first.",
+            summary: "Delete a project: everything Axiom made in its folder (its records, checks, and what was built in app/). The person's own files stay (an app edited in place, the files a project started from). Can't be undone, so `confirm` must be true; stop a build first.",
             beginner: "Deletes something you made. Your own files are kept.",
             toolset: Toolset::Projects,
             effects: Effects::WRITES_FILESYSTEM,
@@ -164,6 +175,16 @@ pub fn specs() -> Vec<ToolSpec> {
             run: project_assets_allow,
         },
     ]
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ChangesParams {
+    /// The project's folder.
+    pub project: PathBuf,
+    /// One file (relative to the app folder) to list the diff lines of.
+    #[serde(default)]
+    pub path: Option<String>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -467,6 +488,16 @@ fn project_show(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolErr
     Ok(ToolOutput::Value(out))
 }
 
+fn project_changes_show(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
+    let p: ChangesParams = parse_params(params)?;
+    let ws = open(&p.project)?;
+    let r = crate::changes::report(&ws, p.path.as_deref());
+    let (added, removed): (usize, usize) = r.changes.iter().fold((0, 0), |(a, d), c| (a + c.added, d + c.removed));
+    Ok(ToolOutput::Value(
+        json!({"has_baseline": r.has_baseline, "files": r.changes.len(), "lines_added": added, "lines_removed": removed, "truncated": r.truncated, "changes": r.changes}),
+    ))
+}
+
 fn project_inbox_answer(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: AnswerParams = parse_params(params)?;
     let ws = open(&p.project)?;
@@ -564,6 +595,23 @@ mod tests {
     use crate::inbox::RequestKind;
     use crate::workspace::TargetRef;
     use crate::{CallOptions, Caller, Engine};
+
+    #[test]
+    fn the_changes_tool_lists_what_a_run_changed() {
+        let d = tempfile::tempdir().unwrap();
+        let ws = Workspace::create(d.path(), "Site", "A website", TargetRef::None).unwrap();
+        let e = Engine::new(crate::testing::session());
+        let call = |v: Value| e.call("project_changes_show", v, CallOptions::new(Caller::Cli)).unwrap().to_json();
+        assert_eq!(call(json!({"project": ws.root}))["result"]["has_baseline"], false);
+        std::fs::create_dir_all(ws.app_dir()).unwrap();
+        std::fs::write(ws.app_dir().join("index.html"), "<h1>Hi</h1>\n").unwrap();
+        crate::changes::mark(&ws);
+        std::fs::write(ws.app_dir().join("index.html"), "<h1>Hi</h1>\n<p>More</p>\n").unwrap();
+        let r = call(json!({"project": ws.root, "path": "index.html"}));
+        assert_eq!((r["result"]["files"].as_u64(), r["result"]["lines_added"].as_u64()), (Some(1), Some(1)), "{r}");
+        assert_eq!(r["result"]["changes"][0]["lines"].as_array().map(Vec::len), Some(2));
+        assert!(e.call("project_changes_show", json!({"project": d.path().join("nope")}), CallOptions::new(Caller::Cli)).is_err());
+    }
 
     /// #210: "enough now". A paused build becomes Ready, says so in its conversation, and keeps
     /// everything it had.
