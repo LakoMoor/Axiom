@@ -1131,7 +1131,9 @@ dependencies = [
  "craft-anything-ui-egui",
  "eframe",
  "log",
+ "png 0.17.16",
  "rfd",
+ "serde_json",
  "winresource",
 ]
 

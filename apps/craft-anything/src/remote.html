@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axiom</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0d0d; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; outline: none; cursor: default; }
+  #note { position: fixed; inset: 0; display: grid; place-items: center; color: #8e8ea0;
+          font: 15px system-ui, sans-serif; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="screen" tabindex="0"></canvas>
+<div id="note">Connecting to Axiom…</div>
+<script>
+(() => {
+  const token = new URLSearchParams(location.search).get('t') || '';
+  const canvas = document.getElementById('screen');
+  const note = document.getElementById('note');
+  const ctx = canvas.getContext('2d');
+  const q = '?t=' + encodeURIComponent(token);
+  let queue = [];
+  let box = { x: 0, y: 0, w: 1, h: 1 };
+
+  // Draw the picture as large as fits, keeping its shape.
+  function draw(bitmap) {
+    const dpr = window.devicePixelRatio || 1;
+    const cw = Math.round(window.innerWidth * dpr), ch = Math.round(window.innerHeight * dpr);
+    if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; }
+    const s = Math.min(cw / bitmap.width, ch / bitmap.height);
+    const w = bitmap.width * s, h = bitmap.height * s;
+    const x = (cw - w) / 2, y = (ch - h) / 2;
+    ctx.fillStyle = '#0d0d0d';
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bitmap, x, y, w, h);
+    box = { x: x / dpr, y: y / dpr, w: w / dpr, h: h / dpr };
+  }
+
+  async function frames() {
+    for (;;) {
+      try {
+        const r = await fetch('/frame.png' + q + '&n=' + Date.now(), { cache: 'no-store' });
+        if (r.status === 200) {
+          draw(await createImageBitmap(await r.blob()));
+          note.style.display = 'none';
+        } else if (r.status === 403) {
+          note.textContent = 'This link is no longer valid. Open the new address Axiom printed.';
+          return;
+        }
+      } catch (_) {
+        note.style.display = 'grid';
+        note.textContent = 'Axiom is not reachable. Is the app still running?';
+      }
+      await new Promise(r => setTimeout(r, 70));
+    }
+  }
+
+  const pos = e => ({
+    x: Math.min(1, Math.max(0, (e.clientX - box.x) / box.w)),
+    y: Math.min(1, Math.max(0, (e.clientY - box.y) / box.h)),
+  });
+  const mods = e => ({ shift: e.shiftKey, ctrl: e.ctrlKey, alt: e.altKey, meta: e.metaKey });
+  const push = ev => { if (queue.length < 200) queue.push(ev); };
+
+  canvas.addEventListener('mousemove', e => push({ t: 'move', ...pos(e) }));
+  canvas.addEventListener('mouseleave', () => push({ t: 'leave' }));
+  canvas.addEventListener('mousedown', e => { canvas.focus(); push({ t: 'down', b: e.button, ...pos(e), ...mods(e) }); });
+  canvas.addEventListener('mouseup', e => push({ t: 'up', b: e.button, ...pos(e), ...mods(e) }));
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
+    push({ t: 'move', ...pos(e) });
+    push({ t: 'wheel', dx: e.deltaX * k, dy: e.deltaY * k, ...mods(e) });
+  }, { passive: false });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Dead' || e.key === 'Process') return;
+    push({ t: 'key', name: e.key, down: true, repeat: e.repeat, ...mods(e) });
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) push({ t: 'text', s: e.key });
+    if (e.key !== 'F5' && e.key !== 'F12' && !(e.metaKey || e.ctrlKey) ) e.preventDefault();
+  });
+  window.addEventListener('keyup', e => push({ t: 'key', name: e.key, down: false, ...mods(e) }));
+  window.addEventListener('paste', e => {
+    const s = (e.clipboardData && e.clipboardData.getData('text')) || '';
+    if (s) { push({ t: 'text', s: s.slice(0, 256) }); e.preventDefault(); }
+  });
+
+  async function sendInput() {
+    for (;;) {
+      await new Promise(r => setTimeout(r, 40));
+      if (!queue.length) continue;
+      const events = queue; queue = [];
+      try {
+        await fetch('/input' + q, { method: 'POST', body: JSON.stringify({ events }) });
+      } catch (_) { /* the next batch tries again */ }
+    }
+  }
+
+  canvas.focus();
+  frames();
+  sendInput();
+})();
+</script>
+</body>
+</html>
