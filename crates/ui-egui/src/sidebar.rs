@@ -133,6 +133,10 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             app.state.screen = Screen::Models;
             ui.close();
         }
+        if ui.button(tr("Agent")).clicked() {
+            app.state.screen = Screen::Agent;
+            ui.close();
+        }
     });
 }
 
