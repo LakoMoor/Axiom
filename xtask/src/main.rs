@@ -27,7 +27,19 @@ const LAYERS: &[(&str, u8)] = &[
 ];
 
 /// Crates that must build for wasm32-unknown-unknown (static analysis in the browser).
-const WASM_CRATES: &[&str] = &["axiom-evidence", "axiom-formats", "axiom-disasm", "axiom-js", "axiom-analysis"];
+const WASM_CRATES: &[&str] = &[
+    "axiom-evidence",
+    "axiom-formats",
+    "axiom-disasm",
+    "axiom-js",
+    "axiom-analysis",
+    "axiom-platform",
+    "axiom-engines",
+    "axiom-engine",
+    "axiom-ai",
+    "axiom-setup",
+    "axiom-ui-egui",
+];
 
 /// UI toolkits only the UI layer may use.
 const UI_ONLY: &[&str] = &["egui", "eframe", "winit", "rfd", "egui_extras", "egui_kittest"];
@@ -169,9 +181,8 @@ fn manifest_deps(path: &Path) -> (String, Vec<String>) {
 /// the UI crate may use a UI toolkit, and test helpers stay out of shipped binaries.
 const APP_LAYER: u8 = 7;
 
-/// Apps that are user interfaces of their own. The browser viewer can't build on the UI crate
-/// (it pulls in native-only crates), so it draws with egui directly and may use only the
-/// wasm-safe crates.
+/// Apps that are user interfaces of their own. The browser app may use only the crates that build
+/// for wasm (`WASM_CRATES`, which now include the engine and the UI).
 const UI_APPS: &[&str] = &["axiom", "axiom-web"];
 const WASM_APPS: &[&str] = &["axiom-web"];
 

@@ -19,7 +19,6 @@ log = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
 thiserror = { workspace = true }
-ureq = "3"
 # The same version the engine crate uses (fal.ai sends files as base64 in some answers).
 base64 = "0.22"
 # The WebSocket handshake of the CDP client.
@@ -35,3 +34,11 @@ wasm-plugins = ["dep:wasmtime"]
 [dev-dependencies]
 tempfile = "3"
 axiom-testkit = { workspace = true }
+
+# HTTPS (rustls) on computers. In the browser there is no socket to open and `ring` doesn't build for
+# it, so the client is kept without TLS there until requests go through `fetch`.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ureq = "3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+ureq = { version = "3", default-features = false }

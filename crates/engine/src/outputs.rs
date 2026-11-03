@@ -179,3 +179,9 @@ pub fn is_program(p: &Path) -> bool {
     use std::os::unix::fs::PermissionsExt;
     p.extension().is_none() && p.metadata().is_ok_and(|m| m.permissions().mode() & 0o111 != 0)
 }
+
+/// In the browser there are no programs to start.
+#[cfg(not(any(windows, unix)))]
+pub fn is_program(_p: &Path) -> bool {
+    false
+}
