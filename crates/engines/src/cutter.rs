@@ -31,7 +31,7 @@ fn encode(cmd: &str) -> String {
 /// Run one command in the session on `port`; the text and whether it was cut at 4 MiB.
 pub fn command(port: u16, cmd: &str, timeout: Duration) -> Result<(String, bool), ToolError> {
     let url = format!("http://127.0.0.1:{port}/cmd/{}", encode(cmd));
-    let agent = ureq::Agent::config_builder()
+    let agent = axiom_net::Agent::config_builder()
         .http_status_as_error(false)
         .user_agent("Axiom-dev")
         .timeout_connect(Some(Duration::from_secs(2)))
@@ -39,7 +39,7 @@ pub fn command(port: u16, cmd: &str, timeout: Duration) -> Result<(String, bool)
         .build()
         .new_agent();
     let resp = agent.get(&url).call().map_err(|e| {
-        let code = if matches!(e, ureq::Error::Timeout(_)) { ErrorCode::TimedOut } else { ErrorCode::NotFound };
+        let code = if matches!(e, axiom_net::Error::Timeout(_)) { ErrorCode::TimedOut } else { ErrorCode::NotFound };
         ToolError::new(code, format!("No Cutter session answered on port {port}: {e}")).with_remediation(HOW_TO_OPEN)
     })?;
     let status = resp.status().as_u16();

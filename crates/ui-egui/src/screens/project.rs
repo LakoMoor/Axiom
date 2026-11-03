@@ -409,7 +409,7 @@ fn plan(feed: &[FeedItem]) -> Option<&[PlanStep]> {
 /// The builder's checklist, pinned above the prompt box: what's done, what it's on now, what's
 /// next, and while it works how long it has been at it. Shown while it works, and afterwards only
 /// if something was left undone.
-fn checklist(ui: &mut Ui, steps: &[PlanStep], t: &Tokens, began: Option<std::time::Instant>) {
+fn checklist(ui: &mut Ui, steps: &[PlanStep], t: &Tokens, began: Option<web_time::Instant>) {
     let done = steps.iter().filter(|s| s.status == PlanStatus::Done).count();
     widgets::card(t).inner_margin(Margin::symmetric(16, 12)).show(ui, |ui| {
         ui.set_width(ui.available_width());
@@ -496,7 +496,7 @@ impl Facts {
 pub struct FactsReader {
     wanted: bool,
     job: Option<u64>,
-    at: Option<std::time::Instant>,
+    at: Option<web_time::Instant>,
 }
 
 impl CraftApp {
@@ -515,7 +515,7 @@ impl CraftApp {
             return;
         }
         r.wanted = false;
-        r.at = Some(std::time::Instant::now());
+        r.at = Some(web_time::Instant::now());
         r.job = Some(self.jobs.spawn("Read the project", false, move |_| Ok(Done::Facts(Facts::read(&ws)))));
     }
 

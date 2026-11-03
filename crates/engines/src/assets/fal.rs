@@ -106,8 +106,8 @@ impl Fal {
     }
 }
 
-fn agent(timeout: Duration) -> ureq::Agent {
-    ureq::Agent::config_builder()
+fn agent(timeout: Duration) -> axiom_net::Agent {
+    axiom_net::Agent::config_builder()
         .http_status_as_error(false)
         .user_agent("Axiom")
         .timeout_connect(Some(Duration::from_secs(20)))

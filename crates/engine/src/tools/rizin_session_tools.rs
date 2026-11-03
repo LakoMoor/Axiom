@@ -127,7 +127,7 @@ static COUNTER: AtomicU64 = AtomicU64::new(0);
 
 fn new_id() -> String {
     let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let nanos = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
     let h = sha256_hex(format!("rizin:{}:{nanos}:{n}", std::process::id()).as_bytes());
     format!("rizin_{}", h.get(..24).unwrap_or(&h))
 }

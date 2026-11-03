@@ -1,4 +1,4 @@
-//! HTTP plumbing: one ureq agent (rustls), JSON POST with streamed responses, and an SSE parser.
+//! HTTP plumbing: one HTTP agent (`axiom-net`), JSON POST with streamed responses, and an SSE parser.
 
 use axiom_evidence::{ErrorCode, ToolError};
 use serde_json::Value;
@@ -10,8 +10,8 @@ pub const USER_AGENT: &str = "Axiom-dev";
 
 /// An agent for model calls: generous body time (streams can run for many minutes), bounded
 /// connect and first-byte waits.
-pub fn agent(connect: Duration, first_byte: Duration, body: Duration) -> ureq::Agent {
-    ureq::Agent::config_builder()
+pub fn agent(connect: Duration, first_byte: Duration, body: Duration) -> axiom_net::Agent {
+    axiom_net::Agent::config_builder()
         .http_status_as_error(false)
         .user_agent(USER_AGENT)
         .timeout_connect(Some(connect))
@@ -22,17 +22,17 @@ pub fn agent(connect: Duration, first_byte: Duration, body: Duration) -> ureq::A
 }
 
 /// The agent for streamed model turns.
-pub fn stream_agent() -> ureq::Agent {
+pub fn stream_agent() -> axiom_net::Agent {
     agent(Duration::from_secs(15), Duration::from_secs(300), Duration::from_secs(60 * 60))
 }
 
 /// The agent for quick calls (model lists, probes).
-pub fn quick_agent(total: Duration) -> ureq::Agent {
+pub fn quick_agent(total: Duration) -> axiom_net::Agent {
     agent(total, total, total)
 }
 
-fn net_error(what: &str, e: ureq::Error) -> ToolError {
-    let timeout = matches!(e, ureq::Error::Timeout(_));
+fn net_error(what: &str, e: axiom_net::Error) -> ToolError {
+    let timeout = matches!(e, axiom_net::Error::Timeout(_));
     let code = if timeout { ErrorCode::TimedOut } else { ErrorCode::EngineMissing };
     ToolError::new(code, format!("Couldn't reach {what}: {e}"))
         .with_remediation("Check your internet connection or that the server is running, then try again.")
@@ -58,7 +58,7 @@ pub fn status_error(what: &str, status: u16, body: &str) -> ToolError {
 }
 
 /// POST JSON and return a reader over the (streamed) body; errors on non-2xx.
-pub fn post_json(agent: &ureq::Agent, what: &str, url: &str, headers: &[(&str, String)], body: &Value) -> Result<Box<dyn Read + Send>, ToolError> {
+pub fn post_json(agent: &axiom_net::Agent, what: &str, url: &str, headers: &[(&str, String)], body: &Value) -> Result<Box<dyn Read + Send>, ToolError> {
     let mut req = agent.post(url).header("content-type", "application/json");
     for (k, v) in headers {
         req = req.header(*k, v.as_str());
@@ -73,7 +73,7 @@ pub fn post_json(agent: &ureq::Agent, what: &str, url: &str, headers: &[(&str, S
 }
 
 /// GET JSON.
-pub fn get_json(agent: &ureq::Agent, what: &str, url: &str, headers: &[(&str, String)]) -> Result<Value, ToolError> {
+pub fn get_json(agent: &axiom_net::Agent, what: &str, url: &str, headers: &[(&str, String)]) -> Result<Value, ToolError> {
     let mut req = agent.get(url);
     for (k, v) in headers {
         req = req.header(*k, v.as_str());

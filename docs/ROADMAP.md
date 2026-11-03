@@ -967,9 +967,12 @@ program) from its release, starts a ready-made pack and adds it as an AI. Nothin
 Owner: open · Status: in progress (branch `feature/web-platform-wasm`)
 The browser app is the desktop app itself (same screens, same tools), not a small viewer.
 - [x] `axiom-platform`, `axiom-engines`, `axiom-engine`, `axiom-ai`, `axiom-setup` and `axiom-ui-egui` build for `wasm32-unknown-unknown` (`cargo xtask wasm` checks them)
-- [ ] Run `CraftApp` from `apps/axiom-web`: startup without a config folder (browser storage), no threads (engine calls in slices on the main thread), file picker and drag-and-drop for the target
-- [ ] HTTP through `fetch` (today `ureq` is built without TLS for wasm, so every request fails with a plain error)
-- [ ] Tools that need a program (Ghidra, adb, browsers, agent CLIs) say "desktop only" instead of failing at start
+- [x] `CraftApp` runs in the browser from `apps/axiom-web` (`axiom-app`): settings and keys are kept in the page's local storage, quick jobs run on the main thread, and the screens (setup, Home, Models) work. Checked in headless Chrome by clicking through them.
+- [x] HTTP: `axiom-net` is `ureq` on computers and a synchronous XMLHttpRequest in a page (whole answers, no streaming; only servers that allow the page's origin)
+- [x] Tools that start a program or reach a device say "desktop only" instead of failing (`Effects::needs_a_computer`)
+- [ ] Open a target in the page: file picker and drag-and-drop for the target, reading it in memory; run the pure tools (triage, APK/DEX/ELF/PE/JS/WASM analysis) on it
+- [ ] Long work off the main thread (a Web Worker), and streamed answers from AI services
+- [ ] Missing symbols in the page's font (arrows show as boxes), and a title bar that fits a browser tab (no window buttons)
 - [ ] Publish it with the release and on the site (`/app/`), and say what is and isn't available there
 
 ## M3 Engine depth

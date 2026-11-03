@@ -12,7 +12,7 @@ use std::io::{BufRead, Write};
 use std::path::PathBuf;
 use std::process::ChildStdin;
 use std::sync::mpsc::{Receiver, RecvTimeoutError, channel};
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// The protocol version we ask for; servers may answer with an older one they support.
 const PROTOCOL: &str = "2025-06-18";
@@ -270,8 +270,8 @@ impl Http {
         Ok(Http { name: name.to_string(), url: u.url.clone(), headers: u.headers.clone(), session: None, initialized: false })
     }
 
-    fn post(&mut self, msg: &Value, timeout: Duration) -> Result<ureq::http::Response<ureq::Body>, ToolError> {
-        let agent = ureq::Agent::config_builder()
+    fn post(&mut self, msg: &Value, timeout: Duration) -> Result<axiom_net::http::Response<axiom_net::Body>, ToolError> {
+        let agent = axiom_net::Agent::config_builder()
             .http_status_as_error(false)
             .user_agent("Axiom")
             .timeout_connect(Some(Duration::from_secs(20)))
@@ -289,7 +289,7 @@ impl Http {
             req = req.header(k, v);
         }
         let resp = req.send(msg.to_string()).map_err(|e| {
-            let code = if matches!(e, ureq::Error::Timeout(_)) { ErrorCode::TimedOut } else { ErrorCode::EngineMissing };
+            let code = if matches!(e, axiom_net::Error::Timeout(_)) { ErrorCode::TimedOut } else { ErrorCode::EngineMissing };
             ToolError::new(code, format!("Couldn't reach the {} plugin: {e}", self.name))
                 .with_remediation("Check its url in config.toml ([[plugins.mcp]]) and your connection.")
         })?;

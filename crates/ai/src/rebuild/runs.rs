@@ -297,8 +297,8 @@ mod tests {
         keep_queue_moving(&set, &hub.engine, Duration::from_millis(5));
         assert!(set.lock().unwrap().watched);
         fake.finish(&a.root);
-        let deadline = std::time::Instant::now() + Duration::from_secs(10);
-        while set.lock().unwrap().watched && std::time::Instant::now() < deadline {
+        let deadline = web_time::Instant::now() + Duration::from_secs(10);
+        while set.lock().unwrap().watched && web_time::Instant::now() < deadline {
             std::thread::sleep(Duration::from_millis(5));
         }
         assert_eq!(fake.started(), [a.root.clone(), b.root.clone()], "one thread started B once");

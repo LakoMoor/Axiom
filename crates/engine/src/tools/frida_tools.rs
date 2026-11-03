@@ -208,7 +208,7 @@ static COUNTER: AtomicU64 = AtomicU64::new(0);
 
 fn new_id(prefix: &str) -> String {
     let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let nanos = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
     let seed = format!("{prefix}:{}:{nanos}:{n}", std::process::id());
     format!("{prefix}_{}", &sha256_hex(seed.as_bytes())[..32])
 }

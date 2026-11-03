@@ -289,7 +289,7 @@ mod tracker {
     use std::collections::HashMap;
     use std::sync::OnceLock;
     use std::thread::ThreadId;
-    use std::time::Instant;
+    use web_time::Instant;
 
     /// How often the watchdog looks.
     const WATCH_EVERY: Duration = Duration::from_secs(5);
@@ -495,7 +495,7 @@ mod tracker {
     pub(super) fn write_logs(dir: &std::path::Path) {
         let new: Vec<(usize, String)> = registry().problems.iter().enumerate().filter(|(_, p)| p.log.is_none()).map(|(i, p)| (i, p.summary.clone())).collect();
         for (n, summary) in new {
-            let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            let stamp = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
             let path = dir.join(format!("lock-{stamp}-{n}.log"));
             let text = format!("Axiom lock report\n\n{summary}\n\nEverything holding or waiting on a lock now:\n{}\n", snapshot());
             let saved = std::fs::create_dir_all(dir)

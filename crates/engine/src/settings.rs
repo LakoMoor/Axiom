@@ -321,7 +321,7 @@ impl Settings {
     /// Load settings; a missing file gives defaults, an older one is brought up to date, a corrupt
     /// one is set aside and replaced with defaults (never a crash).
     pub fn load_from(path: &Path) -> Settings {
-        match std::fs::read_to_string(path) {
+        match axiom_platform::fs::read_to_string(path) {
             Ok(text) => match read_settings(&text) {
                 Ok(s) => {
                     if s.version > SETTINGS_VERSION {

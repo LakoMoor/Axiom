@@ -8,7 +8,7 @@
 use serde_json::{Map, Value, json};
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use web_time::{SystemTime, UNIX_EPOCH};
 
 /// Longest params/payload kept per entry (bytes of JSON). Longer values are replaced by a note.
 pub const MAX_FIELD_BYTES: usize = 4096;

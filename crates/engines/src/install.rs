@@ -231,7 +231,7 @@ pub fn download_to(
     if !url.starts_with("https://") {
         return Err(ToolError::invalid("engine downloads must use https"));
     }
-    let agent = ureq::Agent::config_builder()
+    let agent = axiom_net::Agent::config_builder()
         .http_status_as_error(false)
         .user_agent("Axiom-dev")
         .timeout_connect(Some(Duration::from_secs(20)))
@@ -240,7 +240,7 @@ pub fn download_to(
         .build()
         .new_agent();
     let resp = agent.get(url).call().map_err(|e| {
-        let code = if matches!(e, ureq::Error::Timeout(_)) { ErrorCode::TimedOut } else { ErrorCode::EngineMissing };
+        let code = if matches!(e, axiom_net::Error::Timeout(_)) { ErrorCode::TimedOut } else { ErrorCode::EngineMissing };
         ToolError::new(code, format!("Couldn't download {url}: {e}")).with_remediation("Check your internet connection and try again.")
     })?;
     let status = resp.status().as_u16();

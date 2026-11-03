@@ -32,6 +32,20 @@ bitflags! {
 }
 
 impl Effects {
+    /// What a tool with these effects needs that a web page doesn't have (a program to start, a
+    /// connection to open, a device), or `None` when it can run there.
+    pub fn needs_a_computer(self) -> Option<&'static str> {
+        if self.intersects(Effects::LAUNCHES_PROCESS | Effects::EXECUTES_FOREIGN_CODE) {
+            Some("start a program on this computer")
+        } else if self.contains(Effects::MUTATES_DEVICE) {
+            Some("reach a connected device")
+        } else if self.contains(Effects::ACCESSES_NETWORK) {
+            Some("open network connections")
+        } else {
+            None
+        }
+    }
+
     /// Plain evidence-producing analysis.
     pub const EVIDENCE: Effects = Effects::MUTATES_SESSION.union(Effects::IDEMPOTENT);
     /// Evidence that needs an engine process.
@@ -306,4 +320,19 @@ pub fn empty_schema() -> Value {
 pub fn parse_params<T: DeserializeOwned>(v: Value) -> Result<T, ToolError> {
     let v = if v.is_null() { Value::Object(Default::default()) } else { v };
     serde_json::from_value(v).map_err(|e| ToolError::invalid(format!("invalid params: {e}")))
+}
+
+#[cfg(test)]
+mod browser_tests {
+    use super::Effects;
+
+    #[test]
+    fn a_web_page_runs_what_needs_no_program_no_network_and_no_device() {
+        assert_eq!(Effects::EVIDENCE.needs_a_computer(), None);
+        assert_eq!(Effects::READ_ONLY.needs_a_computer(), None);
+        assert!(Effects::NATIVE_EVIDENCE.needs_a_computer().is_some_and(|w| w.contains("program")));
+        assert!(Effects::NETWORK_EVIDENCE.needs_a_computer().is_some_and(|w| w.contains("network")));
+        assert!(Effects::MUTATES_DEVICE.needs_a_computer().is_some_and(|w| w.contains("device")));
+        assert!(Effects::EXECUTES_FOREIGN_CODE.needs_a_computer().is_some());
+    }
 }

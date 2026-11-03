@@ -56,7 +56,7 @@ impl Worker {
                 }
                 if let Some(done) = self.prepare_ghidra(&program) {
                     // Deep mode always waits for Ghidra: the builder then decompiles with it straight away.
-                    let started = std::time::Instant::now();
+                    let started = web_time::Instant::now();
                     // One line: the app's progress card shows how long it has been going.
                     self.step(ws, Step::Study, Status::Inspecting, "Ghidra is analysing the program (only the first time; a big game takes a while)…")?;
                     let result = loop {

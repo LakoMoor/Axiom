@@ -18,7 +18,66 @@ pub fn write_atomic_private(path: &Path, bytes: &[u8]) -> Result<(), ToolError> 
     write_impl(path, bytes, true)
 }
 
+/// Read a text file the app keeps for itself (settings, keys). In a browser page there is no disk:
+/// those files live in the page's local storage, under the path they would have had.
+pub fn read_to_string(path: &Path) -> std::io::Result<String> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        browser::get(path)
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::fs::read_to_string(path)
+    }
+}
+
+/// The page's local storage standing in for a disk (browser only).
+#[cfg(target_arch = "wasm32")]
+mod browser {
+    use axiom_evidence::{ErrorCode, ToolError};
+    use std::path::Path;
+
+    fn key(path: &Path) -> String {
+        format!("axiom-file:{}", path.display())
+    }
+
+    fn storage() -> Option<web_sys::Storage> {
+        web_sys::window()?.local_storage().ok()?
+    }
+
+    pub fn get(path: &Path) -> std::io::Result<String> {
+        let missing = || std::io::Error::new(std::io::ErrorKind::NotFound, format!("{} isn't in this page's storage", path.display()));
+        storage().ok_or_else(missing)?.get_item(&key(path)).ok().flatten().ok_or_else(missing)
+    }
+
+    pub fn set(path: &Path, bytes: &[u8]) -> Result<(), ToolError> {
+        let text = std::str::from_utf8(bytes).map_err(|_| {
+            ToolError::new(ErrorCode::FeatureMissing, format!("{} holds binary data, which this page can't keep.", path.display()))
+                .with_remediation("Use the desktop app to work with files like this.")
+        })?;
+        let store = storage().ok_or_else(|| {
+            ToolError::new(ErrorCode::FileError, "This page can't keep settings: the browser blocks its storage.")
+                .with_remediation("Allow site data for this page (private windows often block it) and try again.")
+        })?;
+        store.set_item(&key(path), text).map_err(|_| {
+            ToolError::new(ErrorCode::FileError, format!("Couldn't keep {} in the browser's storage.", path.display()))
+                .with_remediation("The storage may be full or blocked; clear some site data and try again.")
+        })
+    }
+}
+
 fn write_impl(path: &Path, bytes: &[u8], private: bool) -> Result<(), ToolError> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = private;
+        return browser::set(path, bytes);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    write_to_disk(path, bytes, private)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn write_to_disk(path: &Path, bytes: &[u8], private: bool) -> Result<(), ToolError> {
     let dir = match path.parent() {
         Some(d) if !d.as_os_str().is_empty() => d.to_path_buf(),
         Some(_) => std::path::PathBuf::from("."),

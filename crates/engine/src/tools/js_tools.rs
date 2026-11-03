@@ -597,7 +597,7 @@ mod tests {
     fn smoke_real_app() {
         let Ok(path) = std::env::var("AXIOM_SMOKE_PATH") else { return };
         let e = Engine::new(crate::testing::session());
-        let t = std::time::Instant::now();
+        let t = web_time::Instant::now();
         let a = call(&e, "js_app_map", json!({"input_path": path, "if_tampered": "continue", "limit": 5})).unwrap();
         println!("{} in {:?}", a["summary"], t.elapsed());
         println!("stats {}", a["result"]["stats"]);

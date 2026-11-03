@@ -429,7 +429,7 @@ pub fn working(ui: &mut Ui, title: &str, detail: Option<&str>) {
 ///
 /// `quiet` is how long since the work last had anything to say, when that's known: then the note
 /// says so plainly, because a calm note can't tell a long step from one that has stopped.
-pub fn working_since(ui: &mut Ui, title: &str, detail: Option<&str>, began: Option<std::time::Instant>, quiet: Option<std::time::Duration>) {
+pub fn working_since(ui: &mut Ui, title: &str, detail: Option<&str>, began: Option<web_time::Instant>, quiet: Option<std::time::Duration>) {
     let t = Tokens::get(ui.ctx());
     let now = ui.input(|i| i.time);
     // The clock restarts when the row wasn't on screen a moment ago.

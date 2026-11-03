@@ -1068,9 +1068,9 @@ mod tests {
         );
         let mut c = CliConversation::new(spec);
         c.send("hello there");
-        let deadline = std::time::Instant::now() + Duration::from_secs(10);
+        let deadline = web_time::Instant::now() + Duration::from_secs(10);
         let mut all = Vec::new();
-        while std::time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        while web_time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
             all.extend(c.poll());
             std::thread::sleep(Duration::from_millis(10));
         }
@@ -1095,9 +1095,9 @@ mod tests {
         let options = BackendOptions { command: Some(program.display().to_string()), ..Default::default() };
         let mut c = CliConversation::new(CliSpec::new(config, options, false, None));
         c.send(&"a".repeat(40_000));
-        let deadline = std::time::Instant::now() + Duration::from_secs(10);
+        let deadline = web_time::Instant::now() + Duration::from_secs(10);
         let mut all = Vec::new();
-        while std::time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        while web_time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
             all.extend(c.poll());
             std::thread::sleep(Duration::from_millis(10));
         }
@@ -1151,7 +1151,7 @@ mod tests {
             std::thread::sleep(Duration::from_millis(200));
             stopper.cancel();
         });
-        let began = std::time::Instant::now();
+        let began = web_time::Instant::now();
         let e = cli_can_start(Some(&hung), &stop).unwrap_err();
         assert_eq!(e.code, ErrorCode::Cancelled, "{e:?}");
         assert!(began.elapsed() < Duration::from_secs(10), "it waited for the helper: {:?}", began.elapsed());
@@ -1182,9 +1182,9 @@ mod tests {
         );
         let mut c = CliConversation::new(spec);
         c.send("x");
-        let deadline = std::time::Instant::now() + Duration::from_secs(10);
+        let deadline = web_time::Instant::now() + Duration::from_secs(10);
         let mut all = Vec::new();
-        while std::time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        while web_time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
             all.extend(c.poll());
             std::thread::sleep(Duration::from_millis(10));
         }
@@ -1200,9 +1200,9 @@ mod tests {
         let config = BackendConfig { name: "Codex".into(), kind: BackendKind::AgentCli, model: "codex".into(), base_url: None, ssh_host: None, enabled: true };
         let mut c = CliConversation::new(CliSpec::new(config, options, false, None));
         c.send("What does this program do?");
-        let deadline = std::time::Instant::now() + Duration::from_secs(10);
+        let deadline = web_time::Instant::now() + Duration::from_secs(10);
         let mut all = Vec::new();
-        while std::time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
+        while web_time::Instant::now() < deadline && !all.iter().any(|e| matches!(e, AgentEvent::TurnDone { .. })) {
             all.extend(c.poll());
             std::thread::sleep(Duration::from_millis(10));
         }

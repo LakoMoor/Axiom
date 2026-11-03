@@ -212,7 +212,7 @@ pub(crate) fn is_path_input(v: &Value) -> Option<&str> {
 
 /// A unique id for a fresh folder name.
 pub(crate) fn unique_suffix(seed: &str, attempt: u32) -> String {
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let nanos = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
     let h = sha256_hex(format!("{seed}|{}|{nanos}|{attempt}", std::process::id()).as_bytes());
     h.get(..16).unwrap_or(&h).to_string()
 }

@@ -892,8 +892,8 @@ pub(crate) mod tests {
 
     fn drain_until_done(c: &mut ApiConversation, mut on: impl FnMut(&AgentEvent, &mut ApiConversation)) -> Vec<AgentEvent> {
         let mut all = Vec::new();
-        let deadline = std::time::Instant::now() + Duration::from_secs(10);
-        while std::time::Instant::now() < deadline {
+        let deadline = web_time::Instant::now() + Duration::from_secs(10);
+        while web_time::Instant::now() < deadline {
             for e in c.poll() {
                 on(&e, c);
                 let done = matches!(e, AgentEvent::TurnDone { .. });

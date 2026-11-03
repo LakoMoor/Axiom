@@ -10,6 +10,7 @@ rust-version = "1.97"
 repository = "https://github.com/LakoMoor/Axiom"
 
 [workspace.dependencies]
+web-time = "1"
 # internal
 axiom-evidence = { path = "crates/evidence" }
 axiom-formats = { path = "crates/formats" }
@@ -17,6 +18,7 @@ axiom-disasm = { path = "crates/disasm" }
 axiom-js = { path = "crates/js" }
 axiom-analysis = { path = "crates/analysis" }
 axiom-platform = { path = "crates/platform" }
+axiom-net = { path = "crates/net" }
 axiom-engines = { path = "crates/engines" }
 axiom-engine = { path = "crates/engine" }
 axiom-ai = { path = "crates/ai" }
