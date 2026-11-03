@@ -85,15 +85,20 @@
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/images/make.png" alt="Make 界面：选择要复刻的网站、应用或游戏，填入地址，选净室或深度模式，说出你要什么，按下 Start" width="100%"><br>
-      <sub><b>Make：</b>选择要复刻什么，说出你要什么，按下 Start。</sub>
+      <img src="docs/images/make.png" alt="主页：说出想做什么的输入框，下方是要复刻的对象、由谁来做和净室模式" width="100%"><br>
+      <sub><b>主页：</b>说出你要什么，按 Enter。</sub>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/images/project-game.png" alt="一个做完的贪吃蛇项目，所有步骤都完成了，还有一个“试玩游戏”按钮" width="100%"><br>
+      <img src="docs/images/project-game.png" alt="完成的贪吃蛇游戏项目：所有步骤已完成，有“变更”卡片和提出修改的输入框" width="100%"><br>
       <sub><b>就绪：</b>试玩游戏，或者在下面提改动要求。</sub>
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/images/models.png" alt="模型中心：推荐的本地模型及其与这台电脑的匹配程度、搜索、下载和运行按钮" width="100%"><br>
+  <sub><b>模型：</b>下载模型，在这台电脑上运行，并在输入框里选用。</sub>
+</p>
 
 <a id="two-ways-to-use-it"></a>
 

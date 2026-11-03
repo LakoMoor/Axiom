@@ -82,15 +82,20 @@ Axiom에서 대상을 지정하고 원하는 것을 말한 뒤 Start를 누르�
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/images/make.png" alt="Make 화면: 재현할 웹사이트, 앱 또는 게임을 고르고, 주소를 입력하고, Clean room 또는 Deep 중 하나를 고르고, 원하는 것을 말한 뒤 Start를 누릅니다" width="100%"><br>
-      <sub><b>Make:</b> 재현할 대상을 고르고, 원하는 것을 말한 뒤 Start를 누르세요.</sub>
+      <img src="docs/images/make.png" alt="홈 화면: 만들고 싶은 것을 말하는 입력창과 그 아래의 재현 대상, 만드는 주체, Clean room 모드" width="100%"><br>
+      <sub><b>홈:</b> 원하는 것을 말하고 Enter를 누릅니다.</sub>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/images/project-game.png" alt="모든 단계가 끝난 뱀 게임 프로젝트와 게임 플레이 버튼" width="100%"><br>
+      <img src="docs/images/project-game.png" alt="완성된 스네이크 게임 프로젝트: 모든 단계가 끝났고, 변경 카드와 변경을 요청하는 입력창이 있습니다" width="100%"><br>
       <sub><b>Ready:</b> 게임을 플레이하거나, 아래에서 변경을 요청하세요.</sub>
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/images/models.png" alt="모델 허브: 이 컴퓨터에 얼마나 맞는지 보여 주는 추천 로컬 모델, 검색, 다운로드, 실행 버튼" width="100%"><br>
+  <sub><b>모델:</b> 모델을 내려받아 이 컴퓨터에서 실행하고 입력창에서 고릅니다.</sub>
+</p>
 
 ## <a id="two-ways-to-use-it"></a>두 가지 사용 방법
 

@@ -83,15 +83,20 @@ asking you in plain words when a decision is yours:
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/images/make.png" alt="The Make screen: pick a website, an app or a game to recreate, type the address, choose Clean room or Deep, say what you want and press Start" width="100%"><br>
-      <sub><b>Make:</b> pick what to recreate, say what you want, press Start.</sub>
+      <img src="docs/images/make.png" alt="The Home screen: a box where you say what to build, with the kind of thing to recreate, who builds it and Clean room mode underneath" width="100%"><br>
+      <sub><b>Home:</b> say what you want and press Enter.</sub>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/images/project-game.png" alt="A finished snake game project with its steps all done and a Play the game button" width="100%"><br>
+      <img src="docs/images/project-game.png" alt="A finished snake game project: all steps done, the Changes card and a box to ask for changes" width="100%"><br>
       <sub><b>Ready:</b> play the game, or ask for changes below.</sub>
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/images/models.png" alt="The models hub: recommended local models with how well each fits this computer, search, downloads and run buttons" width="100%"><br>
+  <sub><b>Models:</b> download a model, run it on this computer and pick it in the box.</sub>
+</p>
 
 ## Two ways to use it
 

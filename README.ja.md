@@ -83,15 +83,20 @@ Axiom で対象を指定し、欲しいものを伝えて「Start」を押すだ
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/images/make.png" alt="Make 画面: 再現する Web サイト、アプリ、ゲームを選び、アドレスを入力し、「Clean room」か「Deep」かを選び、欲しいものを伝えて Start を押す" width="100%"><br>
-      <sub><b>Make:</b> 何を再現するかを選び、欲しいものを伝え、Start を押します。</sub>
+      <img src="docs/images/make.png" alt="ホーム画面: 作りたいものを伝える入力欄。その下に再現する対象、作る担当、Clean room モード" width="100%"><br>
+      <sub><b>ホーム:</b> 欲しいものを伝えて Enter を押す。</sub>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/images/project-game.png" alt="完成したスネークゲームのプロジェクト。すべてのステップが完了し、「Play the game」ボタンがある" width="100%"><br>
+      <img src="docs/images/project-game.png" alt="完成したスネークゲームのプロジェクト: すべてのステップが完了し、変更カードと変更を頼む入力欄がある" width="100%"><br>
       <sub><b>Ready:</b> ゲームで遊ぶ。変更は下の欄から頼めます。</sub>
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/images/models.png" alt="モデルハブ: このコンピューターに合うかを示すおすすめのローカルモデル、検索、ダウンロード、実行ボタン" width="100%"><br>
+  <sub><b>モデル:</b> モデルをダウンロードし、このコンピューターで動かし、入力欄で選ぶ。</sub>
+</p>
 
 <a name="two-ways-to-use-it"></a>
 
