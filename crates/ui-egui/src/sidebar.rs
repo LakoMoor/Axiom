@@ -148,7 +148,8 @@ pub(crate) fn row(ui: &mut Ui, icon: &str, label: &str, status: Option<(egui::Co
     let (rect, resp) = ui.allocate_exact_size(Vec2::new(ui.available_width(), ROW_H), Sense::click());
     let h = widgets::hover_t(ui, &resp);
     let fill = if on { t.pressed } else { theme::mix(egui::Color32::TRANSPARENT, t.hover, h) };
-    ui.painter().rect_filled(rect, t.radius, fill);
+    // Capsule rows, as in the macOS apps.
+    ui.painter().rect_filled(rect, rect.height() / 2.0, fill);
     let ink = if on { t.text } else { theme::mix(t.text_dim, t.text, h) };
     // Project names are shown as written; the app's own rows are translated.
     let text = if status.is_some() { label.to_string() } else { tr(label) };
