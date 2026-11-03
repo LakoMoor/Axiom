@@ -8,12 +8,17 @@ use craft_anything_ui_egui::CraftApp;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+mod remote;
+
 fn main() -> eframe::Result {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.iter().any(|a| a == "--version" || a == "-V") {
         println!("craft-anything {}", env!("CARGO_PKG_VERSION"));
         return Ok(());
     }
+    // `--remote` mirrors the window into a browser tab on this computer (see remote.rs).
+    let remote = args.iter().any(|a| a == "--remote");
+    let remote_port: u16 = args.iter().position(|a| a == "--remote-port").and_then(|i| args.get(i + 1)).and_then(|p| p.parse().ok()).unwrap_or(0);
     // A path on the command line (or from "Open with…") opens as the first target.
     let open: Option<PathBuf> = args.iter().find(|a| !a.starts_with('-')).map(PathBuf::from);
     // The window app has no console: what goes wrong before (or instead of) a window is kept in
@@ -55,6 +60,24 @@ fn main() -> eframe::Result {
         setup.instance_descriptor.backends = windows_backends(eframe::wgpu::Backends::from_env());
         setup.native_adapter_selector = Some(Arc::new(pick_adapter));
     }
+    let mirror = if remote {
+        let token = remote::new_token();
+        match remote::start(remote_port, &token) {
+            Ok((url, shared)) => {
+                // The address carries the token, so it is shown once here and kept out of the log.
+                eprintln!("Axiom remote screen: open {url}");
+                log::info!("remote screen listening on 127.0.0.1");
+                Some(shared)
+            }
+            Err(e) => {
+                eprintln!("Axiom remote screen couldn't start: {e}");
+                log::error!("remote screen couldn't start: {e}");
+                None
+            }
+        }
+    } else {
+        None
+    };
     let run = eframe::run_native(
         "Axiom",
         options,
@@ -66,7 +89,10 @@ fn main() -> eframe::Result {
             if let Some(p) = open {
                 app.open_path(p);
             }
-            Ok(Box::new(app))
+            Ok(match mirror {
+                Some(shared) => Box::new(remote::Mirror::new(app, shared)) as Box<dyn eframe::App>,
+                None => Box::new(app),
+            })
         }),
     );
     match &run {
