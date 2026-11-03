@@ -124,8 +124,8 @@ pub fn show(ui: &mut Ui, text: &mut String, attachments: &[PathBuf], b: PromptBo
     let frame = egui::Frame::new()
         .fill(t.card)
         .stroke(stroke)
-        .corner_radius(t.r_lg())
-        .shadow(egui::Shadow { offset: [0, 2], blur: 12, spread: 0, color: t.shadow })
+        .corner_radius(egui::CornerRadius::same(26))
+        .shadow(egui::Shadow { offset: [0, 6], blur: 24, spread: 0, color: t.shadow })
         .inner_margin(Margin { left: 16, right: 10, top: 14, bottom: 10 });
     // Stacked top to bottom whatever the caller's layout (it's often placed in a row).
     frame.show(ui, |ui| {
