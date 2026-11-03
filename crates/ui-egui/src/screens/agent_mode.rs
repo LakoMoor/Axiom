@@ -81,15 +81,19 @@ impl CraftApp {
 pub fn show(app: &mut CraftApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     let width = ui.available_width();
-    let max_w = width.min(760.0);
+    // A phone keeps 8 points of air at each side; a wide window centres a column of up to 760.
+    let phone = crate::phone::is_phone(ui.ctx());
+    let max_w = if phone { (width - 16.0).max(120.0) } else { width.min(760.0) };
     let pad = ((width - max_w) / 2.0).max(0.0);
+    let head_pad = if phone { pad } else { pad + 8.0 };
     ui.add_space(8.0);
     ui.horizontal(|ui| {
-        ui.add_space(pad + 8.0);
+        ui.add_space(head_pad);
         ui.label(theme::heading(tr("Agent"), theme::TITLE));
     });
-    ui.horizontal(|ui| {
-        ui.add_space(pad + 8.0);
+    // Wraps, so the button drops under the note when the line is too long for the screen.
+    ui.horizontal_wrapped(|ui| {
+        ui.add_space(head_pad);
         match app.agent.folder.clone() {
             Some(f) => {
                 ui.label(RichText::new(f.display().to_string()).color(t.text_dim));
