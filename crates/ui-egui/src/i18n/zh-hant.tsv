@@ -1404,3 +1404,10 @@ Pick the folder the agent works in	選擇代理工作的資料夾
 What should the agent do?	代理要做什麼？
 Give the agent a task	給代理一個任務
 Recents	最近
+Easiest start	最簡單的開始
+Strata sets up a big model for you: it downloads it and starts it. The first time takes a while and needs free disk space.	Strata 會為你下載並啟動一個大模型。第一次需要一些時間和可用磁碟空間。
+Working… the progress is in the activity list.	處理中……進度見活動列表。
+It is added to your AIs as Local: Strata.	已作為 Local: Strata 加入你的 AI 清單。
+Install Strata	安裝 Strata
+Everyday assistant	日常助手
+Coding helper	編程助手
