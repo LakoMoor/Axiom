@@ -59,7 +59,7 @@ iced-x86 = { version = "1.21", default-features = false, features = ["std", "dec
 yaxpeax-arm = { version = "0.5", default-features = false, features = ["std", "alloc", "fmt"] }
 yaxpeax-arch = { version = "0.3", default-features = false, features = ["std", "alloc"] }
 rustc-demangle = "0.1"
-wasmparser = { version = "0.261", default-features = false, features = ["std", "validate", "features", "component-model", "simd"] }
+wasmparser = { version = "0.262", default-features = false, features = ["std", "validate", "features", "component-model", "simd"] }
 wasmprinter = { version = "0.261", default-features = false, features = ["component-model"] }
 regex = "1"
 
