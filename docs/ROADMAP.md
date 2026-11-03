@@ -1311,8 +1311,13 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
       screen (they stretch the window to its edges), and the Project, chat and evidence views, "Just
       look inside", the soft keyboard (the window should move up for it), landscape, and a
       back-button / back-gesture that goes up a screen have not been looked at on a phone
-- [ ] Android app: choosing a file (the system's document picker; `rfd` has no Android backend, so
-      the Open button says so for now) and saving the report
+- [x] Android app: choosing a file or folder with the app's own browser over the phone's storage
+      (`screens/file_browser.rs`; the same `Pick` kinds as a desktop dialog, several pictures at
+      once), once the person allows "All files access". Checked on the emulator: it lists Download
+      and picking a file sets the target.
+- [ ] Android app: the system's document picker (it needs Java and `unsafe` JNI, so it waits for a
+      decision on how), a button that opens the "All files access" page of the system Settings,
+      and saving the report (the report button still says it can't)
 - [ ] Android app: the models hub cannot run llama.cpp's server there as built; needs an in-process
       runner or a remote engine. Then check chat against a model on a real phone
 - [ ] Android app: a release key, an `x86_64` build for emulators on Intel, and the APK in the release workflow

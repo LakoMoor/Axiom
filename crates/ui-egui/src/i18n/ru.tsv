@@ -268,3 +268,7 @@ No AI	Без ИИ
 Build	Создать
 A web page can't choose a folder or other places. Pick or drop a file instead.	Веб-страница не может выбрать папку или другие места. Выберите или перетащите файл.
 This phone can't choose files here yet. Ask a question or open a project instead.	Этот телефон пока не умеет выбирать файлы. Задайте вопрос или откройте проект.
+Use this folder	Выбрать эту папку
+Up	Вверх
+This folder is empty.	Эта папка пуста.
+Axiom can't read this folder. On a phone, allow "All files access" for Axiom in the system Settings (Apps, Axiom, Permissions).	Axiom не может прочитать эту папку. На телефоне разрешите Axiom «Доступ ко всем файлам» в системных настройках (Приложения, Axiom, Разрешения).

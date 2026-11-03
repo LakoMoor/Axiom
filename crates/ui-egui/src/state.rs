@@ -408,6 +408,9 @@ pub struct UiState {
     pub selected_evidence: Option<String>,
     pub palette: PaletteState,
     pub settings_open: bool,
+    /// The app's own file browser, open while a person picks a file on a phone. Not saved.
+    #[serde(skip)]
+    pub browser: Option<crate::file_browser::FileBrowser>,
     pub settings_tab: SettingsTab,
     pub modal: Option<Modal>,
     pub url_input: String,
@@ -498,6 +501,7 @@ impl Default for UiState {
             selected_evidence: None,
             palette: PaletteState::default(),
             settings_open: false,
+            browser: None,
             settings_tab: SettingsTab::General,
             modal: None,
             url_input: String::new(),
