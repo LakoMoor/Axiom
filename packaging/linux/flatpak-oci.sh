@@ -41,6 +41,8 @@ echo "==> Building Flatpak OCI layout for $BASENAME"
 [[ -d "$OUT_OCI" ]] || { echo "error: $OUT_OCI layout not generated" >&2; exit 1; }
 
 REGISTRY="${REGISTRY:-ghcr.io/LakoMoor/Axiom}"
+# Registry names must be lowercase, and a GitHub owner or repository may not be.
+REGISTRY="$(printf '%s' "$REGISTRY" | tr '[:upper:]' '[:lower:]')"
 TAG="${TAG:-$VERSION-$ARCH}"
 
 echo "==> OCI layout ready at $OUT_OCI (Target: $REGISTRY:$TAG)"
