@@ -1540,6 +1540,17 @@ impl CraftApp {
         }
 
         if self.beginner() || self.state.screen != Screen::Workbench {
+            egui::Panel::left("app-rail")
+                .exact_size(sidebar::RAIL + 8.0)
+                .resizable(false)
+                .show_separator_line(false)
+                .frame(egui::Frame::new().inner_margin(egui::Margin { left: 8, right: 0, top: 0, bottom: 8 }))
+                .show(ui, |ui| {
+                    guard_ui(ui, "icon rail", |ui| {
+                        theme::glass_card(ui.painter(), ui.max_rect(), t.radius_lg, &t);
+                        sidebar::rail(self, ui)
+                    })
+                });
             egui::Panel::left("app-sidebar")
                 .exact_size(sidebar::width(self, &ctx) + 12.0)
                 .resizable(false)

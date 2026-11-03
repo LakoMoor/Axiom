@@ -23,6 +23,8 @@ pub fn folded(app: &CraftApp, ctx: &egui::Context) -> bool {
 pub fn width(app: &CraftApp, ctx: &egui::Context) -> f32 {
     if folded(app, ctx) { FOLDED } else { WIDTH }
 }
+/// The icon rail's width.
+pub const RAIL: f32 = 64.0;
 const ROW_H: f32 = 34.0;
 /// Room above the first row and below Settings.
 const EDGE: f32 = 14.0;
@@ -32,10 +34,8 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
     let fold = folded(app, ui.ctx());
     ui.data_mut(|d| d.insert_temp(egui::Id::new("sidebar-folded"), fold));
     let w = ui.available_width();
-    // Settings sits at the bottom under a rule, as far from the window's edge as New project is
-    // from the title bar; everything else scrolls above it.
-    let gap = ui.spacing().item_spacing.y;
-    let top_h = (ui.available_height() - (gap + 10.0 + ROW_H + EDGE)).max(120.0);
+    // The places to go live in the icon rail; this list is the projects, pins and chats.
+    let top_h = ui.available_height().max(120.0);
     ui.allocate_ui_with_layout(Vec2::new(w, top_h), egui::Layout::top_down(egui::Align::Min), |ui| {
         ui.set_min_height(top_h);
         ui.add_space(EDGE);
@@ -50,21 +50,6 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
                     app.state.sidebar_folded = !fold;
                 }
             });
-        }
-        let home = app.state.screen == Screen::Home;
-        if row(ui, "plus", "New project", None, home).clicked() {
-            app.state.screen = Screen::Home;
-        }
-        // Advanced mode's workbench sits beside the projects, so builds stay in sight.
-        if !app.beginner() && row(ui, "microscope", "Workbench", None, false).clicked() {
-            app.state.screen = Screen::Workbench;
-            app.ensure_rail_loaded();
-        }
-        if row(ui, "bot", "Agent", None, app.state.screen == Screen::Agent).clicked() {
-            app.state.screen = Screen::Agent;
-        }
-        if row(ui, "cpu", "Models", None, app.state.screen == Screen::Models).clicked() {
-            app.state.screen = Screen::Models;
         }
         section_gap(ui, fold, 18.0);
         // Pinned builds, between the screens and the projects, to open in one click.
@@ -116,27 +101,6 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
                 app.open_workspace(ws);
             }
         });
-    });
-    ui.painter().hline(ui.max_rect().x_range(), ui.cursor().top() + 1.0, egui::Stroke::new(1.0, t.separator));
-    ui.add_space(10.0);
-    let settings = row(ui, "settings", "Settings", None, app.state.settings_open);
-    if settings.clicked() {
-        app.state.settings_open = !app.state.settings_open;
-    }
-    // Right-click for the profile-style menu: the places a person goes from here.
-    settings.context_menu(|ui| {
-        if ui.button(tr("Settings")).clicked() {
-            app.state.settings_open = true;
-            ui.close();
-        }
-        if ui.button(tr("Models")).clicked() {
-            app.state.screen = Screen::Models;
-            ui.close();
-        }
-        if ui.button(tr("Agent")).clicked() {
-            app.state.screen = Screen::Agent;
-            ui.close();
-        }
     });
 }
 
@@ -248,4 +212,58 @@ fn chats_section(app: &mut CraftApp, ui: &mut Ui, fold: bool) {
         app.open_chat(i);
     }
     section_gap(ui, fold, 14.0);
+}
+
+/// The icon rail: the places to go, as round buttons in one column (New project, Agent, Models,
+/// the Workbench in Advanced mode), and Settings with a right-click menu at the bottom.
+pub fn rail(app: &mut CraftApp, ui: &mut Ui) {
+    let box_size = 44.0;
+    ui.add_space(EDGE);
+    ui.vertical_centered(|ui| {
+        let home = app.state.screen == Screen::Home;
+        rail_go(app, ui, "plus", "New project", Screen::Home, home);
+        ui.add_space(4.0);
+        let agent = app.state.screen == Screen::Agent;
+        rail_go(app, ui, "bot", "Agent", Screen::Agent, agent);
+        ui.add_space(4.0);
+        let models = app.state.screen == Screen::Models;
+        rail_go(app, ui, "cpu", "Models", Screen::Models, models);
+        if !app.beginner() {
+            ui.add_space(4.0);
+            if rail_go(app, ui, "microscope", "Workbench", Screen::Workbench, false) {
+                app.ensure_rail_loaded();
+            }
+        }
+    });
+    ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
+        ui.add_space(EDGE);
+        let settings = icons::button(ui, "settings", box_size, app.state.settings_open, "Settings");
+        if settings.clicked() {
+            app.state.settings_open = !app.state.settings_open;
+        }
+        // Right-click for the places a person goes from here.
+        settings.context_menu(|ui| {
+            if ui.button(tr("Settings")).clicked() {
+                app.state.settings_open = true;
+                ui.close();
+            }
+            if ui.button(tr("Models")).clicked() {
+                app.state.screen = Screen::Models;
+                ui.close();
+            }
+            if ui.button(tr("Agent")).clicked() {
+                app.state.screen = Screen::Agent;
+                ui.close();
+            }
+        });
+    });
+}
+
+/// One rail button: go to `screen`. True when it was clicked.
+fn rail_go(app: &mut CraftApp, ui: &mut Ui, icon: &str, tip: &str, screen: Screen, on: bool) -> bool {
+    let clicked = icons::button(ui, icon, 44.0, on, tip).clicked();
+    if clicked {
+        app.state.screen = screen;
+    }
+    clicked
 }
