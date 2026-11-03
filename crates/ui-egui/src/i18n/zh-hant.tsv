@@ -1365,3 +1365,34 @@ your files there are the app, edited in place	該位置的檔案就是應用程�
 … {} older	… 還有 {} 則較早內容
 ← Back	← 返回
 ↑↓ to move · Enter to run · Esc to close	↑↓ 選擇 · Enter 執行 · Esc 關閉
+AI that runs on this computer, so nothing you write leaves it.	在這台電腦上執行的 AI，你寫的內容不會離開電腦。
+AI that runs on this computer, so nothing you write leaves it. Memory here: {gb} GB.	在這台電腦上執行的 AI，你寫的內容不會離開電腦。本機記憶體：{gb} GB。
+Back to results	返回結果
+Built-in engines	內建引擎
+Changes	變更
+Chats	對話
+Delete this model from the computer	從電腦中刪除此模型
+Download one from Recommended or Search.	從「推薦」或「搜尋」中下載一個。
+Downloaded	已下載
+Downloaded.	已下載。
+Downloading…	正在下載…
+Forget this chat	忘記此對話
+Loading the model… this can take a minute.	正在載入模型…可能需要一分鐘。
+Look at the changes again	再看一次變更
+Looking…	正在查看…
+Models	模型
+Models on this computer…	這台電腦上的模型…
+No models yet	還沒有模型
+No single-file models here.	這裡沒有單檔模型。
+On this computer	在這台電腦上
+Only the first lines are shown.	僅顯示前幾行。
+Recommended	推薦
+Say it in your own words. Pick something to copy below, or start fresh.	用你自己的話說。可以在下方選一個來複製，或從頭開始。
+Search	搜尋
+Search Hugging Face, e.g. qwen or coder	搜尋 Hugging Face，例如 qwen 或 coder
+Searching…	正在搜尋…
+Show what the last build changed	顯示上次建置改動了什麼
+The model is running. Pick it in the AI list.	模型已在執行。請在 AI 清單中選擇它。
+What do you want to build?	你想建置什麼？
+binary	二進位
+{n} file(s) · +{a} −{d}	{n} 個檔案 · +{a} −{d}

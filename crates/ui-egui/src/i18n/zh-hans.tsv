@@ -1365,3 +1365,34 @@ your files there are the app, edited in place	该位置的文件就是应用，�
 … {} older	… 还有 {} 条较早内容
 ← Back	← 返回
 ↑↓ to move · Enter to run · Esc to close	↑↓ 选择 · Enter 运行 · Esc 关闭
+AI that runs on this computer, so nothing you write leaves it.	在这台电脑上运行的 AI，你写的内容不会离开电脑。
+AI that runs on this computer, so nothing you write leaves it. Memory here: {gb} GB.	在这台电脑上运行的 AI，你写的内容不会离开电脑。本机内存：{gb} GB。
+Back to results	返回结果
+Built-in engines	内置引擎
+Changes	变更
+Chats	对话
+Delete this model from the computer	从电脑中删除此模型
+Download one from Recommended or Search.	从“推荐”或“搜索”中下载一个。
+Downloaded	已下载
+Downloaded.	已下载。
+Downloading…	正在下载…
+Forget this chat	忘记此对话
+Loading the model… this can take a minute.	正在加载模型…可能需要一分钟。
+Look at the changes again	再看一次变更
+Looking…	正在查看…
+Models	模型
+Models on this computer…	这台电脑上的模型…
+No models yet	还没有模型
+No single-file models here.	这里没有单文件模型。
+On this computer	在这台电脑上
+Only the first lines are shown.	仅显示前几行。
+Recommended	推荐
+Say it in your own words. Pick something to copy below, or start fresh.	用你自己的话说。可以在下方选一个来复制，或从头开始。
+Search	搜索
+Search Hugging Face, e.g. qwen or coder	搜索 Hugging Face，例如 qwen 或 coder
+Searching…	正在搜索…
+Show what the last build changed	显示上次构建改动了什么
+The model is running. Pick it in the AI list.	模型已在运行。请在 AI 列表中选择它。
+What do you want to build?	你想构建什么？
+binary	二进制
+{n} file(s) · +{a} −{d}	{n} 个文件 · +{a} −{d}
