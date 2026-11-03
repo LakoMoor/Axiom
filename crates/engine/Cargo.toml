@@ -1,6 +1,6 @@
 [package]
-name = "craft-anything-engine"
-description = "Craft Anything engine: session, projects, the tool registry every surface dispatches through, settings and jobs"
+name = "axiom-engine"
+description = "Axiom engine: session, projects, the tool registry every surface dispatches through, settings and jobs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,13 +10,13 @@ publish = false
 workspace = true
 
 [dependencies]
-craft-anything-evidence = { workspace = true }
-craft-anything-formats = { workspace = true }
-craft-anything-disasm = { workspace = true }
-craft-anything-js = { workspace = true }
-craft-anything-analysis = { workspace = true }
-craft-anything-platform = { workspace = true }
-craft-anything-engines = { workspace = true }
+axiom-evidence = { workspace = true }
+axiom-formats = { workspace = true }
+axiom-disasm = { workspace = true }
+axiom-js = { workspace = true }
+axiom-analysis = { workspace = true }
+axiom-platform = { workspace = true }
+axiom-engines = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 schemars = { workspace = true }
@@ -37,9 +37,9 @@ image = { version = "0.25", default-features = false, features = ["jpeg", "webp"
 
 [features]
 # WASM component plugins (R1.8): compiles wasmtime, so off by default.
-wasm-plugins = ["craft-anything-engines/wasm-plugins"]
+wasm-plugins = ["axiom-engines/wasm-plugins"]
 
 [dev-dependencies]
 sha1 = "0.10"
-craft-anything-testkit = { workspace = true }
+axiom-testkit = { workspace = true }
 tempfile = "3"

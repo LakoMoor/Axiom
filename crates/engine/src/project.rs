@@ -13,7 +13,7 @@
 
 use crate::session::Annotations;
 use crate::versioned::{Step, upgrade};
-use craft_anything_evidence::{ErrorCode, Evidence, ToolError, Unknown, is_evidence_id};
+use axiom_evidence::{ErrorCode, Evidence, ToolError, Unknown, is_evidence_id};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -213,12 +213,12 @@ impl Project {
 
 /// Write `bytes` to `path` atomically: a temp file of its own, fsync, then rename (retried on
 /// Windows while another program holds the file for a moment).
-pub use craft_anything_platform::fs::write_atomic;
+pub use axiom_platform::fs::write_atomic;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_evidence::{Environment, EvidenceBuilder, Subject};
+    use axiom_evidence::{Environment, EvidenceBuilder, Subject};
 
     /// #273: threads saving one file at once shared a temp file, so saves failed with "not found"
     /// and the file could be left half one version, half another.

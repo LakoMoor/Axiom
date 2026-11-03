@@ -3,10 +3,10 @@
 
 use super::artifact_tools::{WalkOptions, abs_path, env, is_path_input, read_capped, resolve_evidence_input, walk_dir};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_analysis::js_app::{AppFile, AppGraph, AppInput, AppOptions, analyze_application, is_script};
-use craft_anything_analysis::js_trace::{RuntimeScript, reconcile, runtime_scripts_from};
-use craft_anything_evidence::{Confidence, Coverage, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex};
-use craft_anything_formats::{asar, zip};
+use axiom_analysis::js_app::{AppFile, AppGraph, AppInput, AppOptions, analyze_application, is_script};
+use axiom_analysis::js_trace::{RuntimeScript, reconcile, runtime_scripts_from};
+use axiom_evidence::{Confidence, Coverage, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex};
+use axiom_formats::{asar, zip};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -228,9 +228,8 @@ pub(crate) fn load_app_input(ctx: &Ctx<'_>, p: &AnalyzeParams) -> Result<(AppInp
                     }
                 }
             }
-            let digest = sha256_hex(
-                craft_anything_evidence::canonical_json(&json!(input.files.iter().map(|f| (&f.path, sha256_hex(&f.bytes))).collect::<Vec<_>>())).as_bytes(),
-            );
+            let digest =
+                sha256_hex(axiom_evidence::canonical_json(&json!(input.files.iter().map(|f| (&f.path, sha256_hex(&f.bytes))).collect::<Vec<_>>())).as_bytes());
             subject = Subject { kind: "js-app".into(), sha256: Some(digest), name: Some(label) };
         }
         InputFormat::Asar => {
@@ -422,7 +421,7 @@ fn js_app_map(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError>
         .summary(summary)
         .confidence(Confidence::Derived)
         .limitations(lims)
-        .coverage(if complete_modules { Coverage { status: if read >= listed { craft_anything_evidence::CoverageStatus::Complete } else { craft_anything_evidence::CoverageStatus::Partial }, examined: Some(read), total: Some(listed), next_offset: None } } else { Coverage::page(p.limit.min(total_modules.saturating_sub(p.offset)) as u64, total_modules as u64, p.offset as u64) })
+        .coverage(if complete_modules { Coverage { status: if read >= listed { axiom_evidence::CoverageStatus::Complete } else { axiom_evidence::CoverageStatus::Partial }, examined: Some(read), total: Some(listed), next_offset: None } } else { Coverage::page(p.limit.min(total_modules.saturating_sub(p.offset)) as u64, total_modules as u64, p.offset as u64) })
         .location(Location::new("path", p.input_path.clone()));
     if !complete_modules {
         b = b.limitation(Limitation::new("paged_modules", "Only one page of module summaries is included; tools that take this evidence need every module, so pass the input path to them or use offset=0 with a limit above modules_total."));
@@ -543,8 +542,8 @@ fn js_runtime_code_match(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput,
 #[cfg(test)]
 mod tests {
     use crate::{CallOptions, Caller, Engine};
-    use craft_anything_evidence::ToolError;
-    use craft_anything_testkit::electron as fx;
+    use axiom_evidence::ToolError;
+    use axiom_testkit::electron as fx;
     use serde_json::{Value, json};
 
     fn call(e: &Engine, id: &str, p: Value) -> Result<Value, ToolError> {
@@ -624,7 +623,7 @@ mod tests {
         let e = Engine::new(crate::testing::session());
         let a = call(&e, "js_app_map", json!({"input_path": root})).unwrap();
         let id = a["id"].as_str().unwrap();
-        let sha = craft_anything_evidence::sha256_hex(fx::RENDERER_JS.as_bytes());
+        let sha = axiom_evidence::sha256_hex(fx::RENDERER_JS.as_bytes());
         let r = call(
             &e,
             "js_runtime_code_match",
@@ -640,6 +639,6 @@ mod tests {
         let mut tampered = a.clone();
         tampered["result"]["app_kind"] = json!("web");
         let err = call(&e, "js_runtime_code_match", json!({"static_evidence": [{"evidence": tampered}], "runtime_scripts": [{"url": "x"}]})).unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::EvidenceHashMismatch);
+        assert_eq!(err.code, axiom_evidence::ErrorCode::EvidenceHashMismatch);
     }
 }

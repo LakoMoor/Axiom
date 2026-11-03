@@ -55,9 +55,9 @@ created folders in the real config directory (`Session::default()` uses it).
 - Tests never touch the network, never start installers or GUI programs, and never write outside a
   temp folder. Use ids that are refused before any I/O, or local stand-in servers.
 - When you widen what a tool does (a new download, a launch), grep the tests that call it.
-- Tests build their session with `craft_anything_engine::testing::session()` (config, plugin
+- Tests build their session with `axiom_engine::testing::session()` (config, plugin
   caches, engine store and projects in a temp folder); `cargo xtask layers` rejects
-  `Session::default()`. CLI tests set `CRAFT_ANYTHING_CONFIG_DIR` to a temp folder.
+  `Session::default()`. CLI tests set `AXIOM_CONFIG_DIR` to a temp folder.
 
 **A demo app wired to the person's settings.** The headless app the UI tests use built its AI hub
 with `AiHub::new`, which saves to the real `config.toml` and the system keychain; no test had
@@ -125,10 +125,10 @@ the same variable, lost its own provider settings, and failed with "unsupported 
 `config.toml` and restore it after the run instead, and leave the agent's environment as it is.
 
 **A renamed CLI can't start the builder's tools.** To keep a live run's binary from being locked, it
-was copied as `cli-r25.exe`; the CLI finds itself by name (`craft-anything-cli`) to start the
+was copied as `cli-r25.exe`; the CLI finds itself by name (`axiom-cli`) to start the
 builder's MCP server, so Claude Code saw no tools and stopped. Copy it under its own name into a
 folder of its own.
-It happened again in a release: the macOS app bundle had only `craft-anything`, with the CLI in
+It happened again in a release: the macOS app bundle had only `axiom`, with the CLI in
 a separate zip, so every Claude Code build from the 0.2.0 DMG failed the same way (#91). Every
 package that ships the app ships the CLI beside its executable, and the packaging script runs
 the CLI from the finished package before it's published.
@@ -189,7 +189,7 @@ live run. Ghidra also rejects project paths with a folder starting with a dot, a
 `tempfile::tempdir()`'s do: give live-test temp folders a plain prefix.
 
 **Stopping a long run leaves children behind** unless every program goes through
-`craft_anything_platform::process`. After stopping one, check that its child processes are gone.
+`axiom_platform::process`. After stopping one, check that its child processes are gone.
 
 **Separate target folders fill the disk.** Agents given their own `CARGO_TARGET_DIR` under
 `target/` (to avoid locking a running exe) left them behind; one reached 79 GB and the disk filled
@@ -244,7 +244,7 @@ the person raised meanwhile (and any "always allow" answer). Fields the person o
 through `Workspace::set_person`; `save` keeps them as they are on disk.
 And again inside one process: the engine had its own `write_atomic` whose temp file was named
 by process only, so two threads saving `craft.json` wrote the same temp file and one rename found
-it gone (#273). There is one atomic writer, `craft_anything_platform::fs::write_atomic`; don't
+it gone (#273). There is one atomic writer, `axiom_platform::fs::write_atomic`; don't
 write another.
 
 **Keywords that only some code paths honour.** "…in Rust" picked Rust for apps but not for games, so

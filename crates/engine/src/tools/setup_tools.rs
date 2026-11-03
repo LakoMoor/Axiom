@@ -4,7 +4,7 @@
 
 use crate::settings::Settings;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -345,7 +345,7 @@ pub struct SetParams {
 fn engines_list(ctx: &mut Ctx<'_>, _params: Value) -> Result<ToolOutput, ToolError> {
     let s = &ctx.session.settings;
     let store = s.engine_store_dir();
-    let engines: Vec<Value> = craft_anything_engines::ENGINES
+    let engines: Vec<Value> = axiom_engines::ENGINES
         .iter()
         .map(|e| {
             json!({
@@ -369,7 +369,7 @@ fn engines_install(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolE
     let id = p.engine.trim().to_ascii_lowercase();
     let store = ctx.session.settings.engine_store_dir();
     let c = ctx.cancel.clone();
-    let cancel: craft_anything_platform::process::Cancel = Arc::new(move || c.is_cancelled());
+    let cancel: axiom_platform::process::Cancel = Arc::new(move || c.is_cancelled());
     let mb = |n: u64| n / (1024 * 1024);
     let path = match id.as_str() {
         "ghidra" => {
@@ -377,11 +377,11 @@ fn engines_install(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolE
                 let fraction = total.filter(|t| *t > 0).map(|t| got as f32 / t as f32);
                 ctx.report(fraction, format!("{what}: {} of {} MB", mb(got), total.map_or("?".into(), |t| mb(t).to_string())));
             };
-            craft_anything_engines::ghidra::get::install(&store, Some(cancel), &progress)?
+            axiom_engines::ghidra::get::install(&store, Some(cancel), &progress)?
         }
         other => {
             let report = |m: &str| ctx.report(None, m.to_string());
-            craft_anything_engines::install::install(other, &store, None, Some(cancel), &report)?.install_dir
+            axiom_engines::install::install(other, &store, None, Some(cancel), &report)?.install_dir
         }
     };
     Ok(ToolOutput::Value(json!({"installed": id, "path": path.display().to_string()})))

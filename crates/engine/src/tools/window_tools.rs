@@ -4,8 +4,8 @@
 
 use super::web_common::{Image, encode_png, png_artifact};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{Confidence, Coverage, ErrorCode, EvidenceBuilder, Location, Subject, ToolError};
-use craft_anything_platform::process::Process;
+use axiom_evidence::{Confidence, Coverage, ErrorCode, EvidenceBuilder, Location, Subject, ToolError};
+use axiom_platform::process::Process;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -62,8 +62,8 @@ fn native_window_capture(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput,
         return Err(ToolError::invalid("ui_tree must be an absolute path"));
     }
     // Refused before the program starts where no picture can be taken.
-    if !craft_anything_platform::window::SUPPORTED {
-        return Err(craft_anything_platform::window::unsupported());
+    if !axiom_platform::window::SUPPORTED {
+        return Err(axiom_platform::window::unsupported());
     }
     let wait = Duration::from_secs(p.wait_secs.unwrap_or(8).clamp(1, 120));
     let dir = p.program.parent().map(PathBuf::from).unwrap_or_default();
@@ -89,7 +89,7 @@ fn native_window_capture(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput,
         std::thread::sleep(Duration::from_millis(200));
     }
     let name = p.program.file_stem().map(|s| s.to_string_lossy().into_owned());
-    let shot = craft_anything_platform::window::capture_window(running.pid(), name.as_deref());
+    let shot = axiom_platform::window::capture_window(running.pid(), name.as_deref());
     // Read while it still runs; a tree that can't be read is only left out.
     let tree = p.ui_tree.as_ref().map(|_| super::apple_runtime::ui_tree(ctx, running.pid(), UI_TREE_NODES));
     // Always closed again, picture or not, and confirmed before we return (a caller such as the
@@ -159,7 +159,7 @@ mod tests {
             "checked before anything starts"
         );
         // Where windows can't be pictured, nothing is started.
-        if !craft_anything_platform::window::SUPPORTED {
+        if !axiom_platform::window::SUPPORTED {
             let err = e.call("native_window_capture", json!({"program": exe}), CallOptions::new(Caller::Mcp).with_consent(Consent::Granted)).unwrap_err();
             assert_eq!(err.code, ErrorCode::FeatureMissing);
         }

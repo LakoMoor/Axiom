@@ -6,7 +6,7 @@
 //! Widgets read [`Tokens::get`] instead of hard-coding colours, so a theme switch applies everywhere.
 //! Confidence has its own fixed palette so "how sure are we" reads the same in both themes.
 
-use craft_anything_engine::evidence::Confidence;
+use axiom_engine::evidence::Confidence;
 use egui::{Color32, CornerRadius, FontData, FontDefinitions, FontFamily, FontId, Stroke, TextStyle, Visuals};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -197,7 +197,7 @@ impl Tokens {
 }
 
 fn tokens_id() -> egui::Id {
-    egui::Id::new("craft-anything-theme")
+    egui::Id::new("axiom-theme")
 }
 
 // ---- fonts -------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-# The stacks Craft Anything builds with: what the builder is told for each, and the phrases that
+# The stacks Axiom builds with: what the builder is told for each, and the phrases that
 # ask for one by name. A stack without `steps` gets the generic instruction. Add a stack here; kinds name their default stack by `name`.
 # `asked_by` phrases are matched on the request's lower-case words with punctuation turned into
 # spaces and padded with spaces ("Next.js," reads " next js "), first stack in this order wins.
@@ -17,7 +17,7 @@ steps = "Use what their request names; otherwise choose the stack yourself: the 
 name = "Electron"
 asked_by = [" electron "]
 uses = ["electron"]
-steps = "Use Electron, with TypeScript or JavaScript (a bundler such as Vite is fine). Create the project in app/: package.json with electron as a devDependency, \"main\" set to the main-process file and a \"build\" script that compiles or bundles everything and exits without opening a window (for plain JavaScript, `node --check` on the main file is enough). Keep contextIsolation on and nodeIntegration off, and give the page what it needs through a preload script and IPC. For --screenshot, set backgroundThrottling to false, wait for the page to finish loading and about two seconds rather than counting requestAnimationFrame frames (a window that opens behind others may get none), then save win.webContents.capturePage(). Craft Anything starts the app with the Electron that `npm install` puts in node_modules, with app/ as its argument, so run `npm install` and `npm run build` from app/ until both succeed."
+steps = "Use Electron, with TypeScript or JavaScript (a bundler such as Vite is fine). Create the project in app/: package.json with electron as a devDependency, \"main\" set to the main-process file and a \"build\" script that compiles or bundles everything and exits without opening a window (for plain JavaScript, `node --check` on the main file is enough). Keep contextIsolation on and nodeIntegration off, and give the page what it needs through a preload script and IPC. For --screenshot, set backgroundThrottling to false, wait for the page to finish loading and about two seconds rather than counting requestAnimationFrame frames (a window that opens behind others may get none), then save win.webContents.capturePage(). Axiom starts the app with the Electron that `npm install` puts in node_modules, with app/ as its argument, so run `npm install` and `npm run build` from app/ until both succeed."
 
 [[stack]]
 name = "Next.js + TypeScript"

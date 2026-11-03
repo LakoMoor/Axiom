@@ -2,14 +2,14 @@
 //! refinements.
 
 use super::*;
-use craft_anything_engines::assets::{Catalogue, Shape, about_usd};
+use axiom_engines::assets::{Catalogue, Shape, about_usd};
 
 pub(super) const RULES: &str = "\
 Rules:
 - Their request comes first. When it says how to build (a language, framework, engine, library or platform), build with exactly that, even where these instructions name something else: the stack given here is only the default for what the request leaves open. Don't switch away from what they asked for to get past a failing build or check; fix the build instead.
 - Change files only inside app/. Everything else in the workspace is read-only evidence.
 - Rebuild the layout, styling and behaviour yourself from the evidence. Don't copy logos, photos, brand names or long passages of text unless the person confirms they own the original or have permission (ask once with core_person_ask if it matters); otherwise use neutral placeholders: simple shapes or gradients for images, short sample copy for text.
-- Use the core_person_ask tool (craft-anything MCP server) only for choices that really change the result. Give 2-4 short choices. Never ask about technical details you can decide yourself.
+- Use the core_person_ask tool (axiom MCP server) only for choices that really change the result. Give 2-4 short choices. Never ask about technical details you can decide yourself.
 - Build what the person asked for. If part of it won't fit this version (for example online co-op, a whole game mode or another platform), ask with core_person_ask before leaving it out, with the smaller version as one of the choices; never drop it silently.
 - Never start dev servers, watchers or anything that doesn't exit (npm run dev, npm start, vite, cargo watch). Axiom serves and checks the build itself.
 - Finish with 3-5 plain sentences for the person: what you built, what differs from the original or is still unknown, and one idea for what to ask next. No code and no file paths in that summary.";
@@ -25,8 +25,8 @@ pub(super) fn steps(deep: bool) -> String {
         "capture another width or an opened state of a website into a new folder under checks/, or ask the person with core_person_ask. Clean room: nothing inside the original is looked at, so never open, read, list, fetch, run or decompile its files, its folder, its pages' code or its program, with any tool."
     };
     format!(
-        "How to work: you lead the investigation and the craft-anything tools answer your questions with evidence.
-1) Study the evidence, overview first (the README and summaries before the details). Where it leaves a gap that matters to the result, ask a focused follow-up with the craft-anything tools instead of guessing: {follow_up} Don't repeat a call that already answered. Record each question the evidence doesn't answer yet with core_unknown_add (the question, what would settle it as probes, and how much it matters as severity), and when a later look answers it, close it with core_unknown_edit (status resolved, the resolution and the evidence ids that settle it); until then say in it what you did instead (an estimate, a placeholder or a question for the person). Missing evidence is never proof, so mark what you estimated.
+        "How to work: you lead the investigation and the axiom tools answer your questions with evidence.
+1) Study the evidence, overview first (the README and summaries before the details). Where it leaves a gap that matters to the result, ask a focused follow-up with the axiom tools instead of guessing: {follow_up} Don't repeat a call that already answered. Record each question the evidence doesn't answer yet with core_unknown_add (the question, what would settle it as probes, and how much it matters as severity), and when a later look answers it, close it with core_unknown_edit (status resolved, the resolution and the evidence ids that settle it); until then say in it what you did instead (an estimate, a placeholder or a question for the person). Missing evidence is never proof, so mark what you estimated.
 2) Make a short checklist with TodoWrite: 3-7 steps in plain words the person can follow (no file names or jargon), each with a short activeForm such as \"Drawing the map\"; the person watches it live, so keep it updated as you go.
 3) Build it in app/ and fix errors until the build succeeds.
 4) Test it against the original with rebuild_check: it runs the same checks Axiom runs after your turn and lists what differs and what couldn't be compared. Fix those, build and check again until it says it would pass.
@@ -74,10 +74,10 @@ pub(super) fn brief(kind: &dyn TargetKind, cx: &BriefCx, extra: Option<&str>) ->
             "capture/ holds what we recorded from the live site: README.md (start here: its colours, fonts, spacing, breakpoints and the layout at each width), capture.json (design tokens with colours in hex, spacing and content widths, the widths its CSS switches layout at (`breakpoints`), the layout measured at each width (`layouts`: page width, heading and text sizes, each section's padding, gap, content column and items per row), a layout outline with positions in CSS pixels, headings, links, form shapes, asset lists with its font files, and the visible text), screenshot-<width>.png for each width (desktop, tablet and phone; open them all with the Read tool and look closely), noise-<width>.png where parts of the page change by themselves (white squares: carousels, videos, animations; they aren't compared, so match how they look, not the exact frame), and page.html (the rendered HTML).\n\n\
              Match it exactly, not roughly: take colours, fonts, text sizes, padding, gaps, corner radii and content widths from capture.json as exact values (make them the project's theme tokens rather than a library's defaults), load the same font families, change the layout at the same breakpoints so each width matches its screenshot and `layouts` entry (sections stack, columns per row and the navigation switch where the original's do), and never let the page scroll sideways on a phone. Axiom measures your build the same way at every width and tells you each difference.
 
-             Deep mode: every craft-anything tool is yours, so learn how it works, not only how it looks, before you build. capture/how-it-works.md already has what its JavaScript is made of (modules, routes, the requests it makes, the libraries it uses) and ten seconds of what the start page did (requests, console, WebSocket messages). The original is open in Axiom's private browser (web_site_open opens another page of it); ask web_page_show (its structure, scripts, network requests and console), web_listeners_list on a control (what clicking it runs, and where that code is), web_coverage_measure while you use it (which code runs and which requests it makes) and web_walkthrough_record to click or type through a flow and record every step; web_scripts_save, js_app_map and js_sources_restore read its code as an app. Rebuild the behaviour you learn in your own code; never paste the original's code into app/."
+             Deep mode: every axiom tool is yours, so learn how it works, not only how it looks, before you build. capture/how-it-works.md already has what its JavaScript is made of (modules, routes, the requests it makes, the libraries it uses) and ten seconds of what the start page did (requests, console, WebSocket messages). The original is open in Axiom's private browser (web_site_open opens another page of it); ask web_page_show (its structure, scripts, network requests and console), web_listeners_list on a control (what clicking it runs, and where that code is), web_coverage_measure while you use it (which code runs and which requests it makes) and web_walkthrough_record to click or type through a flow and record every step; web_scripts_save, js_app_map and js_sources_restore read its code as an app. Rebuild the behaviour you learn in your own code; never paste the original's code into app/."
         }
         TargetRef::Local { .. } => {
-            "capture/README.md holds a first static look at the program (nothing was run) and, for a game, a list of its own files: maps, textures, models, sounds and settings. Read its settings and scripts for the real numbers (speeds, health, weapons, modes, controls) and open a few of its pictures with the Read tool to learn the style; never change anything in that folder. Deep mode: every craft-anything tool is yours, so learn how the parts the person cares about work before you build: core_target_open and core_target_triage first, then native_functions_list, native_strings_find and native_function_pseudocode for a program's code, managed_assembly_show and managed_members_list for .NET, java_* and android_* for Java and Android apps, js_app_map, js_sources_restore and js_electron_* for an Electron app, and game_archives_list and the other game_* tools for a game's files."
+            "capture/README.md holds a first static look at the program (nothing was run) and, for a game, a list of its own files: maps, textures, models, sounds and settings. Read its settings and scripts for the real numbers (speeds, health, weapons, modes, controls) and open a few of its pictures with the Read tool to learn the style; never change anything in that folder. Deep mode: every axiom tool is yours, so learn how the parts the person cares about work before you build: core_target_open and core_target_triage first, then native_functions_list, native_strings_find and native_function_pseudocode for a program's code, managed_assembly_show and managed_members_list for .NET, java_* and android_* for Java and Android apps, js_app_map, js_sources_restore and js_electron_* for an Electron app, and game_archives_list and the other game_* tools for a game's files."
         }
         TargetRef::None => "There is no target to study.",
     };
@@ -108,12 +108,12 @@ pub(super) fn brief(kind: &dyn TargetKind, cx: &BriefCx, extra: Option<&str>) ->
 
 /// The person's own files, when the project started in a folder that had them: the app to edit
 /// in place, or material to start from.
-pub(super) fn start_files_note(m: &craft_anything_engine::workspace::Manifest) -> Option<String> {
+pub(super) fn start_files_note(m: &axiom_engine::workspace::Manifest) -> Option<String> {
     if m.start_files.is_empty() && !m.app_in_root {
         return None;
     }
     let names = m.start_files.join(", ");
-    let own = craft_anything_engine::workspace::OWN_NAMES.join(", ");
+    let own = axiom_engine::workspace::OWN_NAMES.join(", ");
     Some(if m.app_in_root {
         format!(
             "This project's app is the person's own folder, the project workspace itself, and it already has their files ({names}). Wherever these instructions say app/, use the workspace folder itself (./): work on their files in place, keep what works and change only what the request needs; never start over, delete or replace their work, and don't create an app/ folder. Axiom keeps its own records beside their files ({own}): leave those alone."

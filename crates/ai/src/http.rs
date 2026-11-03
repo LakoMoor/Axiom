@@ -1,12 +1,12 @@
 //! HTTP plumbing: one ureq agent (rustls), JSON POST with streamed responses, and an SSE parser.
 
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use serde_json::Value;
 use std::io::{BufRead, BufReader, Read};
 use std::time::Duration;
 
 /// Generic, non-identifying User-Agent.
-pub const USER_AGENT: &str = "CraftAnything-dev";
+pub const USER_AGENT: &str = "Axiom-dev";
 
 /// An agent for model calls: generous body time (streams can run for many minutes), bounded
 /// connect and first-byte waits.

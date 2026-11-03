@@ -8,12 +8,12 @@ use crate::make::{self, resolve_target};
 use crate::state::{FeedItem, MakeDraft, Modal, PlanStatus, PlanStep, Screen};
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, Done, chat, icons, prompt_box, widgets};
-use craft_anything_ai::AgentEvent;
-use craft_anything_ai::rebuild::activity::{Action, ActivityNow, LineKind};
-use craft_anything_ai::rebuild::feed::{self, apply};
-use craft_anything_ai::rebuild::{self, AppKind, KindRegistry, KindWords, Note, RebuildRun, RunEvent, RunOptions, Started, Step, Stopped, TargetKind};
-use craft_anything_engine::inbox::{Answer, Inbox, Request, RequestKind};
-use craft_anything_engine::workspace::{CheckResult, Status, TargetRef, Workspace, suggest_name};
+use axiom_ai::AgentEvent;
+use axiom_ai::rebuild::activity::{Action, ActivityNow, LineKind};
+use axiom_ai::rebuild::feed::{self, apply};
+use axiom_ai::rebuild::{self, AppKind, KindRegistry, KindWords, Note, RebuildRun, RunEvent, RunOptions, Started, Step, Stopped, TargetKind};
+use axiom_engine::inbox::{Answer, Inbox, Request, RequestKind};
+use axiom_engine::workspace::{CheckResult, Status, TargetRef, Workspace, suggest_name};
 use egui::{Color32, Margin, RichText, Ui, Vec2};
 use std::path::{Path, PathBuf};
 
@@ -121,7 +121,7 @@ impl CraftApp {
     }
 
     /// Start a run, or queue it when as many as Settings allows are already building.
-    fn launch(&mut self, ws: Workspace, opts: RunOptions) -> Result<Started, craft_anything_engine::evidence::ToolError> {
+    fn launch(&mut self, ws: Workspace, opts: RunOptions) -> Result<Started, axiom_engine::evidence::ToolError> {
         self.runs.set_limit(self.settings.build.parallel);
         self.runs.start(&self.hub, ws, opts)
     }
@@ -333,7 +333,7 @@ impl CraftApp {
         }
         let d = &mut self.state.make.pictures;
         for f in files {
-            if craft_anything_engine::workspace::is_picture(&f) && !d.contains(&f) {
+            if axiom_engine::workspace::is_picture(&f) && !d.contains(&f) {
                 d.push(f);
             }
         }
@@ -350,7 +350,7 @@ impl CraftApp {
 
     /// Start a program this project built, in its own window (only ever on the person's click).
     /// Choose what the builder's questions get in this project. Shown at once; saved by the tool.
-    pub fn set_questions(&mut self, root: &Path, mode: craft_anything_engine::workspace::Questions) {
+    pub fn set_questions(&mut self, root: &Path, mode: axiom_engine::workspace::Questions) {
         if let Some(ws) = self.workspace.as_mut().filter(|w| w.root == root) {
             ws.manifest.questions = Some(mode);
         }
@@ -375,7 +375,7 @@ impl CraftApp {
         self.thumbs.insert(path.to_path_buf(), Thumb::Loading);
         let (p, ctx) = (path.to_path_buf(), ctx.clone());
         self.jobs.spawn("Load a screenshot", false, move |_| {
-            use craft_anything_engine::tools::web_common::{crop, decode_png, resize};
+            use axiom_engine::tools::web_common::{crop, decode_png, resize};
             let image = std::fs::read(&p).ok().and_then(|b| decode_png(&b).ok()).map(|img| {
                 let top = crop(&img, img.width, img.height.min(THUMB_TOP));
                 // Shown at most half the feed wide: twice that is sharp on a high-density screen.
@@ -486,7 +486,7 @@ impl Facts {
             references: ws.references().len(),
             // Summed from +0.0: an empty f64 `sum()` is -0.0, shown as "$-0.00".
             assets: (a.len(), a.iter().fold(0.0, |s, x| s + x.cost_usd)),
-            open_questions: craft_anything_ai::rebuild::self_check::open_questions(ws).into_iter().map(|u| u.question).collect(),
+            open_questions: axiom_ai::rebuild::self_check::open_questions(ws).into_iter().map(|u| u.question).collect(),
         }
     }
 }
@@ -531,7 +531,7 @@ impl CraftApp {
     /// What "Raise the budget" adds: the default budget from Settings (or $5 when that is 0).
     pub(crate) fn asset_budget_step(&self) -> f64 {
         let b = self.settings.assets.budget();
-        if b > 0.0 { b } else { craft_anything_engine::workspace::ASSET_BUDGET_USD }
+        if b > 0.0 { b } else { axiom_engine::workspace::ASSET_BUDGET_USD }
     }
 
     /// Give the open project another [`Self::asset_budget_step`] for generated assets, through
@@ -557,7 +557,7 @@ impl CraftApp {
 /// A game project's generated-assets switch, and "7 · $2.10 of $5.00" once it's on or assets were made.
 fn asset_line(app: &mut CraftApp, ui: &mut Ui, ws: &Workspace) {
     let t = Tokens::get(ui.ctx());
-    if ws.manifest.stack != craft_anything_ai::rebuild::stacks::GAME_STACK {
+    if ws.manifest.stack != axiom_ai::rebuild::stacks::GAME_STACK {
         return;
     }
     widgets::caption(ui, "Generated assets");
@@ -572,7 +572,7 @@ fn asset_line(app: &mut CraftApp, ui: &mut Ui, ws: &Workspace) {
     let budget = ws.manifest.asset_budget_usd;
     let amount = trf("{n} · ${spent} of ${budget}", &[("n", &n.to_string()), ("spent", &format!("{spent:.2}")), ("budget", &format!("{budget:.2}"))]);
     ui.label(RichText::new(amount).font(theme::mono(12.5)).color(if spent >= budget { t.warning } else { t.text_dim }));
-    let step = craft_anything_engines::assets::usd(app.asset_budget_step());
+    let step = axiom_engines::assets::usd(app.asset_budget_step());
     if widgets::link(ui, &trf("Raise the budget by {amount}", &[("amount", &step)])).clicked() {
         app.raise_asset_budget();
     }
@@ -1578,8 +1578,8 @@ fn questions_switch(app: &mut CraftApp, ui: &mut Ui) {
     });
 }
 
-fn questions_controls(app: &mut CraftApp, ui: &mut Ui, now: craft_anything_engine::workspace::Questions, root: &Path, t: &Tokens) {
-    use craft_anything_engine::workspace::Questions;
+fn questions_controls(app: &mut CraftApp, ui: &mut Ui, now: axiom_engine::workspace::Questions, root: &Path, t: &Tokens) {
+    use axiom_engine::workspace::Questions;
     {
         let sel = usize::from(now == Questions::Decide);
         if let Some(i) = widgets::segmented(ui, &["Ask me", "Decide yourself"], sel, 24.0) {
@@ -1607,7 +1607,7 @@ impl CraftApp {
     pub fn attach(&mut self, files: Vec<PathBuf>) {
         let list = &mut self.state.project_attachments;
         for f in files {
-            if craft_anything_engine::workspace::is_picture(&f) && !list.contains(&f) {
+            if axiom_engine::workspace::is_picture(&f) && !list.contains(&f) {
                 list.push(f);
             }
         }
@@ -1688,11 +1688,11 @@ impl CraftApp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_ai::AgentEvent;
+    use axiom_ai::AgentEvent;
 
     #[test]
     fn the_app_starts_with_the_persons_settings_while_the_engine_is_busy() {
-        let engine = crate::demo::engine(craft_anything_engine::Mode::Beginner, true);
+        let engine = crate::demo::engine(axiom_engine::Mode::Beginner, true);
         engine.session().settings.deep_mode = true;
         let (held, release) = (std::sync::mpsc::channel(), std::sync::mpsc::channel::<()>());
         let busy = {
@@ -1712,7 +1712,7 @@ mod tests {
 
     #[test]
     fn a_fix_that_names_a_command_offers_it() {
-        let hint = craft_anything_ai::cli_agents::sign_in_hint("Not logged in").unwrap();
+        let hint = axiom_ai::cli_agents::sign_in_hint("Not logged in").unwrap();
         assert_eq!(command_in(&hint), Some("claude auth login"));
         assert_eq!(command_in("Run `codex login` in a terminal."), Some("codex login"));
         for none in ["Try again later.", "Files go in `app/`.", "An `unclosed quote"] {

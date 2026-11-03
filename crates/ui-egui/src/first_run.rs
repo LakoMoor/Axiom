@@ -5,8 +5,8 @@ use crate::i18n::tr;
 use crate::state::FirstRunStep;
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, icons, widgets};
-use craft_anything_ai::{BackendKind, Detected};
-use craft_anything_engine::Mode;
+use axiom_ai::{BackendKind, Detected};
+use axiom_engine::Mode;
 use egui::{Align2, RichText, Ui, Vec2};
 
 pub fn show(app: &mut CraftApp, ui: &mut Ui) {
@@ -279,8 +279,8 @@ fn purpose(app: &mut CraftApp, ui: &mut Ui, width: f32) {
     }
 }
 
-fn purpose_icon(p: craft_anything_engine::project::Purpose) -> &'static str {
-    use craft_anything_engine::project::Purpose::*;
+fn purpose_icon(p: axiom_engine::project::Purpose) -> &'static str {
+    use axiom_engine::project::Purpose::*;
     match p {
         OwnOrAuthorized => "user",
         Education => "graduation-cap",

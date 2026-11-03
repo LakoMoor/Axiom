@@ -355,7 +355,7 @@ pub fn parse(data: &[u8]) -> Result<AssetCatalog, FormatError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::apple as fx;
+    use axiom_testkit::apple as fx;
 
     #[test]
     fn reads_a_catalog() {
@@ -379,7 +379,7 @@ mod tests {
     #[test]
     fn hostile_inputs() {
         let s = fx::assets_car();
-        for m in craft_anything_testkit::mutations(&s) {
+        for m in axiom_testkit::mutations(&s) {
             let _ = parse(&m);
         }
         for i in (0..s.len()).step_by(7) {
@@ -387,7 +387,7 @@ mod tests {
         }
         for seed in 0..100 {
             let mut n = b"BOMStore".to_vec();
-            n.extend(craft_anything_testkit::noise(seed, 256));
+            n.extend(axiom_testkit::noise(seed, 256));
             let _ = parse(&n);
         }
     }

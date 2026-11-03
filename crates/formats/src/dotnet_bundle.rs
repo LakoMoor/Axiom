@@ -182,7 +182,7 @@ impl PackedFormat for DotnetBundle {
 mod tests {
     use super::*;
     use crate::packed;
-    use craft_anything_testkit::packed::{DOTNET_SIGNATURE, dotnet_bundle, dotnet_sample};
+    use axiom_testkit::packed::{DOTNET_SIGNATURE, dotnet_bundle, dotnet_sample};
 
     #[test]
     fn the_signature_is_the_same_on_both_sides() {

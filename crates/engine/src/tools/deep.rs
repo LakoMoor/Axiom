@@ -12,16 +12,16 @@
 
 use crate::settings::Settings;
 use crate::tool::{Ctx, ToolOutput};
-use craft_anything_engines::ghidra::{self, DeepDecompiler, DeepFunction};
-use craft_anything_evidence::{Confidence, Environment, EvidenceBuilder, Limitation, Location, ToolError, host_triple};
+use axiom_engines::ghidra::{self, DeepDecompiler, DeepFunction};
+use axiom_evidence::{Confidence, Environment, EvidenceBuilder, Limitation, Location, ToolError, host_triple};
 use std::sync::Arc;
 use std::time::Duration;
 
 /// The analysis settings hash for the default Deep profile. Part of the project cache key, so a
 /// different pinned language re-analyses rather than reusing the auto-detected project.
 fn settings_hash(language_id: Option<&str>) -> String {
-    let seed = format!("craft-anything-ghidra-fast-profile-v2|lang={}", language_id.unwrap_or(""));
-    craft_anything_evidence::sha256_hex(seed.as_bytes())
+    let seed = format!("axiom-ghidra-fast-profile-v2|lang={}", language_id.unwrap_or(""));
+    axiom_evidence::sha256_hex(seed.as_bytes())
 }
 
 /// A per-target Ghidra language override set by `core_target_open` (wins over the global setting).
@@ -227,7 +227,7 @@ fn build_evidence(
 mod tests {
     use super::super::native_common::test_support::*;
     use super::*;
-    use craft_anything_testkit as tk;
+    use axiom_testkit as tk;
     use serde_json::json;
     use std::sync::atomic::{AtomicU64, Ordering};
 

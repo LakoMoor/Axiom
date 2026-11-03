@@ -358,7 +358,7 @@ mod tests {
 
     #[test]
     fn reads_synthetic_certificate() {
-        let cert = craft_anything_testkit::android::certificate_der("Craft Test", "Craft Org");
+        let cert = axiom_testkit::android::certificate_der("Craft Test", "Craft Org");
         let info = certificate(&cert).unwrap();
         assert_eq!(info.subject, "CN=Craft Test, O=Craft Org");
         assert_eq!(info.issuer, "CN=Craft Test, O=Craft Org");
@@ -367,7 +367,7 @@ mod tests {
         assert_eq!(info.public_key_algorithm, "rsaEncryption");
         assert_eq!(info.version, 3);
         assert_eq!(info.not_before, "250101000000Z");
-        let p7 = craft_anything_testkit::android::pkcs7_der(&cert);
+        let p7 = axiom_testkit::android::pkcs7_der(&cert);
         let certs = pkcs7_certificates(&p7);
         assert_eq!(certs, vec![cert.as_slice()]);
         assert!(count_nodes(&p7) > 10);
@@ -376,8 +376,8 @@ mod tests {
     #[test]
     fn oids_and_garbage() {
         assert_eq!(oid(&[0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b]), "1.2.840.113549.1.1.11");
-        let cert = craft_anything_testkit::android::pkcs7_der(&craft_anything_testkit::android::certificate_der("A", "B"));
-        for m in craft_anything_testkit::mutations(&cert) {
+        let cert = axiom_testkit::android::pkcs7_der(&axiom_testkit::android::certificate_der("A", "B"));
+        for m in axiom_testkit::mutations(&cert) {
             let _ = pkcs7_certificates(&m);
             let _ = certificate(&m);
             let _ = count_nodes(&m);
@@ -387,7 +387,7 @@ mod tests {
             let _ = certificate(&cert[..len]);
         }
         for seed in 0..64 {
-            let n = craft_anything_testkit::noise(seed, 300);
+            let n = axiom_testkit::noise(seed, 300);
             let _ = certificate(&n);
             let _ = pkcs7_certificates(&n);
         }

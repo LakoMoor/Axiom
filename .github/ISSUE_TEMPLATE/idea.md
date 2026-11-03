@@ -1,6 +1,6 @@
 ---
 name: An idea
-about: Something Craft Anything should do, study or make
+about: Something Axiom should do, study or make
 labels: idea
 ---
 

@@ -2,16 +2,16 @@
 //! usual environment variables. Keys are never logged or written to project files.
 
 use crate::BackendKind;
-use craft_anything_engine::tools::asset_tools::AssetKeys;
-use craft_anything_engines::assets::{AssetProvider, AssetProviders};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_engine::tools::asset_tools::AssetKeys;
+use axiom_engines::assets::{AssetProvider, AssetProviders};
+use axiom_evidence::{ErrorCode, ToolError};
 use std::path::PathBuf;
 use std::time::Duration;
 
 /// Service name in the OS keychain.
-pub const SERVICE: &str = "ai.storyteller.craft-anything";
+pub const SERVICE: &str = "ai.storyteller.axiom";
 /// Set to `1` to skip the OS keychain (tests, headless servers).
-pub const NO_KEYCHAIN_ENV: &str = "CRAFT_ANYTHING_NO_KEYCHAIN";
+pub const NO_KEYCHAIN_ENV: &str = "AXIOM_NO_KEYCHAIN";
 /// The keychain can block (a locked desktop keyring); never wait longer than this.
 const KEYCHAIN_TIMEOUT: Duration = Duration::from_secs(3);
 
@@ -39,7 +39,7 @@ pub fn asset_keys(store: &KeyStore, providers: &AssetProviders) -> AssetKeys {
 
 /// The fal.ai key for game assets: stored, else fal's environment variable.
 pub fn fal_key(store: &KeyStore) -> Option<String> {
-    asset_key(store, &craft_anything_engines::assets::fal::Fal::default())
+    asset_key(store, &axiom_engines::assets::fal::Fal::default())
 }
 
 /// The environment variable conventionally holding a key for this kind.
@@ -63,7 +63,7 @@ impl KeyStore {
     /// The default store: keychain + `<config dir>/ai-keys.toml`.
     pub fn system() -> Self {
         let no_chain = std::env::var(NO_KEYCHAIN_ENV).is_ok_and(|v| v == "1");
-        KeyStore { file: craft_anything_engine::settings::config_dir().join("ai-keys.toml"), use_keychain: !no_chain }
+        KeyStore { file: axiom_engine::settings::config_dir().join("ai-keys.toml"), use_keychain: !no_chain }
     }
 
     /// A file-only store (tests).
@@ -94,7 +94,7 @@ impl KeyStore {
 
     fn write_file(&self, t: &toml::Table) -> Result<(), ToolError> {
         let body = toml::to_string(t).map_err(|e| ToolError::internal(e.to_string()))?;
-        craft_anything_platform::write_atomic_private(&self.file, format!("{FILE_HEADER}{body}").as_bytes())
+        axiom_platform::write_atomic_private(&self.file, format!("{FILE_HEADER}{body}").as_bytes())
     }
 
     /// The stored key for a backend (keychain, then fallback file).
@@ -202,7 +202,7 @@ mod tests {
         fn name(&self) -> &'static str {
             "Other"
         }
-        fn generate(&self, _key: &str, _req: &craft_anything_engines::assets::AssetRequest) -> Result<craft_anything_engines::assets::Generated, ToolError> {
+        fn generate(&self, _key: &str, _req: &axiom_engines::assets::AssetRequest) -> Result<axiom_engines::assets::Generated, ToolError> {
             Err(ToolError::invalid("not here"))
         }
     }

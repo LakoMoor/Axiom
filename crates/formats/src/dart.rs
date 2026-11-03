@@ -617,7 +617,7 @@ pub fn abi_rank(abi: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::flutter as fx;
+    use axiom_testkit::flutter as fx;
 
     #[test]
     fn reads_section_headers_and_snapshots() {
@@ -705,7 +705,7 @@ mod tests {
     fn hostile_inputs_do_not_panic() {
         for t in [fx::SymbolTable::Sections, fx::SymbolTable::DynamicHash, fx::SymbolTable::DynamicGnuHash] {
             let so = fx::libapp_so(t);
-            for m in craft_anything_testkit::mutations(&so) {
+            for m in axiom_testkit::mutations(&so) {
                 let _ = inspect_aot(&m, 50, 50);
                 let _ = scan_library(&m, 4);
             }
@@ -714,7 +714,7 @@ mod tests {
             }
         }
         for seed in 0..64 {
-            let mut n = craft_anything_testkit::noise(seed, 2048);
+            let mut n = axiom_testkit::noise(seed, 2048);
             let _ = string_pool(&n, 5, 5);
             n[..4].copy_from_slice(b"\x7fELF");
             n[4] = 2;

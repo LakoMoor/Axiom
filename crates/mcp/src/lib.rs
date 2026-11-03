@@ -17,10 +17,10 @@
 
 pub mod prompts;
 
-use craft_anything_engine::tools::investigation_tools;
-use craft_anything_engine::{CallOptions, Caller, CancelToken, Consent, Engine, Progress, ToolOutput, Toolset};
-use craft_anything_evidence::{ErrorCode, ToolError, is_evidence_id};
-use craft_anything_platform::sync::Mutex;
+use axiom_engine::tools::investigation_tools;
+use axiom_engine::{CallOptions, Caller, CancelToken, Consent, Engine, Progress, ToolOutput, Toolset};
+use axiom_evidence::{ErrorCode, ToolError, is_evidence_id};
+use axiom_platform::sync::Mutex;
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::io::{BufRead, Write};
@@ -31,7 +31,7 @@ use std::time::{Duration, Instant};
 
 /// Protocol versions we speak, newest first.
 pub const PROTOCOL_VERSIONS: &[&str] = &["2025-06-18", "2025-03-26", "2024-11-05"];
-pub const SERVER_NAME: &str = "craft-anything";
+pub const SERVER_NAME: &str = "axiom";
 /// Default response budget (bytes of one JSON-RPC response line).
 pub const DEFAULT_MAX_RESPONSE_BYTES: usize = 8 * 1024 * 1024;
 /// Smallest budget accepted from the environment.
@@ -71,13 +71,13 @@ impl Default for ServerOptions {
 }
 
 impl ServerOptions {
-    /// Defaults plus `CRAFT_ANYTHING_MCP_ALL_TOOLS=1` and `CRAFT_ANYTHING_MCP_MAX_RESPONSE_BYTES`.
+    /// Defaults plus `AXIOM_MCP_ALL_TOOLS=1` and `AXIOM_MCP_MAX_RESPONSE_BYTES`.
     pub fn from_env() -> Self {
         let mut o = ServerOptions::default();
-        if std::env::var("CRAFT_ANYTHING_MCP_ALL_TOOLS").is_ok_and(|v| v == "1" || v.eq_ignore_ascii_case("true")) {
+        if std::env::var("AXIOM_MCP_ALL_TOOLS").is_ok_and(|v| v == "1" || v.eq_ignore_ascii_case("true")) {
             o.all_tools = true;
         }
-        if let Some(n) = std::env::var("CRAFT_ANYTHING_MCP_MAX_RESPONSE_BYTES").ok().and_then(|v| v.trim().parse::<usize>().ok()) {
+        if let Some(n) = std::env::var("AXIOM_MCP_MAX_RESPONSE_BYTES").ok().and_then(|v| v.trim().parse::<usize>().ok()) {
             o.max_response_bytes = n.max(MIN_MAX_RESPONSE_BYTES);
             o.budget_for_client = false;
         }
@@ -317,8 +317,8 @@ impl Server {
 
     /// Whether a tool is on this connection's list: its toolset is shown and, in Clean room, it's
     /// one Clean room runs (the rest would only be refused).
-    fn listed(&self, s: &craft_anything_engine::ToolSpec, clean: bool) -> bool {
-        self.visible(s.toolset) && (!clean || craft_anything_engine::clean_room::allows(s.id))
+    fn listed(&self, s: &axiom_engine::ToolSpec, clean: bool) -> bool {
+        self.visible(s.toolset) && (!clean || axiom_engine::clean_room::allows(s.id))
     }
 
     fn tools_list(&self) -> Value {
@@ -474,9 +474,9 @@ impl Server {
         let opts = |c: Consent| CallOptions::new(Caller::Mcp).with_consent(c).with_cancel(token.clone()).with_progress(&progress);
         match self.engine.call(name, args.clone(), opts(consent)) {
             // With an inbox, the person approves in the app instead of the call failing.
-            Err(e) if e.code == craft_anything_evidence::ErrorCode::ConsentRequired => match self.ask_consent(name, &e.message, token) {
+            Err(e) if e.code == axiom_evidence::ErrorCode::ConsentRequired => match self.ask_consent(name, &e.message, token) {
                 Some(true) => self.engine.call(name, args, opts(Consent::Granted)),
-                Some(false) => Err(ToolError::new(craft_anything_evidence::ErrorCode::ConsentRequired, "the person declined this action")
+                Some(false) => Err(ToolError::new(axiom_evidence::ErrorCode::ConsentRequired, "the person declined this action")
                     .with_remediation("Continue without it, or explain why it's needed and ask again.")),
                 None => Err(e),
             },
@@ -487,11 +487,10 @@ impl Server {
     /// Ask the person (through the session's inbox) to allow one consent-gated call. `None` when
     /// there is no inbox.
     fn ask_consent(&self, name: &str, why: &str, token: &CancelToken) -> Option<bool> {
-        let dir = self.engine.session().ext.get::<craft_anything_engine::inbox::InboxDir>()?;
-        let inbox = craft_anything_engine::inbox::Inbox::new(dir.0.clone());
+        let dir = self.engine.session().ext.get::<axiom_engine::inbox::InboxDir>()?;
+        let inbox = axiom_engine::inbox::Inbox::new(dir.0.clone());
         let title = self.engine.registry().get(name).map(|s| s.title).unwrap_or(name);
-        let id =
-            inbox.post(craft_anything_engine::inbox::RequestKind::Approval, &format!("Allow: {title}"), why, Vec::new(), false, Some(name.to_string())).ok()?;
+        let id = inbox.post(axiom_engine::inbox::RequestKind::Approval, &format!("Allow: {title}"), why, Vec::new(), false, Some(name.to_string())).ok()?;
         let answer = inbox.wait(&id, Duration::from_secs(30 * 60), &|| token.is_cancelled());
         Some(answer.and_then(|a| a.allow).unwrap_or(false))
     }
@@ -516,12 +515,12 @@ impl Server {
     /// it as a protocol message (a coding agent's permission prompt). Matched on the tool's own id,
     /// so its CLI name is covered too.
     fn raw_value(&self, name: &str) -> bool {
-        self.engine.registry().canonical(name) == Some(craft_anything_engine::tools::interaction_tools::APPROVE_TOOL)
+        self.engine.registry().canonical(name) == Some(axiom_engine::tools::interaction_tools::APPROVE_TOOL)
     }
 
     /// The tool declares that its results carry content from the target.
     fn carries_target_content(&self, name: &str) -> bool {
-        self.engine.registry().get(name).is_some_and(|s| s.effects.contains(craft_anything_engine::Effects::CARRIES_TARGET_CONTENT))
+        self.engine.registry().get(name).is_some_and(|s| s.effects.contains(axiom_engine::Effects::CARRIES_TARGET_CONTENT))
     }
 
     fn attach_provenance(&self, body: &mut Value, name: &str) {

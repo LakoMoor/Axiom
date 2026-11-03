@@ -1,5 +1,5 @@
 use super::*;
-use craft_anything_testkit::electron as fx;
+use axiom_testkit::electron as fx;
 
 fn run(path: &str, src: &str) -> Analysis {
     analyze(path, src, &Limits::default())

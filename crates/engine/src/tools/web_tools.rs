@@ -4,12 +4,10 @@
 
 use super::artifact_tools::{WalkOptions, abs_path, create_absent_dir, env, read_capped, rel_to, resolve_evidence_input, walk_dir, write_new_file};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_analysis::web_har::{HarOptions, inspect_har};
-use craft_anything_analysis::web_scripts::{CapturedScript, parse_map, plan_layout, scripts_from_capture, scripts_from_har, trace_location};
-use craft_anything_evidence::{
-    Authority, Confidence, Coverage, CoverageStatus, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex,
-};
-use craft_anything_js::recover::{RewriteLevel, pretty_print, recover_modules, safe_module_path};
+use axiom_analysis::web_har::{HarOptions, inspect_har};
+use axiom_analysis::web_scripts::{CapturedScript, parse_map, plan_layout, scripts_from_capture, scripts_from_har, trace_location};
+use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex};
+use axiom_js::recover::{RewriteLevel, pretty_print, recover_modules, safe_module_path};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -137,7 +135,7 @@ fn web_scripts_save(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, Tool
             Err(r) => skipped.push(json!({"url": s.url, "reason": r})),
         }
     }
-    let manifest = json!({"format": "craft-anything-web-script-export", "version": 1, "source": source_name, "scripts": written, "skipped": skipped});
+    let manifest = json!({"format": "axiom-web-script-export", "version": 1, "source": source_name, "scripts": written, "skipped": skipped});
     let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| ToolError::internal(e.to_string()))?;
     write_new_file(&out, &["manifest.json".to_string()], &manifest_bytes).map_err(|e| ToolError::new(ErrorCode::FileError, e))?;
     let files_dir = out.join("files");
@@ -194,13 +192,13 @@ fn js_source_locate(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, Tool
         (None, Some(s)) => {
             let path = abs_path(s, "script_path")?;
             let text = String::from_utf8_lossy(&read_capped(&path, 256 * 1024 * 1024)?).into_owned();
-            let url = craft_anything_formats::sourcemap::find_source_mapping_url(&text).ok_or_else(|| {
+            let url = axiom_formats::sourcemap::find_source_mapping_url(&text).ok_or_else(|| {
                 ToolError::new(ErrorCode::FeatureMissing, format!("{} has no sourceMappingURL comment", path.display()))
                     .with_remediation("Pass source_map_path if you have the map file.")
             })?;
             if url.starts_with("data:") {
                 (
-                    craft_anything_formats::sourcemap::decode_data_url(&url).ok_or_else(|| ToolError::invalid("the inline source map is not valid base64"))?,
+                    axiom_formats::sourcemap::decode_data_url(&url).ok_or_else(|| ToolError::invalid("the inline source map is not valid base64"))?,
                     "inline map".to_string(),
                 )
             } else if url.contains("://") {
@@ -411,7 +409,7 @@ fn collect_scripts(ctx: &Ctx<'_>, roots: &[String], max_files: usize) -> Result<
             if w.truncated {
                 notes.push(format!("{base}: the folder listing was cut short by the file-count or depth limit"));
             }
-            for f in w.files.into_iter().filter(|f| craft_anything_analysis::js_app::is_script(&f.rel)) {
+            for f in w.files.into_iter().filter(|f| axiom_analysis::js_app::is_script(&f.rel)) {
                 out.push((format!("{base}/{}", f.rel), f.abs));
             }
         } else {
@@ -441,7 +439,7 @@ fn js_sources_restore(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
         RewriteParam::None => RewriteLevel::None,
         RewriteParam::Standard => RewriteLevel::Standard,
     };
-    let limits = craft_anything_js::Limits::default();
+    let limits = axiom_js::Limits::default();
     let mut outputs: Vec<Value> = Vec::new();
     let mut provenance: Vec<Value> = Vec::new();
     let (mut modules_total, mut originals_total, mut printed) = (0usize, 0usize, 0usize);
@@ -473,7 +471,7 @@ fn js_sources_restore(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
             Err(e) => notes.push(format!("{rel}: not pretty-printed ({e})")),
         }
         if p.extraction_mode == ExtractionMode::Structural {
-            let a = craft_anything_js::analyze(rel, &text, &limits);
+            let a = axiom_js::analyze(rel, &text, &limits);
             if !a.bundle.modules.is_empty() {
                 let recovered = recover_modules(&text, &a.bundle.modules, level, &limits);
                 let dir = format!("modules/{}", stem.trim_end_matches(".js"));
@@ -518,7 +516,7 @@ fn js_sources_restore(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
         }
         provenance.push(record);
     }
-    let manifest = json!({"format": "craft-anything-recovery", "version": 1, "rewrite_level": format!("{level:?}").to_lowercase(), "inputs": provenance, "outputs": outputs, "notes": notes});
+    let manifest = json!({"format": "axiom-recovery", "version": 1, "rewrite_level": format!("{level:?}").to_lowercase(), "inputs": provenance, "outputs": outputs, "notes": notes});
     let mb = serde_json::to_vec_pretty(&manifest).map_err(|e| ToolError::internal(e.to_string()))?;
     write_new_file(&out, &["manifest.json".to_string()], &mb).map_err(|e| ToolError::new(ErrorCode::FileError, e))?;
     let limit = p.limit.clamp(1, 10_000);
@@ -541,9 +539,9 @@ fn js_sources_restore(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
     Ok(ToolOutput::evidence(ev))
 }
 
-fn find_map(script: &Path, url: Option<&str>) -> Option<craft_anything_formats::sourcemap::SourceMap> {
+fn find_map(script: &Path, url: Option<&str>) -> Option<axiom_formats::sourcemap::SourceMap> {
     let bytes = match url {
-        Some(u) if u.starts_with("data:") => craft_anything_formats::sourcemap::decode_data_url(u)?,
+        Some(u) if u.starts_with("data:") => axiom_formats::sourcemap::decode_data_url(u)?,
         Some(u) if !u.contains("://") => {
             let comps = super::artifact_tools::safe_components(u.split(['?', '#']).next().unwrap_or(u)).ok()?;
             let p = comps.iter().fold(script.parent()?.to_path_buf(), |acc, c| acc.join(c));
@@ -560,8 +558,8 @@ fn find_map(script: &Path, url: Option<&str>) -> Option<craft_anything_formats::
 #[cfg(test)]
 mod tests {
     use crate::{CallOptions, Caller, Engine};
-    use craft_anything_evidence::{ErrorCode, ToolError};
-    use craft_anything_testkit::electron as fx;
+    use axiom_evidence::{ErrorCode, ToolError};
+    use axiom_testkit::electron as fx;
     use serde_json::{Value, json};
 
     fn call(e: &Engine, id: &str, p: Value) -> Result<Value, ToolError> {

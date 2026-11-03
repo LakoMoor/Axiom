@@ -6,7 +6,7 @@
 //! keeps its result, and the most recent messages are never touched.
 
 use crate::model::{Block, Msg, Speaker};
-use craft_anything_evidence::ToolError;
+use axiom_evidence::ToolError;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -120,7 +120,7 @@ struct Transcript {
 pub fn save(path: &Path, history: &[Msg]) -> Result<(), ToolError> {
     let text = serde_json::to_vec(&Transcript { version: TRANSCRIPT_VERSION, history: history.to_vec() })
         .map_err(|e| ToolError::internal(format!("couldn't write the transcript: {e}")))?;
-    craft_anything_engine::project::write_atomic(path, &text)
+    axiom_engine::project::write_atomic(path, &text)
 }
 
 /// A saved conversation, ready to continue: `None` when there is none, it's unreadable or from a

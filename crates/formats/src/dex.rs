@@ -710,7 +710,7 @@ pub fn references(dex: &Dex<'_>, desc: &str, method: Option<&str>, max: usize) -
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::android as fx;
+    use axiom_testkit::android as fx;
 
     #[test]
     fn parses_fixture() {
@@ -788,7 +788,7 @@ mod tests {
             }
             let _ = references(d, "Lcom/example/notes/Util;", None, 100);
         };
-        for m in craft_anything_testkit::mutations(&data) {
+        for m in axiom_testkit::mutations(&data) {
             if let Ok(d) = parse(&m) {
                 walk(&d);
             }
@@ -799,7 +799,7 @@ mod tests {
             }
         }
         for seed in 0..64 {
-            let mut n = craft_anything_testkit::noise(seed, 2048);
+            let mut n = axiom_testkit::noise(seed, 2048);
             n[..8].copy_from_slice(b"dex\n035\0");
             n[40..44].copy_from_slice(&0x1234_5678u32.to_le_bytes());
             if let Ok(d) = parse(&n) {

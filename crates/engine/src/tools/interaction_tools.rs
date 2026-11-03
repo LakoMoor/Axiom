@@ -15,7 +15,7 @@
 use crate::inbox::{Inbox, InboxDir, RequestKind};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use crate::workspace::{Questions, Workspace};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -846,7 +846,7 @@ mod tests {
     }
 
     #[test]
-    fn a_project_edited_in_place_can_change_its_files_but_not_craft_anythings_records() {
+    fn a_project_edited_in_place_can_change_its_files_but_not_axioms_records() {
         let d = tempfile::tempdir().unwrap();
         std::fs::write(d.path().join("index.html"), "<p>hi</p>").unwrap();
         let w = Workspace::create_at(d.path(), "Site", "x", TargetRef::None, Some(crate::workspace::ExistingFiles::Edit)).unwrap();

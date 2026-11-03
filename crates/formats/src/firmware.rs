@@ -1670,7 +1670,7 @@ pub fn layout(data: &[u8], regions: &[Region], entropy: &[EntropyBlock], max_spa
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::firmware as fx;
+    use axiom_testkit::firmware as fx;
 
     fn no_stop() -> bool {
         false
@@ -1805,7 +1805,7 @@ mod tests {
     fn hostile_inputs_do_not_panic() {
         let (img, _) = fx::image();
         let small: Vec<u8> = img.iter().copied().take(0x3000).collect();
-        for m in craft_anything_testkit::mutations(&img) {
+        for m in axiom_testkit::mutations(&img) {
             let r = scan(&m, &ScanOptions::default(), &no_stop);
             let (e, _) = entropy_map(&m, 4096, 1000);
             let _ = layout(&m, &r.regions, &e, 50);
@@ -1814,7 +1814,7 @@ mod tests {
             let _ = scan(&small[..n], &ScanOptions::default(), &no_stop);
         }
         for seed in 0..40 {
-            let n = craft_anything_testkit::noise(seed, 64 * 1024);
+            let n = axiom_testkit::noise(seed, 64 * 1024);
             let r = scan(&n, &ScanOptions::default(), &no_stop);
             assert!(r.regions.iter().all(|x| x.confidence == "medium" || x.end().is_some_and(|e| e <= n.len() as u64)));
         }
@@ -1844,11 +1844,11 @@ mod tests {
         ] {
             for _ in 0..50 {
                 dense.extend_from_slice(m);
-                dense.extend_from_slice(&craft_anything_testkit::noise(dense.len() as u64, 13));
+                dense.extend_from_slice(&axiom_testkit::noise(dense.len() as u64, 13));
             }
         }
         let _ = scan(&dense, &ScanOptions::default(), &no_stop);
-        for g in craft_anything_testkit::mutations(&fx::gzip(b"abcdefgh", None)) {
+        for g in axiom_testkit::mutations(&fx::gzip(b"abcdefgh", None)) {
             let _ = gunzip(&g, 1 << 16);
             let _ = gzip_header(&g);
         }

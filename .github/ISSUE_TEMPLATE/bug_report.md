@@ -11,6 +11,6 @@ labels: bug
 
 **What happened:** <!-- and what you expected instead -->
 
-**Version and system:** <!-- `craft-anything-cli --version`, and Windows / macOS / Linux -->
+**Version and system:** <!-- `axiom-cli --version`, and Windows / macOS / Linux -->
 
-**Output:** <!-- `craft-anything-cli doctor`, and the error or the project's last lines -->
+**Output:** <!-- `axiom-cli doctor`, and the error or the project's last lines -->

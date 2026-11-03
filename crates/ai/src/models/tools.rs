@@ -2,10 +2,10 @@
 
 use super::{catalog, hf, server, store};
 use crate::AiHub;
-use craft_anything_engine::EngineRef;
-use craft_anything_engine::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{ErrorCode, ToolError};
-use craft_anything_platform::process::Cancel;
+use axiom_engine::EngineRef;
+use axiom_engine::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
+use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::process::Cancel;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -215,7 +215,7 @@ fn focus_of(s: &str) -> Result<catalog::Focus, ToolError> {
 fn recommended_list(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: RecommendedParams = parse_params(params)?;
     let focus = p.focus.as_deref().filter(|f| !f.trim().is_empty()).map(focus_of).transpose()?;
-    let ram = craft_anything_engines::machine_memory_gb();
+    let ram = axiom_engines::machine_memory_gb();
     let have = store::list(&models_dir(ctx));
     let items: Vec<Value> = catalog::RECOMMENDED
         .iter()
@@ -336,7 +336,7 @@ fn servers_list(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolErro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_engine::{CallOptions, Caller, Engine};
+    use axiom_engine::{CallOptions, Caller, Engine};
 
     fn call(e: &Engine, id: &str, v: Value) -> Result<Value, ToolError> {
         e.call(id, v, CallOptions::new(Caller::Cli)).map(|o| o.to_json())
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn recommendations_list_with_fit_and_nothing_downloaded() {
-        let e = Engine::shared(craft_anything_engine::testing::session(), specs());
+        let e = Engine::shared(axiom_engine::testing::session(), specs());
         let v = call(&e, "models_recommended_list", json!({})).unwrap();
         let n = v["result"]["models"].as_array().unwrap().len();
         assert_eq!(n, catalog::RECOMMENDED.len());
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn bad_requests_are_refused_before_any_network_or_program_is_used() {
-        let e = Engine::shared(craft_anything_engine::testing::session(), specs());
+        let e = Engine::shared(axiom_engine::testing::session(), specs());
         assert!(call(&e, "models_file_download", json!({})).is_err());
         assert!(call(&e, "models_file_download", json!({"id": "nope"})).is_err());
         assert!(call(&e, "models_file_download", json!({"repo": "a/b", "file": "../x.gguf"})).is_err());

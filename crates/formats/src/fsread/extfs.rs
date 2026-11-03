@@ -315,7 +315,7 @@ mod tests {
     use super::*;
 
     fn check(extents: bool) {
-        let img = read(&craft_anything_testkit::firmware::ext_image(extents), &Limits::default());
+        let img = read(&axiom_testkit::firmware::ext_image(extents), &Limits::default());
         assert!(img.complete, "extents={extents}: {:?}", img.warnings);
         assert_eq!(img.entries.iter().find(|e| e.path == "hello.txt").unwrap().data.as_deref(), Some(b"Hello ext filesystem!\n".as_slice()));
         assert!(img.entries.iter().any(|e| e.path == "sub" && e.kind == super::super::FsKind::Dir));
@@ -334,7 +334,7 @@ mod tests {
 
     #[test]
     fn unwritten_ext4_extents_read_as_zeros() {
-        let mut base = craft_anything_testkit::firmware::ext_image(true);
+        let mut base = axiom_testkit::firmware::ext_image(true);
         // Inode 11 ("hello.txt", 22 bytes) starts at 5120 + (11 - 1) * 128 = 6400; its first extent's ee_len is at +56.
         base[6456..6458].copy_from_slice(&32769u16.to_le_bytes());
         let img = read(&base, &Limits::default());
@@ -357,7 +357,7 @@ mod tests {
 
     #[test]
     fn root_inode_at_the_end_of_the_address_space_is_refused() {
-        let mut base = craft_anything_testkit::firmware::ext_image(false);
+        let mut base = axiom_testkit::firmware::ext_image(false);
         base[1024 + 88..1024 + 90].copy_from_slice(&1000u16.to_le_bytes()); // inode size
         point_table_at_the_end(&mut base, 0);
         let img = read(&base, &Limits::default());
@@ -366,7 +366,7 @@ mod tests {
 
     #[test]
     fn child_inode_at_the_end_of_the_address_space_is_skipped() {
-        let mut base = craft_anything_testkit::firmware::ext_image(false);
+        let mut base = axiom_testkit::firmware::ext_image(false);
         point_table_at_the_end(&mut base, 1);
         // Point "hello.txt" at inode 24: group 1, slot 7, which starts 128 bytes before the end.
         let at = base.windows(9).position(|w| w == b"hello.txt").expect("the fixture lists hello.txt");
@@ -378,15 +378,15 @@ mod tests {
 
     #[test]
     fn hostile_never_panics() {
-        let base = craft_anything_testkit::firmware::ext_image(false);
-        for m in craft_anything_testkit::mutations(&base) {
+        let base = axiom_testkit::firmware::ext_image(false);
+        for m in axiom_testkit::mutations(&base) {
             let _ = read(&m, &Limits::default());
         }
         for len in (0..base.len()).step_by(7) {
             let _ = read(&base[..len], &Limits::default());
         }
         for seed in 0..16 {
-            let _ = read(&craft_anything_testkit::noise(seed, 4096), &Limits::default());
+            let _ = read(&axiom_testkit::noise(seed, 4096), &Limits::default());
         }
     }
 }

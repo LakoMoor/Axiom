@@ -5,11 +5,11 @@
 //! PowerShell script that ships with us); the walkthrough and call tracing need macOS and `lldb`. On
 //! any other host they return a clear `wrong_os` result immediately — they never hang
 //! waiting for something that cannot exist. The work goes through
-//! `craft_anything_platform::process` with a deadline, closed stdin and capped output, like every
+//! `axiom_platform::process` with a deadline, closed stdin and capped output, like every
 //! other external program we run.
 
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::Value;
@@ -58,9 +58,9 @@ pub fn specs() -> Vec<ToolSpec> {
 /// The error returned on hosts that cannot run these tools.
 #[cfg(not(target_os = "macos"))]
 fn wrong_os(what: &str) -> ToolError {
-    ToolError::new(ErrorCode::FeatureMissing, format!("{what} needs macOS and is not available on this host ({}).", craft_anything_evidence::host_triple()))
+    ToolError::new(ErrorCode::FeatureMissing, format!("{what} needs macOS and is not available on this host ({}).", axiom_evidence::host_triple()))
         .with_remediation("Run this on a macOS machine with the command-line developer tools installed.")
-        .with_details(serde_json::json!({"reason": "wrong_os", "host": craft_anything_evidence::host_triple()}))
+        .with_details(serde_json::json!({"reason": "wrong_os", "host": axiom_evidence::host_triple()}))
 }
 
 // --------------------------------------------------------------------------------------------
@@ -262,8 +262,8 @@ fn lldb_script(p: &ObserveCallsParams) -> String {
 #[cfg(target_os = "macos")]
 mod macos {
     use super::*;
-    use craft_anything_evidence::{Authority, Confidence, Coverage, Environment, EvidenceBuilder, Limitation, Subject, host_triple};
-    use craft_anything_platform::process::{Process, StdinMode};
+    use axiom_evidence::{Authority, Confidence, Coverage, Environment, EvidenceBuilder, Limitation, Subject, host_triple};
+    use axiom_platform::process::{Process, StdinMode};
     use serde_json::json;
     use std::time::Duration;
 
@@ -283,7 +283,7 @@ mod macos {
         if !exe.is_absolute() {
             return Err(ToolError::invalid("executable must be an absolute path"));
         }
-        let lldb = craft_anything_engines::locate("lldb", &ctx.session.settings.engines.tools, &ctx.session.settings.engine_store_dir()).ok_or_else(|| {
+        let lldb = axiom_engines::locate("lldb", &ctx.session.settings.engines.tools, &ctx.session.settings.engine_store_dir()).ok_or_else(|| {
             ToolError::new(ErrorCode::EngineMissing, "lldb was not found.")
                 .with_remediation("Install the macOS command-line developer tools (xcode-select --install).")
         })?;
@@ -292,7 +292,7 @@ mod macos {
 
         let root = private_root()?;
         let script_path = root.join("trace.lldb");
-        craft_anything_platform::write_atomic(&script_path, setup.as_bytes())?;
+        axiom_platform::write_atomic(&script_path, setup.as_bytes())?;
 
         let ct = ctx.cancel.clone();
         let mut cmd = Process::new(&lldb)
@@ -329,12 +329,7 @@ mod macos {
         .authority(Authority::OurRun)
         .limitation(Limitation::new("observational", "A trace shows one run; other inputs may call differently."));
         if truncated {
-            b = b.coverage(Coverage {
-                status: craft_anything_evidence::CoverageStatus::Partial,
-                examined: Some(hits.len() as u64),
-                total: None,
-                next_offset: None,
-            });
+            b = b.coverage(Coverage { status: axiom_evidence::CoverageStatus::Partial, examined: Some(hits.len() as u64), total: None, next_offset: None });
         }
         Ok(ToolOutput::evidence(b.build()?))
     }
@@ -345,12 +340,12 @@ mod macos {
     const UI_HELPER_SWIFT: &str = include_str!("apple_runtime/native_ui_helper.swift");
 
     fn build_helper(root: &std::path::Path) -> Result<std::path::PathBuf, ToolError> {
-        let xcrun = craft_anything_platform::which::which("xcrun").ok_or_else(|| {
+        let xcrun = axiom_platform::which::which("xcrun").ok_or_else(|| {
             ToolError::new(ErrorCode::EngineMissing, "xcrun was not found.")
                 .with_remediation("Install the macOS command-line developer tools (xcode-select --install).")
         })?;
         let src = root.join("native_ui_helper.swift");
-        craft_anything_platform::write_atomic(&src, UI_HELPER_SWIFT.as_bytes())?;
+        axiom_platform::write_atomic(&src, UI_HELPER_SWIFT.as_bytes())?;
         let bin = root.join("native_ui_helper");
         let cache = root.join("module-cache");
         Process::new(&xcrun)
@@ -421,8 +416,8 @@ mod macos {
 #[cfg(windows)]
 mod windows {
     use super::*;
-    use craft_anything_evidence::{Authority, Confidence, Environment, EvidenceBuilder, Limitation, Subject, host_triple};
-    use craft_anything_platform::process::{Process, StdinMode};
+    use axiom_evidence::{Authority, Confidence, Environment, EvidenceBuilder, Limitation, Subject, host_triple};
+    use axiom_platform::process::{Process, StdinMode};
     use serde_json::json;
     use std::time::Duration;
 
@@ -544,12 +539,12 @@ mod tests {
         }
         for (id, params) in tools {
             let err = e.call(id, params, granted()).unwrap_err();
-            assert_eq!(err.code, craft_anything_evidence::ErrorCode::FeatureMissing, "{id}");
+            assert_eq!(err.code, axiom_evidence::ErrorCode::FeatureMissing, "{id}");
             assert_eq!(err.details.as_ref().unwrap()["reason"], "wrong_os", "{id}");
             assert!(err.remediation.is_some());
             // The host check comes before consent, and capabilities report the tool unavailable.
             let err = e.call(id, json!({}), CallOptions::new(Caller::Mcp)).unwrap_err();
-            assert_eq!(err.code, craft_anything_evidence::ErrorCode::FeatureMissing, "{id}");
+            assert_eq!(err.code, axiom_evidence::ErrorCode::FeatureMissing, "{id}");
             let spec = *e.registry().get(id).unwrap();
             assert!(!e.availability(&spec, &e.session()).available, "{id}");
         }
@@ -563,7 +558,7 @@ mod tests {
         let err = e
             .call("apple_calls_observe", json!({"executable": "/bin/true", "breakpoints": [{"kind": "function", "name": "main"}], "duration_ms": 1}), granted())
             .unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::BadInput);
+        assert_eq!(err.code, axiom_evidence::ErrorCode::BadInput);
     }
 
     #[cfg(windows)]
@@ -572,11 +567,11 @@ mod tests {
         let e = Engine::new(crate::testing::session());
         // This test process has no windows: a clear error, not an empty tree.
         let err = e.call("runtime_ui_read", json!({"pid": std::process::id()}), granted()).unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::NotFound, "{err:?}");
+        assert_eq!(err.code, axiom_evidence::ErrorCode::NotFound, "{err:?}");
         assert!(err.message.contains("no windows"), "{}", err.message);
         // Reading another app's screen needs consent, like on macOS.
         let err = e.call("runtime_ui_read", json!({"pid": 1}), CallOptions::new(Caller::Mcp)).unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::ConsentRequired);
+        assert_eq!(err.code, axiom_evidence::ErrorCode::ConsentRequired);
     }
 
     /// An off-screen WinForms window: a button that writes "hi there" into a box, a password box
@@ -652,7 +647,7 @@ mod tests {
     fn calls_need_consent() {
         let e = Engine::new(crate::testing::session());
         let err = e.call("runtime_ui_read", json!({"pid": 1}), CallOptions::new(Caller::Mcp)).unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::ConsentRequired);
+        assert_eq!(err.code, axiom_evidence::ErrorCode::ConsentRequired);
     }
 
     #[test]

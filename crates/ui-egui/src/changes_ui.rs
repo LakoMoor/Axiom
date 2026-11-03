@@ -5,7 +5,7 @@
 use crate::i18n::{tr, trf};
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, Done, widgets};
-use craft_anything_engine::changes::{Change, Kind, Report};
+use axiom_engine::changes::{Change, Kind, Report};
 use egui::{RichText, Ui};
 use std::path::PathBuf;
 
@@ -25,7 +25,7 @@ impl CraftApp {
         let Some(ws) = self.workspace.clone() else { return };
         self.changes.loading = true;
         self.jobs.spawn("Look at the changes", false, move |_| {
-            let report = craft_anything_engine::changes::report(&ws, detail.as_deref());
+            let report = axiom_engine::changes::report(&ws, detail.as_deref());
             Ok(Done::Changes { root: ws.root.clone(), report, detail })
         });
     }

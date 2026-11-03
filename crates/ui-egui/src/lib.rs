@@ -42,9 +42,9 @@ pub mod usage;
 pub mod widgets;
 pub mod workbench;
 
-use craft_anything_ai::{AgentEvent, AiHub, BackendConfig, Conversation, Detected};
-use craft_anything_engine::evidence::{ErrorCode, Evidence, ToolError, Unknown};
-use craft_anything_engine::{CallOptions, Caller, Consent, Engine, Mode, Settings, TargetKind, ToolOutput, clean_room};
+use axiom_ai::{AgentEvent, AiHub, BackendConfig, Conversation, Detected};
+use axiom_engine::evidence::{ErrorCode, Evidence, ToolError, Unknown};
+use axiom_engine::{CallOptions, Caller, Consent, Engine, Mode, Settings, TargetKind, ToolOutput, clean_room};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use state::{CenterTab, ChatItem, ConsentAnswer, Fill, RailKind, Screen, UiState};
@@ -155,7 +155,7 @@ pub enum Done {
     Detected(Vec<Detected>),
     /// The configured backends, the ones chosen to build with and to extract with, and each one's
     /// options.
-    Backends(Vec<BackendConfig>, Option<String>, std::collections::BTreeMap<String, craft_anything_ai::BackendOptions>),
+    Backends(Vec<BackendConfig>, Option<String>, std::collections::BTreeMap<String, axiom_ai::BackendOptions>),
     /// The models an AI can be set to (Settings → AI's model picker).
     ModelChoices {
         name: String,
@@ -187,10 +187,10 @@ pub enum Done {
         result: Result<(), ToolError>,
     },
     /// The projects folder was listed.
-    Projects(Vec<craft_anything_engine::workspace::Workspace>),
+    Projects(Vec<axiom_engine::workspace::Workspace>),
     /// A new project's folder was made (see `CraftApp::start_make`).
     Created {
-        ws: Box<craft_anything_engine::workspace::Workspace>,
+        ws: Box<axiom_engine::workspace::Workspace>,
         request: String,
         backend: String,
         /// Why the pictures couldn't be copied, if they couldn't.
@@ -210,7 +210,7 @@ pub enum Done {
     /// What the open project's latest run changed (and, with `detail`, one file's diff lines).
     Changes {
         root: PathBuf,
-        report: craft_anything_engine::changes::Report,
+        report: axiom_engine::changes::Report,
         detail: Option<String>,
     },
     /// A screenshot thumbnail was decoded (`None` when it couldn't be).
@@ -297,7 +297,7 @@ pub struct LogLine {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Prefs {
-    pub purpose: craft_anything_engine::project::Purpose,
+    pub purpose: axiom_engine::project::Purpose,
     pub backend: Option<String>,
     pub explain_new: Option<bool>,
     pub rail: Option<RailKind>,
@@ -323,7 +323,7 @@ pub struct Prefs {
     pub chats: Vec<chats::SavedChat>,
 }
 
-pub const PREFS_KEY: &str = "craft-anything-ui";
+pub const PREFS_KEY: &str = "axiom-ui";
 const LEDGER_VIEW_CAP: usize = 300;
 
 pub struct CraftApp {
@@ -341,7 +341,7 @@ pub struct CraftApp {
     pub conversation: Option<Box<dyn Conversation>>,
     pub backends: Vec<BackendConfig>,
     /// Each backend's options (an agent app's program and model), by name (Settings → AI).
-    pub backend_options: std::collections::BTreeMap<String, craft_anything_ai::BackendOptions>,
+    pub backend_options: std::collections::BTreeMap<String, axiom_ai::BackendOptions>,
     /// The AI whose model is being chosen in Settings → AI, and the models it offers once they've
     /// come (`None`: still asking).
     pub model_picker: Option<(String, Option<Vec<String>>)>,
@@ -357,18 +357,18 @@ pub struct CraftApp {
     /// only to the keychain.
     pub server_form: ServerForm,
     /// Every project's rebuild in this window: working, waiting their turn, or finished.
-    pub runs: craft_anything_ai::rebuild::RunSet,
+    pub runs: axiom_ai::rebuild::RunSet,
     /// What was typed for each note still waiting for a builder, by note id, to put back in the
     /// prompt box when the note is taken back.
     pub drafts: std::collections::HashMap<u64, project::Draft>,
     /// Each project's building time and AI use, every build together (read from its usage.json).
     pub usage: std::collections::HashMap<PathBuf, usage::ProjectClock>,
     /// All AI use since the app opened: builds and chat.
-    pub session_usage: craft_anything_engine::workspace::ProjectUsage,
+    pub session_usage: axiom_engine::workspace::ProjectUsage,
     /// The project shown on the Project screen.
-    pub workspace: Option<craft_anything_engine::workspace::Workspace>,
+    pub workspace: Option<axiom_engine::workspace::Workspace>,
     /// Every project in the projects folder, newest first.
-    pub projects: Vec<craft_anything_engine::workspace::Workspace>,
+    pub projects: Vec<axiom_engine::workspace::Workspace>,
     /// A preview server for a project opened without a run.
     pub preview: Option<String>,
     /// Questions asked about each project's build this session, and their answers (`just_ask`).
@@ -387,7 +387,7 @@ pub struct CraftApp {
     /// The open project's screenshot thumbnails (dropped when another project opens).
     pub thumbs: std::collections::HashMap<PathBuf, project::Thumb>,
     /// The kinds of thing this app can make; a fork registers its own here.
-    pub kinds: craft_anything_ai::rebuild::KindRegistry,
+    pub kinds: axiom_ai::rebuild::KindRegistry,
     /// Which asset providers have a key set up, by provider id (`None` until checked; the keys
     /// themselves never come into the app).
     pub asset_keys: Option<std::collections::BTreeMap<String, bool>>,
@@ -449,7 +449,7 @@ impl CraftApp {
             log: Vec::new(),
             key_inputs: Default::default(),
             server_form: ServerForm::default(),
-            runs: craft_anything_ai::rebuild::RunSet::new(craft_anything_engine::settings::BuildSettings::default().parallel),
+            runs: axiom_ai::rebuild::RunSet::new(axiom_engine::settings::BuildSettings::default().parallel),
             drafts: Default::default(),
             usage: Default::default(),
             session_usage: Default::default(),
@@ -464,7 +464,7 @@ impl CraftApp {
             pins_read_at: None,
             open_url: None,
             thumbs: Default::default(),
-            kinds: craft_anything_ai::rebuild::KindRegistry::built_in(),
+            kinds: axiom_ai::rebuild::KindRegistry::built_in(),
             asset_keys: None,
             facts: Default::default(),
             facts_reader: Default::default(),
@@ -519,7 +519,7 @@ impl CraftApp {
         }
         self.state.unsent = p.unsent.into_iter().map(|(root, text)| (root, (text, Vec::new()))).collect();
         // Back to the project that was open, with its conversation, if it's still there.
-        if let Some(ws) = p.last_project.and_then(|root| craft_anything_engine::workspace::Workspace::open(&root).ok()) {
+        if let Some(ws) = p.last_project.and_then(|root| axiom_engine::workspace::Workspace::open(&root).ok()) {
             self.open_workspace(ws);
         }
     }
@@ -844,8 +844,8 @@ impl CraftApp {
                 if let Some(ws) = self.workspace.as_mut().filter(|w| v["project"].as_str().is_some_and(|p| w.root == std::path::Path::new(p))) {
                     let _ = ws.reload();
                     // What the tool added to the saved conversation.
-                    let text = craft_anything_engine::tools::project_tools::CALLED_DONE.to_string();
-                    self.state.feed.push(craft_anything_engine::feed::FeedItem::Step { step: craft_anything_engine::workspace::Step::Done, text });
+                    let text = axiom_engine::tools::project_tools::CALLED_DONE.to_string();
+                    self.state.feed.push(axiom_engine::feed::FeedItem::Step { step: axiom_engine::workspace::Step::Done, text });
                 }
                 self.toast(tr("Called done. A new message carries on from here."), false);
             }
@@ -893,7 +893,7 @@ impl CraftApp {
 
     /// Says when a lock got stuck (crates/platform/src/sync.rs), with a way out.
     fn stuck_banner(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
-        use craft_anything_platform::sync::{self, ProblemKind};
+        use axiom_platform::sync::{self, ProblemKind};
         let Some(problem) = sync::problems().into_iter().find(|p| p.kind != ProblemKind::SlowJob) else { return };
         let t = theme::Tokens::get(ctx);
         let text = match problem.kind {
@@ -910,7 +910,7 @@ impl CraftApp {
                     self.open_log(path);
                 }
                 if widgets::secondary(ui, None, "Restart").clicked() {
-                    match craft_anything_platform::process::start_another_copy() {
+                    match axiom_platform::process::start_another_copy() {
                         Ok(_) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
                         Err(e) => self.toast(e.message, true),
                     }
@@ -924,7 +924,7 @@ impl CraftApp {
 
     /// Show a failure log in the system's viewer for text files.
     pub(crate) fn open_log(&mut self, path: &std::path::Path) {
-        if let Err(e) = craft_anything_platform::open_path(path) {
+        if let Err(e) = axiom_platform::open_path(path) {
             self.toast(format!("{}: {}", e.message, path.display()), true);
         }
     }
@@ -1049,7 +1049,7 @@ impl CraftApp {
     }
 
     /// Choose the backend that builds or extracts (`None`: its default).
-    pub fn set_role(&mut self, role: craft_anything_ai::Role, name: Option<String>) {
+    pub fn set_role(&mut self, role: axiom_ai::Role, name: Option<String>) {
         let hub = self.hub.clone();
         self.jobs.spawn(tr("Choose an AI's job"), true, move |_| {
             hub.set_role(role, name.as_deref()).map_err(|e| e.message)?;
@@ -1339,7 +1339,7 @@ impl CraftApp {
                             self.settings_changed();
                         }
                         Pick::TargetFile | Pick::TargetFolder => {
-                            self.state.make.target = craft_anything_engine::workspace::TargetRef::Local { path: path.clone() };
+                            self.state.make.target = axiom_engine::workspace::TargetRef::Local { path: path.clone() };
                             self.state.make.game = pick == Pick::TargetFolder;
                             self.state.make.editing_url = false;
                         }
@@ -1493,7 +1493,7 @@ impl CraftApp {
         }
         // Dropped pictures go to the prompt box on Make or a project; anything else opens.
         let dropped: Vec<PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).filter(|p| !p.as_os_str().is_empty()).collect());
-        let pictures = !dropped.is_empty() && dropped.iter().all(|p| craft_anything_engine::workspace::is_picture(p));
+        let pictures = !dropped.is_empty() && dropped.iter().all(|p| axiom_engine::workspace::is_picture(p));
         match self.state.screen {
             Screen::Project if pictures => self.attach(dropped),
             Screen::Home if pictures => self.add_pictures(dropped),
@@ -1618,7 +1618,7 @@ impl CraftApp {
         let inner = rect.shrink(40.0);
         painter.rect_stroke(inner, t.radius_lg, egui::Stroke::new(2.0, t.accent), egui::StrokeKind::Inside);
         // Pictures dropped on Make or a project are attached; anything else opens.
-        let pictures = ctx.input(|i| i.raw.hovered_files.iter().all(|f| f.path.as_deref().is_some_and(craft_anything_engine::workspace::is_picture)));
+        let pictures = ctx.input(|i| i.raw.hovered_files.iter().all(|f| f.path.as_deref().is_some_and(axiom_engine::workspace::is_picture)));
         let attach = pictures && matches!(self.state.screen, Screen::Home | Screen::Project);
         let g = theme::heading_galley(&painter, tr(if attach { "Drop to attach" } else { "Drop to open it" }), theme::TITLE, t.text, f32::INFINITY);
         painter.galley(inner.center() - g.size() / 2.0, g, t.text);
@@ -1648,9 +1648,9 @@ impl CraftApp {
 }
 
 /// The 256 px app icon.
-pub static APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/256x256/apps/ai.storyteller.craft-anything.png");
+pub static APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/256x256/apps/ai.storyteller.axiom.png");
 /// The app icon's master SVG, drawn at the exact pixel size wherever the app shows its icon.
-pub static APP_ICON_SVG: &[u8] = include_bytes!("../../../assets/app-icon/craft-anything.svg");
+pub static APP_ICON_SVG: &[u8] = include_bytes!("../../../assets/app-icon/axiom.svg");
 
 /// The app icon at `size` points.
 pub fn app_icon(size: f32) -> egui::Image<'static> {
@@ -1660,7 +1660,7 @@ pub fn app_icon(size: f32) -> egui::Image<'static> {
 /// Run an action; a panic is logged and swallowed so one bad action never takes the app down.
 /// The configured backends and the ones chosen to build and to extract (read off the UI thread).
 pub(crate) fn backends(hub: &AiHub) -> Done {
-    Done::Backends(hub.backends(), hub.chosen(craft_anything_ai::Role::Builder), hub.options())
+    Done::Backends(hub.backends(), hub.chosen(axiom_ai::Role::Builder), hub.options())
 }
 
 pub fn guard<R>(what: &str, f: impl FnOnce() -> R) -> Option<R> {
@@ -1724,7 +1724,7 @@ pub fn short_path(p: &Path) -> String {
 
 /// Human byte size.
 pub fn human_bytes(n: usize) -> String {
-    craft_anything_engine::evidence::human_bytes(n as u64)
+    axiom_engine::evidence::human_bytes(n as u64)
 }
 
 /// Icon for a target kind.

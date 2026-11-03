@@ -9,8 +9,8 @@
 use super::interaction_tools::{approve, inbox, inside, resolve, workspace_of};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use crate::workspace::Workspace;
-use craft_anything_evidence::{ErrorCode, ToolError};
-use craft_anything_platform::process::Process;
+use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::process::Process;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};

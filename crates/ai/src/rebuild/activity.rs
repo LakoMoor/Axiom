@@ -6,8 +6,8 @@
 //! through [`journal::scrubbed_line`]: commands can carry keys, and the log is a file people share.
 
 use super::*;
-use craft_anything_engine::journal;
-use craft_anything_engine::workspace::{ACTIVITY_LOG, ACTIVITY_LOG_OLD};
+use axiom_engine::journal;
+use axiom_engine::workspace::{ACTIVITY_LOG, ACTIVITY_LOG_OLD};
 use std::collections::VecDeque;
 use std::io::Write;
 use std::ops::Range;

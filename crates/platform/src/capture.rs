@@ -22,8 +22,8 @@
 
 use crate::process::Cancel;
 #[cfg(unix)]
-use craft_anything_evidence::sha256_hex;
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::sha256_hex;
+use axiom_evidence::{ErrorCode, ToolError};
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::ffi::OsString;
@@ -39,7 +39,7 @@ use std::sync::{Arc, PoisonError};
 use std::time::{Instant, SystemTime};
 
 /// Reserved environment variable that carries the per-run ownership token.
-pub const RUN_ID_ENV: &str = "CRAFT_ANYTHING_RUN_ID";
+pub const RUN_ID_ENV: &str = "AXIOM_RUN_ID";
 
 /// A scripted terminal event, dispatched when the capture clock reaches `at_ms`.
 #[derive(Debug, Clone)]

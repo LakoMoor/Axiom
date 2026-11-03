@@ -25,7 +25,7 @@ pub use program::{Block, CallSite, Callee, Function, JumpTable, Limits, ProgStri
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum DisasmError {
     #[error("{0}")]
-    Format(craft_anything_formats::FormatError),
+    Format(axiom_formats::FormatError),
     #[error("not supported: {0}")]
     Unsupported(String),
     #[error("cancelled")]

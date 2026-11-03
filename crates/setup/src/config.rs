@@ -2,7 +2,7 @@
 
 use crate::clients::{Client, Format, SERVER_NAME};
 use crate::yaml;
-use craft_anything_formats::jsonc;
+use axiom_formats::jsonc;
 use serde_json::Value;
 
 /// Parse the whole config to JSON-like data. An empty file is `{}` unless the client forbids it.
@@ -162,7 +162,7 @@ mod tests {
     fn toml_merge_preserves_comments() {
         let c = client("codex");
         let text = "# Codex settings\nmodel = \"x\" # pick one\n\n[mcp_servers.other]\ncommand = \"o\" # theirs\n";
-        let e = c.desired_entry(&["/b/craft-anything-cli".into(), "mcp".into()]);
+        let e = c.desired_entry(&["/b/axiom-cli".into(), "mcp".into()]);
         let new = set_entry(&c, text, &e).unwrap();
         assert!(new.contains("# Codex settings") && new.contains("# pick one") && new.contains("# theirs"));
         assert_eq!(read_entry(&c, &new).unwrap(), Some(e.clone()));
@@ -178,7 +178,7 @@ mod tests {
     #[test]
     fn grok_enables_disabled_server() {
         let c = client("grok_build");
-        let text = "disabled_mcp_servers = [\"craft-anything\", \"x\"]\n";
+        let text = "disabled_mcp_servers = [\"axiom\", \"x\"]\n";
         assert!(is_disabled(&c, text));
         let new = set_entry(&c, text, &json!({"command": "c", "args": ["mcp"]})).unwrap();
         assert!(!is_disabled(&c, &new));
@@ -193,6 +193,6 @@ mod tests {
         let z = client("zcode");
         let new = set_entry(&z, "", &json!({"command": "c"})).unwrap();
         assert_eq!(read_entry(&z, &new).unwrap(), Some(json!({"command": "c"})));
-        assert_eq!(parse(&z, &new).unwrap()["mcp"]["servers"]["craft-anything"]["command"], "c");
+        assert_eq!(parse(&z, &new).unwrap()["mcp"]["servers"]["axiom"]["command"], "c");
     }
 }

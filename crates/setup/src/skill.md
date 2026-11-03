@@ -1,5 +1,5 @@
 ---
-name: craft-anything
+name: axiom
 description: Investigate how shipped software works (programs, apps, packages, firmware, web bundles) with evidence-backed answers through the Axiom MCP tools, keeping a durable brief, plan, hypotheses, findings and handoff in the project.
 metadata:
   version: "1"
@@ -14,11 +14,11 @@ instead; that is faster and more direct.
 
 ## Connect only when you need it
 
-- If the `craft-anything` tools are already in your tool list, go straight to work. Don't run setup or
+- If the `axiom` tools are already in your tool list, go straight to work. Don't run setup or
   doctor first.
 - Trust the live tool list and its schemas over this file; the server may be newer or older.
-- If the tools are missing or failing to start, run `craft-anything-cli doctor` and then
-  `craft-anything-cli setup --dry-run` and show the user the plan before applying anything. After a
+- If the tools are missing or failing to start, run `axiom-cli doctor` and then
+  `axiom-cli setup --dry-run` and show the user the plan before applying anything. After a
   successful setup the user must restart or reconnect their app.
 - Only a small core toolset is listed at first. Call `list_toolsets` to see the others and
   `enable_toolset` to switch one on (native code, Android, Apple, web, runtime…).

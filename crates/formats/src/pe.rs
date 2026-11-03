@@ -894,18 +894,18 @@ mod tests {
 
     #[test]
     fn imports_carry_iat_slots() {
-        let pe = craft_anything_testkit::pe64();
+        let pe = axiom_testkit::pe64();
         let h = headers(&pe).unwrap();
         let imps = imports(&pe, &h);
         assert_eq!(imps.len(), 1);
         assert_eq!(imps[0].name.as_deref(), Some("puts"));
         assert_eq!(imps[0].library, "msvcrt.dll");
-        assert_eq!(imps[0].slot_va, craft_anything_testkit::PE_BASE + craft_anything_testkit::PE_IAT_RVA);
+        assert_eq!(imps[0].slot_va, axiom_testkit::PE_BASE + axiom_testkit::PE_IAT_RVA);
     }
 
     #[test]
     fn resources_icons_and_version() {
-        let pe = craft_anything_testkit::pe64();
+        let pe = axiom_testkit::pe64();
         let res = parse_resources(&pe, 100).unwrap();
         assert_eq!(res.entries.len(), 3, "{:?}", res.entries);
         assert_eq!(res.icon_groups.len(), 1);
@@ -920,8 +920,8 @@ mod tests {
 
     #[test]
     fn damaged_pes_never_panic() {
-        let pe = craft_anything_testkit::pe64();
-        for m in craft_anything_testkit::mutations(&pe) {
+        let pe = axiom_testkit::pe64();
+        for m in axiom_testkit::mutations(&pe) {
             let _ = parse_resources(&m, 1000);
             if let Ok(h) = headers(&m) {
                 let _ = imports(&m, &h);

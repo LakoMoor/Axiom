@@ -4,7 +4,7 @@
 
 use crate::http::{self, SseEvent};
 use crate::model::{Block, ChatModel, Delta, Msg, Speaker, Stop, StopReason, ToolDef, TurnRequest, TurnResult, Usage};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
@@ -17,7 +17,7 @@ pub const KIMI_K3: &str = "moonshotai/kimi-k3";
 /// OpenRouter models offered when adding it.
 pub const OPENROUTER_MODELS: &[&str] = &[OPENROUTER_DEFAULT_MODEL, KIMI_K3];
 /// Generic app identification for OpenRouter (no personal data).
-pub const APP_REFERER: &str = "https://github.com/storytold/craft-anything";
+pub const APP_REFERER: &str = "https://github.com/LakoMoor/Axiom";
 pub const APP_TITLE: &str = "Axiom";
 
 /// Well-known local servers: (name, base URL).

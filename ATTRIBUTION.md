@@ -1,6 +1,6 @@
 # Attribution
 
-Third-party material bundled with Craft Anything, file by file. Rust crates are pulled from
+Third-party material bundled with Axiom, file by file. Rust crates are pulled from
 crates.io under their own licences (see `Cargo.lock`) and are not listed here.
 
 ## Fonts (`assets/fonts/`)

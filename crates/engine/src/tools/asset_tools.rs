@@ -10,8 +10,8 @@ use crate::inbox::Inbox;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use crate::tools::interaction_tools::{Verdict, ask_approval, inbox, inside, resolve, workspace_of};
 use crate::workspace::{AssetRecord, Workspace};
-use craft_anything_engines::assets::{AssetProvider, AssetProviders, AssetRequest, Catalogue, Generated, Shape, about_usd, fal, usd};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_engines::assets::{AssetProvider, AssetProviders, AssetRequest, Catalogue, Generated, Shape, about_usd, fal, usd};
+use axiom_evidence::{ErrorCode, ToolError};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -374,9 +374,9 @@ mod tests {
 
     /// Stands in for fal.ai: records each request's endpoint and answers with a few bytes.
     #[derive(Default)]
-    struct StandIn(craft_anything_platform::sync::Mutex<Vec<String>>);
+    struct StandIn(axiom_platform::sync::Mutex<Vec<String>>);
 
-    impl craft_anything_engines::assets::AssetProvider for StandIn {
+    impl axiom_engines::assets::AssetProvider for StandIn {
         fn id(&self) -> &'static str {
             "fal"
         }
@@ -445,7 +445,7 @@ mod tests {
     /// A provider that serves nothing in the catalogue.
     struct Named(&'static str);
 
-    impl craft_anything_engines::assets::AssetProvider for Named {
+    impl axiom_engines::assets::AssetProvider for Named {
         fn id(&self) -> &'static str {
             self.0
         }

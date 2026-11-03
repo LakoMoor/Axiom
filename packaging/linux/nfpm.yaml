@@ -1,10 +1,10 @@
 # .deb and .rpm packages (nfpm: https://nfpm.goreleaser.com). Run by package.sh, which stages
 # the file tree, substitutes its path for ${STAGE} (nfpm doesn't expand env vars in `src`),
-# drops the lines marked `#cli` when the workspace has no apps/craft-anything-cli, and exports VERSION,
-# NFPM_ARCH and CRAFT_ANYTHING_MAINTAINER.
+# drops the lines marked `#cli` when the workspace has no apps/axiom-cli, and exports VERSION,
+# NFPM_ARCH and AXIOM_MAINTAINER.
 #
 #   nfpm package -f packaging/linux/nfpm.yaml -p deb -t dist/release/
-name: craft-anything
+name: axiom
 arch: ${NFPM_ARCH}
 platform: linux
 version: ${VERSION}
@@ -13,9 +13,9 @@ version_schema: semver
 release: 1
 section: devel
 priority: optional
-maintainer: ${CRAFT_ANYTHING_MAINTAINER}
+maintainer: ${AXIOM_MAINTAINER}
 vendor: Learning Machines LLC
-homepage: https://getartcraft.com/apps/craft-anything
+homepage: https://getartcraft.com/apps/axiom
 license: MIT OR Apache-2.0
 description: |-
   Find out how any software works, then craft your own.
@@ -66,11 +66,11 @@ overrides:
       - xdg-desktop-portal
 
 contents:
-  - src: ${STAGE}/usr/bin/craft-anything
-    dst: /usr/bin/craft-anything
+  - src: ${STAGE}/usr/bin/axiom
+    dst: /usr/bin/axiom
     file_info: { mode: 0755 }
-  - src: ${STAGE}/usr/bin/craft-anything-cli #cli
-    dst: /usr/bin/craft-anything-cli #cli
+  - src: ${STAGE}/usr/bin/axiom-cli #cli
+    dst: /usr/bin/axiom-cli #cli
     file_info: { mode: 0755 } #cli
   - src: ${STAGE}/usr/share/
     dst: /usr/share/

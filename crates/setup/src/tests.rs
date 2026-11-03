@@ -2,7 +2,7 @@
 
 use crate::plan::apply_with;
 use crate::*;
-use craft_anything_evidence::ToolError;
+use axiom_evidence::ToolError;
 use std::path::{Path, PathBuf};
 
 const CLAUDE: &str =
@@ -28,7 +28,7 @@ fn fixture() -> Fx {
     std::fs::create_dir_all(home.join(".hermes")).unwrap();
     std::fs::write(home.join(".hermes/config.yaml"), HERMES).unwrap();
     std::fs::create_dir_all(home.join(".cursor")).unwrap(); // detected, no config yet
-    let cli = home.join("bin").join("craft-anything-cli");
+    let cli = home.join("bin").join("axiom-cli");
     std::fs::create_dir_all(cli.parent().unwrap()).unwrap();
     std::fs::write(&cli, "#!/bin/sh\n").unwrap();
     Fx { _dir: dir, host, cli }
@@ -80,12 +80,12 @@ fn full_setup_preserves_comments_backs_up_and_is_idempotent() {
     assert!(hermes.contains("# friend") && hermes.contains("enabled: true"));
     assert!(h.join(".cursor/mcp.json").exists());
     // backups hold the originals; created files get none
-    assert_eq!(read(h.join(".codex/config.toml.craft-anything.backup")), CODEX);
-    assert!(!h.join(".cursor/mcp.json.craft-anything.backup").exists());
+    assert_eq!(read(h.join(".codex/config.toml.axiom.backup")), CODEX);
+    assert!(!h.join(".cursor/mcp.json.axiom.backup").exists());
     // skill landed in the shared folder and Claude Code's own
-    assert!(h.join(".agents/skills/craft-anything/SKILL.md").exists());
-    assert!(h.join(".claude/skills/craft-anything/SKILL.md").exists());
-    assert!(h.join(".hermes/skills/craft-anything/SKILL.md").exists());
+    assert!(h.join(".agents/skills/axiom/SKILL.md").exists());
+    assert!(h.join(".claude/skills/axiom/SKILL.md").exists());
+    assert!(h.join(".hermes/skills/axiom/SKILL.md").exists());
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt as _;
@@ -102,10 +102,10 @@ fn full_setup_preserves_comments_backs_up_and_is_idempotent() {
 
     // A new command updates; the first backup is never overwritten.
     let mut moved = req(&fx, &["codex"]);
-    moved.command = vec!["/opt/new/craft-anything-cli".into(), "mcp".into()];
+    moved.command = vec!["/opt/new/axiom-cli".into(), "mcp".into()];
     let r = apply(&plan(&fx.host, &moved).unwrap());
     assert_eq!(r.status, "configured");
-    assert_eq!(read(h.join(".codex/config.toml.craft-anything.backup")), CODEX);
+    assert_eq!(read(h.join(".codex/config.toml.axiom.backup")), CODEX);
 
     // Doctor sees the aligned registrations and the stale one.
     let rep = doctor(&fx.host, &DoctorRequest { cli_path: Some(fx.cli.clone()), self_test: false, engines: false, ..Default::default() });
@@ -118,12 +118,12 @@ fn full_setup_preserves_comments_backs_up_and_is_idempotent() {
     let u = uninstall(&fx.host);
     assert_eq!(u.status, "removed", "{u:?}");
     let claude = read(h.join(".claude.json"));
-    assert!(claude.contains("// theirs") && claude.contains("other-server") && !claude.contains("craft-anything-cli"));
+    assert!(claude.contains("// theirs") && claude.contains("other-server") && !claude.contains("axiom-cli"));
     let codex = read(h.join(".codex/config.toml"));
-    assert!(codex.contains("# theirs") && !codex.contains("craft-anything-cli"));
+    assert!(codex.contains("# theirs") && !codex.contains("axiom-cli"));
     let hermes = read(h.join(".hermes/config.yaml"));
     assert_eq!(hermes, HERMES);
-    assert!(!h.join(".agents/skills/craft-anything/SKILL.md").exists());
+    assert!(!h.join(".agents/skills/axiom/SKILL.md").exists());
     assert_eq!(uninstall(&fx.host).status, "nothing_to_remove");
 }
 
@@ -141,7 +141,7 @@ fn malformed_config_blocks_plan_and_uninstall() {
     assert_eq!(read(h.join(".claude.json")), CLAUDE);
     let u = uninstall(&fx.host);
     assert_eq!(u.status, "blocked");
-    assert!(read(h.join(".cursor/mcp.json")).contains("craft-anything-cli"));
+    assert!(read(h.join(".cursor/mcp.json")).contains("axiom-cli"));
 }
 
 /// #238: Pi's folder exists but its mcp.json doesn't yet; setup creates it. An empty file is
@@ -155,7 +155,7 @@ fn pi_config_is_created_when_missing() {
     assert!(!p.blocked, "{p:?}");
     assert_eq!(apply(&p).status, "configured");
     let v: serde_json::Value = serde_json::from_str(&read(&pi)).unwrap();
-    assert_eq!(v["mcpServers"]["craft-anything"]["args"][0], "mcp");
+    assert_eq!(v["mcpServers"]["axiom"]["args"][0], "mcp");
     std::fs::write(&pi, "").unwrap();
     assert!(plan(&fx.host, &req(&fx, &["pi"])).unwrap().blocked);
 }
@@ -173,7 +173,7 @@ fn strict_json_client_rejects_comments() {
     assert!(!p.blocked);
     assert_eq!(apply(&p).status, "configured");
     let v: serde_json::Value = serde_json::from_str(&read(&pi)).unwrap();
-    assert_eq!(v["mcpServers"]["craft-anything"]["type"], "stdio");
+    assert_eq!(v["mcpServers"]["axiom"]["type"], "stdio");
 }
 
 #[test]
@@ -185,7 +185,7 @@ fn failed_readback_rolls_everything_back() {
     let calls = std::cell::Cell::new(0);
     let bad = |path: &Path, b: &[u8]| -> Result<(), ToolError> {
         calls.set(calls.get() + 1);
-        if calls.get() == 3 { craft_anything_platform::write_atomic(path, b"[mcp_servers]\n") } else { craft_anything_platform::write_atomic(path, b) }
+        if calls.get() == 3 { axiom_platform::write_atomic(path, b"[mcp_servers]\n") } else { axiom_platform::write_atomic(path, b) }
     };
     let r = apply_with(&p, &bad);
     assert_eq!(r.status, "failed");
@@ -223,7 +223,7 @@ fn unknown_client_and_manual_client() {
 fn foreign_entry_with_our_name_is_replaced_but_not_uninstalled() {
     let fx = fixture();
     let cursor = fx.host.home.join(".cursor/mcp.json");
-    std::fs::write(&cursor, "{\"mcpServers\": {\"craft-anything\": {\"command\": \"npx\", \"args\": [\"something\"]}}}").unwrap();
+    std::fs::write(&cursor, "{\"mcpServers\": {\"axiom\": {\"command\": \"npx\", \"args\": [\"something\"]}}}").unwrap();
     assert_eq!(uninstall(&fx.host).status, "nothing_to_remove");
     let p = plan(&fx.host, &req(&fx, &["cursor"])).unwrap();
     assert!(p.actions[0].reason.as_deref().unwrap_or_default().contains("replaced"));

@@ -395,11 +395,11 @@ fn pointer_table_elf_at(base: u64, e_type: u8) -> (Vec<u8>, u64, u64, u64) {
     (b, triple, negate, table)
 }
 
-/// Real Ghidra, only where `CRAFT_ANYTHING_TEST_GHIDRA` names the engine store holding `ghidra/`
-/// and `jdk/` (the app's is `%APPDATA%/craft-anything/engines`). Its analysis goes to a temp folder.
+/// Real Ghidra, only where `AXIOM_TEST_GHIDRA` names the engine store holding `ghidra/`
+/// and `jdk/` (the app's is `%APPDATA%/axiom/engines`). Its analysis goes to a temp folder.
 #[test]
 fn live_ghidra_makes_and_decompiles_code_reached_only_through_a_pointer_table() {
-    let Some(store) = std::env::var_os("CRAFT_ANYTHING_TEST_GHIDRA").map(PathBuf::from) else { return };
+    let Some(store) = std::env::var_os("AXIOM_TEST_GHIDRA").map(PathBuf::from) else { return };
     // Ghidra rejects project paths with a folder that starts with a dot, as tempdir()'s do.
     let temp = tempfile::Builder::new().prefix("ghidra-live").tempdir().unwrap();
     let cfg = Config {
@@ -412,7 +412,7 @@ fn live_ghidra_makes_and_decompiles_code_reached_only_through_a_pointer_table() 
         memory_gb: Some(4),
     };
     let (elf, triple, negate, table) = pointer_table_elf();
-    let session = Session::start(&cfg, &elf, &craft_anything_evidence::sha256_hex(&elf), &"cd".repeat(32), &|| false, &|_, _| {}).expect("Ghidra starts");
+    let session = Session::start(&cfg, &elf, &axiom_evidence::sha256_hex(&elf), &"cd".repeat(32), &|| false, &|_, _| {}).expect("Ghidra starts");
 
     let known: Vec<u64> = session.list_functions().unwrap().iter().map(|f| f.entry).collect();
     assert!(!known.contains(&triple) && !known.contains(&negate), "the analysis already made these, so this tests nothing: {known:x?}");
@@ -449,7 +449,7 @@ fn addresses_move_between_our_image_base_and_the_engines() {
 /// where, and our addresses reach the right code once moved there.
 #[test]
 fn live_ghidra_reports_where_it_loaded_a_position_independent_elf() {
-    let Some(store) = std::env::var_os("CRAFT_ANYTHING_TEST_GHIDRA").map(PathBuf::from) else { return };
+    let Some(store) = std::env::var_os("AXIOM_TEST_GHIDRA").map(PathBuf::from) else { return };
     let temp = tempfile::Builder::new().prefix("ghidra-live").tempdir().unwrap();
     let cfg = Config {
         analyze_headless: get::headless(None, &store).expect("Ghidra in the engine store"),
@@ -461,7 +461,7 @@ fn live_ghidra_reports_where_it_loaded_a_position_independent_elf() {
         memory_gb: Some(4),
     };
     let (elf, triple, _, _) = pointer_table_elf_at(0, 3);
-    let session = Session::start(&cfg, &elf, &craft_anything_evidence::sha256_hex(&elf), &"ef".repeat(32), &|| false, &|_, _| {}).expect("Ghidra starts");
+    let session = Session::start(&cfg, &elf, &axiom_evidence::sha256_hex(&elf), &"ef".repeat(32), &|| false, &|_, _| {}).expect("Ghidra starts");
     let base = session.image_base().expect("the handshake says where the program is");
     assert_ne!(base, 0, "Ghidra moves a program whose lowest segment is at 0");
     let rebase = Rebase::new(0, Some(base));

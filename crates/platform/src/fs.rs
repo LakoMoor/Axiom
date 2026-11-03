@@ -1,6 +1,6 @@
 //! File safety: atomic writes (temp file, fsync, rename), optionally private (0600 on Unix).
 
-use craft_anything_evidence::ToolError;
+use axiom_evidence::ToolError;
 use std::io::Write as _;
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};

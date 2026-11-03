@@ -7,8 +7,8 @@
 use super::native_common::{params_json, spec};
 use super::static_input::{builder, partial};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{Authority, Confidence, Coverage, Limitation, Location, Subject, ToolError};
-use craft_anything_formats::{pe_is_managed, plist};
+use axiom_evidence::{Authority, Confidence, Coverage, Limitation, Location, Subject, ToolError};
+use axiom_formats::{pe_is_managed, plist};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -858,7 +858,7 @@ mod tests {
 
     /// A tiny PE with a CLI header, which is all `pe_is_managed` asks.
     fn managed_pe() -> Vec<u8> {
-        craft_anything_testkit::managed::managed_assembly(4)
+        axiom_testkit::managed::managed_assembly(4)
     }
 
     #[test]

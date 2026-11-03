@@ -7,9 +7,9 @@
 //! server answers `/health` with 200), bounded, cancellable, and stops waiting the moment the
 //! program exits, with its last output in the error.
 
-use craft_anything_evidence::{ErrorCode, ToolError};
-use craft_anything_platform::process::{Cancel, Process, RunningProcess};
-use craft_anything_platform::sync::Mutex;
+use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::process::{Cancel, Process, RunningProcess};
+use axiom_platform::sync::Mutex;
 use serde::Serialize;
 use std::net::TcpListener;
 use std::path::Path;
@@ -84,7 +84,7 @@ fn healthy(port: u16) -> bool {
 }
 
 impl Servers {
-    fn guard(&self) -> craft_anything_platform::sync::MutexGuard<'_, Vec<Entry>> {
+    fn guard(&self) -> axiom_platform::sync::MutexGuard<'_, Vec<Entry>> {
         self.list.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
     }
 
@@ -225,7 +225,7 @@ mod live {
     use super::*;
 
     /// A real run: `CA_LIVE_LLAMA` is the llama-server program, `CA_LIVE_MODEL` a .gguf file.
-    /// `cargo test -p craft-anything-ai live_model -- --ignored`
+    /// `cargo test -p axiom-ai live_model -- --ignored`
     #[test]
     #[ignore = "starts a real model server; needs CA_LIVE_LLAMA and CA_LIVE_MODEL"]
     fn live_model_starts_answers_and_stops() {

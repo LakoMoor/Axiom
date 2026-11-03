@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Build and package Craft Anything for Linux (<arch> is x86_64 or aarch64, or riscv64 when cross-compiling):
+# Build and package Axiom for Linux (<arch> is x86_64 or aarch64, or riscv64 when cross-compiling):
 #
-#   $DIST/craft-anything-<version>-linux-<arch>.AppImage  any distro with glibc >= the build host's
-#   $DIST/craft-anything-<version>-linux-<arch>.AppImage.zsync  delta updates (needs zsyncmake)
-#   $DIST/craft-anything-<version>-linux-<arch>.deb       Debian, Ubuntu, Mint, Pop!_OS, ...
-#   $DIST/craft-anything-<version>-linux-<arch>.rpm       Fedora, openSUSE, RHEL, ...
-#   $DIST/craft-anything-<version>-linux-<arch>.tar.gz    plain FHS-style tree (bin/, share/)
+#   $DIST/axiom-<version>-linux-<arch>.AppImage  any distro with glibc >= the build host's
+#   $DIST/axiom-<version>-linux-<arch>.AppImage.zsync  delta updates (needs zsyncmake)
+#   $DIST/axiom-<version>-linux-<arch>.deb       Debian, Ubuntu, Mint, Pop!_OS, ...
+#   $DIST/axiom-<version>-linux-<arch>.rpm       Fedora, openSUSE, RHEL, ...
+#   $DIST/axiom-<version>-linux-<arch>.tar.gz    plain FHS-style tree (bin/, share/)
 #
-# craft-anything-cli is built and shipped next to craft-anything once apps/craft-anything-cli exists.
+# axiom-cli is built and shipped next to axiom once apps/axiom-cli exists.
 #
 # Usage: packaging/linux/package.sh [--skip-build] [--formats "appimage deb rpm tar"]
 #
@@ -23,7 +23,7 @@ set -euo pipefail
 # shellcheck source=../env.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
 HERE="$ROOT/packaging/linux"
-APP_ID=ai.storyteller.craft-anything
+APP_ID=ai.storyteller.axiom
 
 SKIP_BUILD=0
 FORMATS="appimage deb rpm tar"
@@ -43,10 +43,10 @@ case "$ARCH" in
   aarch64 | arm64) ARCH=aarch64; DEB_ARCH=arm64 ;;
   *) echo "unsupported architecture $ARCH" >&2; exit 2 ;;
 esac
-export CRAFT_ANYTHING_MAINTAINER="${CRAFT_ANYTHING_MAINTAINER:-Craft Anything maintainers <craft-anything@storyteller.ai>}"
-BASENAME="craft-anything-$VERSION-linux-$ARCH"
+export AXIOM_MAINTAINER="${AXIOM_MAINTAINER:-Axiom maintainers <axiom@storyteller.ai>}"
+BASENAME="axiom-$VERSION-linux-$ARCH"
 
-echo "==> Craft Anything $VERSION for Linux $ARCH ($FORMATS; ${BINS[*]})"
+echo "==> Axiom $VERSION for Linux $ARCH ($FORMATS; ${BINS[*]})"
 
 if [ "$SKIP_BUILD" = 0 ]; then
   (cd "$ROOT" && cargo build --release --locked "${CARGO_PKGS[@]}" ${CROSS_TARGET:+--target "$CROSS_TARGET"})
@@ -63,12 +63,12 @@ for bin in "${BINS[@]}"; do
 done
 install -Dm644 "$HERE/$APP_ID.desktop" "$STAGE/usr/share/applications/$APP_ID.desktop"
 mkdir -p "$STAGE/usr/share/metainfo"
-sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$CRAFT_ANYTHING_BUILD_DATE/g" \
+sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$AXIOM_BUILD_DATE/g" \
   "$HERE/$APP_ID.metainfo.xml.in" >"$STAGE/usr/share/metainfo/$APP_ID.metainfo.xml"
 mkdir -p "$STAGE/usr/share/icons"
 cp -R "$ROOT/assets/app-icon/hicolor" "$STAGE/usr/share/icons/"
-mkdir -p "$STAGE/usr/share/doc/craft-anything"
-copy_docs "$STAGE/usr/share/doc/craft-anything"
+mkdir -p "$STAGE/usr/share/doc/axiom"
+copy_docs "$STAGE/usr/share/doc/axiom"
 
 if command -v desktop-file-validate >/dev/null; then
   desktop-file-validate "$STAGE/usr/share/applications/$APP_ID.desktop"
@@ -104,7 +104,7 @@ fi
 
 # ---- AppImage -----------------------------------------------------------------------------------
 if has appimage; then
-  APPDIR="$WORK/Craft Anything.AppDir"
+  APPDIR="$WORK/Axiom.AppDir"
   cp -R "$STAGE" "$APPDIR"
   mv "$APPDIR/usr/share/doc" "$WORK/doc-unused"
   # AppRun is a script, not a symlink: it installs the .desktop entry and icons into
@@ -135,8 +135,8 @@ if has appimage; then
   # file and fetch only the blocks that changed in a newer release, through the .zsync published
   # next to each AppImage on GitHub Releases. `latest` is the newest published release that is
   # not a pre-release. A fork's builds point at its own releases through GITHUB_REPOSITORY.
-  REPO="${GITHUB_REPOSITORY:-storytold/craft-anything}"
-  UPDATE_INFO="gh-releases-zsync|${REPO%%/*}|${REPO#*/}|latest|craft-anything-*-linux-$ARCH.AppImage.zsync"
+  REPO="${GITHUB_REPOSITORY:-LakoMoor/Axiom}"
+  UPDATE_INFO="gh-releases-zsync|${REPO%%/*}|${REPO#*/}|latest|axiom-*-linux-$ARCH.AppImage.zsync"
   # Extract-and-run: works without FUSE (containers, CI). The output embeds the static runtime,
   # so users don't need libfuse2 either. With zsyncmake on the host (CI installs the zsync
   # package) appimagetool also writes the .zsync, into its working directory, hence the cd.

@@ -1,8 +1,8 @@
 //! UI smoke tests: every screen draws, the main controls work, and nothing blocks or panics.
 
-use craft_anything_engine::{Mode, TargetKind};
-use craft_anything_ui_egui::state::{ChatItem, FirstRunStep, RailKind, Screen};
-use craft_anything_ui_egui::{CraftApp, demo};
+use axiom_engine::{Mode, TargetKind};
+use axiom_ui_egui::state::{ChatItem, FirstRunStep, RailKind, Screen};
+use axiom_ui_egui::{CraftApp, demo};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use std::time::{Duration, Instant};
@@ -87,13 +87,13 @@ fn simple_title_bar_keeps_only_the_essentials() {
 
 /// Whether the fal.ai key is set up, as the app keeps it.
 fn fal_key(stored: bool) -> std::collections::BTreeMap<String, bool> {
-    [(craft_anything_engines::assets::fal::ID.to_string(), stored)].into()
+    [(axiom_engines::assets::fal::ID.to_string(), stored)].into()
 }
 
 #[test]
 fn turning_on_generated_assets_without_a_fal_key_asks_for_one() {
-    use craft_anything_engine::workspace::TargetRef;
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_engine::workspace::TargetRef;
+    use axiom_ui_egui::state::Modal;
     let d = tempfile::tempdir().unwrap();
     let game = d.path().join("game");
     std::fs::create_dir_all(&game).unwrap();
@@ -134,8 +134,8 @@ fn turning_on_generated_assets_without_a_fal_key_asks_for_one() {
 
 #[test]
 fn deep_mode_without_ghidra_asks_to_get_it_before_using_it() {
-    use craft_anything_engine::workspace::TargetRef;
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_engine::workspace::TargetRef;
+    use axiom_ui_egui::state::Modal;
     let d = tempfile::tempdir().unwrap();
     let (store, game) = (d.path().join("engines"), d.path().join("game"));
     std::fs::create_dir_all(&game).unwrap();
@@ -159,7 +159,7 @@ fn deep_mode_without_ghidra_asks_to_get_it_before_using_it() {
     h.run_steps(3);
     assert_eq!(h.state().state.modal, Some(Modal::Ghidra));
     h.get_by_label("Get Ghidra for Deep mode");
-    if craft_anything_engines::ghidra::get::can_install() {
+    if axiom_engines::ghidra::get::can_install() {
         h.get_by_label("Download and use Ghidra");
     }
     h.get_by_label("I have Ghidra");
@@ -177,7 +177,7 @@ fn deep_mode_without_ghidra_asks_to_get_it_before_using_it() {
 
 #[test]
 fn a_long_prompt_wraps_inside_the_window_in_the_project_and_the_chat() {
-    use craft_anything_ui_egui::state::{ChatItem, FeedItem};
+    use axiom_ui_egui::state::{ChatItem, FeedItem};
     // Long sentences and one very long unbroken address.
     let long = format!("{}https://example.com/{}", "Make it exactly like the original, with the same menus, weapons and maps. ".repeat(8), "a".repeat(300));
     for in_chat in [false, true] {
@@ -207,7 +207,7 @@ fn a_long_prompt_wraps_inside_the_window_in_the_project_and_the_chat() {
 
 #[test]
 fn a_game_project_shows_its_asset_spending_and_can_raise_the_budget() {
-    use craft_anything_engine::workspace::{AssetRecord, TargetRef, Workspace};
+    use axiom_engine::workspace::{AssetRecord, TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
     ws.manifest.stack = "Rust + macroquad".into();
@@ -238,8 +238,8 @@ fn a_game_project_shows_its_asset_spending_and_can_raise_the_budget() {
 
 #[test]
 fn a_projects_conversation_and_place_come_back_after_a_restart() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
-    use craft_anything_ui_egui::state::FeedItem;
+    use axiom_engine::workspace::{TargetRef, Workspace};
+    use axiom_ui_egui::state::FeedItem;
     struct Mem(std::collections::HashMap<String, String>);
     impl eframe::Storage for Mem {
         fn get_string(&self, key: &str) -> Option<String> {
@@ -263,7 +263,7 @@ fn a_projects_conversation_and_place_come_back_after_a_restart() {
     first.state.feed.push(FeedItem::Agent { text: "Done: the snake moves faster now.".into(), streaming: true });
     // A run keeps the feed in the project folder (here, as one would have).
     let root = first.workspace.as_ref().unwrap().root.clone();
-    craft_anything_ai::rebuild::feed::save(&root, &first.state.feed).unwrap();
+    axiom_ai::rebuild::feed::save(&root, &first.state.feed).unwrap();
     let mut storage = Mem(Default::default());
     eframe::App::save(&mut first, &mut storage);
 
@@ -282,7 +282,7 @@ fn a_projects_conversation_and_place_come_back_after_a_restart() {
 
 #[test]
 fn the_builders_checklist_is_pinned_above_the_prompt_box() {
-    use craft_anything_ui_egui::state::{FeedItem, PlanStatus, PlanStep};
+    use axiom_ui_egui::state::{FeedItem, PlanStatus, PlanStep};
     let step = |text: &str, status| PlanStep { text: text.into(), doing: text.into(), status };
     let mut h = harness(move || {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
@@ -325,8 +325,8 @@ fn the_sidebar_lists_projects_and_moves_between_them() {
 
 #[test]
 fn the_prompt_box_sends_on_enter_with_its_pictures() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
-    use craft_anything_ui_egui::state::FeedItem;
+    use axiom_engine::workspace::{TargetRef, Workspace};
+    use axiom_ui_egui::state::FeedItem;
     let d = tempfile::tempdir().unwrap();
     let pic = d.path().join("shot.png");
     std::fs::write(&pic, "x").unwrap();
@@ -368,8 +368,8 @@ fn the_prompt_box_sends_on_enter_with_its_pictures() {
 
 #[test]
 fn tab_completes_a_slash_command_and_keeps_focus() {
-    use craft_anything_ai::rebuild::StandIns;
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_ai::rebuild::StandIns;
+    use axiom_engine::workspace::{TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let a = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
     let (dir, runs) = (d.path().to_path_buf(), StandIns::new());
@@ -389,7 +389,7 @@ fn tab_completes_a_slash_command_and_keeps_focus() {
 
 #[test]
 fn pictures_of_the_original_go_with_the_draft_then_into_the_project() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_engine::workspace::{TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let pic = d.path().join("original.webp");
     std::fs::write(&pic, "x").unwrap();
@@ -424,7 +424,7 @@ fn pictures_of_the_original_go_with_the_draft_then_into_the_project() {
 
 #[test]
 fn a_finished_game_offers_to_play_it() {
-    use craft_anything_engine::workspace::{Status, TargetRef, Workspace};
+    use axiom_engine::workspace::{Status, TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
     // What `cargo build` leaves behind (never started here: the test doesn't click).
@@ -455,7 +455,7 @@ fn a_finished_game_offers_to_play_it() {
 
 #[test]
 fn a_finished_build_can_be_pinned_and_opened_from_the_sidebar() {
-    use craft_anything_engine::workspace::{Status, TargetRef, Workspace};
+    use axiom_engine::workspace::{Status, TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
     // What `cargo build` leaves behind (never started here: the pin is never clicked).
@@ -523,7 +523,7 @@ fn a_finished_build_can_be_pinned_and_opened_from_the_sidebar() {
 
 #[test]
 fn the_builders_questions_can_come_to_the_person_for_one_project() {
-    use craft_anything_engine::workspace::{Questions, TargetRef, Workspace};
+    use axiom_engine::workspace::{Questions, TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
     let root = ws.root.clone();
@@ -536,7 +536,7 @@ fn the_builders_questions_can_come_to_the_person_for_one_project() {
     h.run_steps(2);
     // Auto mode is on by default, so the builder decides, and the switch under the box says so.
     assert!(h.state().settings.auto_mode);
-    let shown = |a: &craft_anything_ui_egui::CraftApp| a.settings.questions_in(a.workspace.as_ref().map(|w| &w.manifest));
+    let shown = |a: &axiom_ui_egui::CraftApp| a.settings.questions_in(a.workspace.as_ref().map(|w| &w.manifest));
     assert_eq!(shown(h.state()), Questions::Decide);
     h.get_by_label("Decide yourself");
     h.get_by_label("Ask me").click();
@@ -548,7 +548,7 @@ fn the_builders_questions_can_come_to_the_person_for_one_project() {
 
 #[test]
 fn a_question_about_the_build_is_answered_without_building() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_engine::workspace::{TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
     let root = ws.root.clone();
@@ -600,8 +600,8 @@ fn a_question_about_the_build_is_answered_without_building() {
 
 #[test]
 fn a_long_answer_scrolls_with_the_conversation_and_comes_back_after_a_restart() {
-    use craft_anything_engine::questions::{self, AskedQuestion};
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_engine::questions::{self, AskedQuestion};
+    use axiom_engine::workspace::{TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
     let long = (0..120).map(|n| format!("Line {n} of a long answer.")).collect::<Vec<_>>().join("\n\n");
@@ -736,7 +736,7 @@ fn opening_a_file_lands_on_ask_with_a_first_look() {
     let path = dir.path().join("tiny-program");
     std::fs::write(&path, demo::sample_program()).unwrap();
     let mut h = harness(|| {
-        let engine = std::sync::Arc::new(craft_anything_engine::Engine::new(craft_anything_engine::Session::new(craft_anything_engine::Settings {
+        let engine = std::sync::Arc::new(axiom_engine::Engine::new(axiom_engine::Session::new(axiom_engine::Settings {
             first_run_done: true,
             deep_mode: true,
             language: "en".into(),
@@ -765,7 +765,7 @@ fn opening_a_missing_file_is_a_calm_error() {
 
 #[test]
 fn clean_room_asks_for_deep_mode_instead_of_opening_a_file() {
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_ui_egui::state::Modal;
     let mut h = harness(|| demo::app(demo::engine(Mode::Beginner, true)));
     h.run_steps(2);
     h.state_mut().open_path(std::path::PathBuf::from("/samples/tool.exe"));
@@ -809,8 +809,8 @@ fn workbench_lists_fall_back_gracefully() {
         h.run_steps(2);
     }
     // Every centre tab draws (built-in hex view included) and names a real tool.
-    for tab in craft_anything_ui_egui::state::CenterTab::ALL {
-        assert!(tab == craft_anything_ui_egui::state::CenterTab::Result || h.state().first_tool(tab.tools()).is_some(), "{tab:?}");
+    for tab in axiom_ui_egui::state::CenterTab::ALL {
+        assert!(tab == axiom_ui_egui::state::CenterTab::Result || h.state().first_tool(tab.tools()).is_some(), "{tab:?}");
         h.state_mut().state.center = tab;
         h.run_steps(2);
     }
@@ -878,7 +878,7 @@ fn an_ais_model_is_changed_in_settings() {
         let mut a = demo::app(demo::engine(Mode::Experienced, true));
         a.hub.add_server("Box", &url, Some("nomic-embed-text"), None).unwrap();
         a.state.settings_open = true;
-        a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Ai;
+        a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Ai;
         a
     });
     h.state_mut().refresh_backends();
@@ -903,12 +903,12 @@ fn an_ai_server_is_added_by_its_address() {
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Experienced, true));
         a.state.settings_open = true;
-        a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Ai;
+        a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Ai;
         a
     });
     h.run_steps(2);
     h.get_by_label("Add an AI by its address");
-    h.state_mut().server_form = craft_anything_ui_egui::ServerForm { name: "Studio box".into(), address: url.clone(), ..Default::default() };
+    h.state_mut().server_form = axiom_ui_egui::ServerForm { name: "Studio box".into(), address: url.clone(), ..Default::default() };
     h.run_steps(1);
     h.get_by_label("Add").click();
     assert!(wait(&mut h, |a| a.backends.iter().any(|b| b.name == "Studio box" && b.model == "qwen3:8b")), "added with a model that can chat");
@@ -919,7 +919,7 @@ fn an_ai_server_is_added_by_its_address() {
 /// and goes back to being found by its usual name.
 #[test]
 fn an_agent_apps_program_is_set_in_settings() {
-    use craft_anything_ai::{BackendConfig, BackendKind};
+    use axiom_ai::{BackendConfig, BackendKind};
     let mut h = harness(|| {
         let a = demo::app(demo::engine(Mode::Experienced, true));
         let cfg =
@@ -930,7 +930,7 @@ fn an_agent_apps_program_is_set_in_settings() {
     h.state_mut().refresh_backends();
     assert!(wait(&mut h, |a| a.backends.iter().any(|b| b.name == "OpenCode")));
     h.state_mut().state.settings_open = true;
-    h.state_mut().state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Ai;
+    h.state_mut().state.settings_tab = axiom_ui_egui::state::SettingsTab::Ai;
     h.run_steps(2);
     h.get_by_label("Program: found automatically");
     h.state_mut().set_agent_program("OpenCode", Some("/opt/oc/opencode".into()));
@@ -945,7 +945,7 @@ fn an_agent_apps_program_is_set_in_settings() {
 /// Claude Code's effort is chosen in Settings → AI, from every level Claude offers.
 #[test]
 fn a_claude_ais_effort_is_set_in_settings() {
-    use craft_anything_ai::{BackendConfig, BackendKind, Effort};
+    use axiom_ai::{BackendConfig, BackendKind, Effort};
     let mut h = harness(|| {
         let a = demo::app(demo::engine(Mode::Experienced, true));
         let cfg = BackendConfig {
@@ -962,7 +962,7 @@ fn a_claude_ais_effort_is_set_in_settings() {
     h.state_mut().refresh_backends();
     assert!(wait(&mut h, |a| a.backends.iter().any(|b| b.name == "Claude Code")));
     h.state_mut().state.settings_open = true;
-    h.state_mut().state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Ai;
+    h.state_mut().state.settings_tab = axiom_ui_egui::state::SettingsTab::Ai;
     h.run_steps(2);
     h.get_by_label("Effort:");
     assert!(h.state().backend_options.get("Claude Code").and_then(|o| o.effort).is_none(), "the usual level until one is chosen");
@@ -1001,7 +1001,7 @@ fn settings_window_tabs_draw() {
         let mut h = harness_sized(egui::vec2(1000.0, 700.0), move || {
             let mut a = demo::app(demo::engine(Mode::Beginner, true));
             a.state.settings_open = true;
-            a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Safety;
+            a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Safety;
             a
         });
         h.run_steps(3);
@@ -1088,8 +1088,8 @@ fn a_check_shows_the_claims_that_dont_hold_and_the_rest_on_request() {
 
 /// An app whose builds are stand-ins (one at a time), with an agent app as its Builder, the one
 /// the queue checks for up front.
-fn stand_in_app(projects: std::path::PathBuf, runs: &craft_anything_ai::rebuild::StandIns) -> CraftApp {
-    use craft_anything_ai::{AiConfig, BackendConfig, BackendEntry, BackendKind, BackendOptions};
+fn stand_in_app(projects: std::path::PathBuf, runs: &axiom_ai::rebuild::StandIns) -> CraftApp {
+    use axiom_ai::{AiConfig, BackendConfig, BackendEntry, BackendKind, BackendOptions};
     let engine = demo::engine(Mode::Beginner, true);
     let mut cfg = AiConfig::default();
     let agent =
@@ -1100,15 +1100,15 @@ fn stand_in_app(projects: std::path::PathBuf, runs: &craft_anything_ai::rebuild:
     demo::fill_projects(&mut app);
     app.settings.projects_dir = Some(projects);
     app.settings.build.parallel = 1;
-    app.runs = craft_anything_ai::rebuild::RunSet::new(1).with_starter(runs.starter());
+    app.runs = axiom_ai::rebuild::RunSet::new(1).with_starter(runs.starter());
     app
 }
 
 #[test]
 fn a_note_waiting_for_the_builder_can_be_taken_back_into_the_prompt_box() {
-    use craft_anything_ai::rebuild::{RunEvent, StandIns};
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
-    use craft_anything_ui_egui::state::FeedItem;
+    use axiom_ai::rebuild::{RunEvent, StandIns};
+    use axiom_engine::workspace::{TargetRef, Workspace};
+    use axiom_ui_egui::state::FeedItem;
     let d = tempfile::tempdir().unwrap();
     let a = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
     let runs = StandIns::new();
@@ -1145,8 +1145,8 @@ fn a_note_waiting_for_the_builder_can_be_taken_back_into_the_prompt_box() {
 
 #[test]
 fn up_in_the_prompt_box_takes_back_the_last_waiting_note() {
-    use craft_anything_ai::rebuild::StandIns;
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_ai::rebuild::StandIns;
+    use axiom_engine::workspace::{TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let a = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
     let runs = StandIns::new();
@@ -1184,9 +1184,9 @@ fn up_in_the_prompt_box_takes_back_the_last_waiting_note() {
 
 #[test]
 fn up_and_down_in_the_prompt_box_go_through_earlier_prompts() {
-    use craft_anything_ai::rebuild::StandIns;
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
-    use craft_anything_ui_egui::state::FeedItem;
+    use axiom_ai::rebuild::StandIns;
+    use axiom_engine::workspace::{TargetRef, Workspace};
+    use axiom_ui_egui::state::FeedItem;
     let d = tempfile::tempdir().unwrap();
     let a = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
     let (dir, runs) = (d.path().to_path_buf(), StandIns::new());
@@ -1276,7 +1276,7 @@ fn up_and_down_in_the_prompt_box_go_through_earlier_prompts() {
 
 #[test]
 fn the_prompt_box_is_laid_out_with_its_new_height_in_the_frame_it_grows() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_engine::workspace::{TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let a = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
     let mut h = harness(|| demo::app(demo::engine(Mode::Beginner, true)));
@@ -1303,7 +1303,7 @@ six"
 
 #[test]
 fn nothing_blinks_over_the_text_while_typing() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_engine::workspace::{TargetRef, Workspace};
     // Everything painted over a spot of the typed text, after the text itself.
     fn over_text(shapes: &[egui::epaint::ClippedShape], spot: egui::Rect) -> Vec<String> {
         fn flatten(s: &egui::Shape, out: &mut Vec<egui::Shape>) {
@@ -1357,9 +1357,9 @@ fn nothing_blinks_over_the_text_while_typing() {
 
 #[test]
 fn builds_past_the_limit_wait_their_turn_on_screen() {
-    use craft_anything_ai::rebuild::{RunEvent, StandIns, Step};
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
-    use craft_anything_ui_egui::state::FeedItem;
+    use axiom_ai::rebuild::{RunEvent, StandIns, Step};
+    use axiom_engine::workspace::{TargetRef, Workspace};
+    use axiom_ui_egui::state::FeedItem;
     let d = tempfile::tempdir().unwrap();
     let a = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
     let b = Workspace::create(d.path(), "Beta", "A timer app", TargetRef::None).unwrap();
@@ -1409,7 +1409,7 @@ fn builds_past_the_limit_wait_their_turn_on_screen() {
 
 #[test]
 fn a_projects_saved_time_and_ai_use_show_beside_it_and_the_session_total_in_the_title_bar() {
-    use craft_anything_engine::workspace::ProjectUsage;
+    use axiom_engine::workspace::ProjectUsage;
     // What earlier builds saved in the project folder: shown after a restart too.
     let d = tempfile::tempdir().unwrap();
     let root = d.path().to_path_buf();
@@ -1444,7 +1444,7 @@ fn ghidras_memory_is_automatic_until_the_person_sets_it() {
     let mut h = harness_sized(egui::vec2(1280.0, 1000.0), || {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         a.state.settings_open = true;
-        a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Engines;
+        a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Engines;
         a
     });
     h.run_steps(3);
@@ -1461,7 +1461,7 @@ fn ghidras_memory_is_automatic_until_the_person_sets_it() {
 
 #[test]
 fn the_front_door_makes_something_or_just_looks_inside() {
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_ui_egui::state::Modal;
     let mut h = harness(|| demo::app(demo::engine(Mode::Beginner, true)));
     h.run_steps(3);
     h.get_by_label("What do you want to build?");
@@ -1494,9 +1494,9 @@ fn the_front_door_makes_something_or_just_looks_inside() {
 
 #[test]
 fn a_running_build_says_what_it_is_on_and_opens_up_into_its_activity() {
-    use craft_anything_ai::rebuild::{RunEvent, RunSet, StandIns};
-    use craft_anything_ai::{AgentEvent, AiConfig, BackendConfig, BackendEntry, BackendKind, BackendOptions};
-    use craft_anything_engine::workspace::{Step, TargetRef, Workspace};
+    use axiom_ai::rebuild::{RunEvent, RunSet, StandIns};
+    use axiom_ai::{AgentEvent, AiConfig, BackendConfig, BackendEntry, BackendKind, BackendOptions};
+    use axiom_engine::workspace::{Step, TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
     let runs = StandIns::new();
@@ -1543,7 +1543,7 @@ fn a_running_build_says_what_it_is_on_and_opens_up_into_its_activity() {
     h.get_by_label("Open log");
     h.get_by_label("Reading src/main.rs: fn main");
     h.get_by_label("Running cargo test --quiet");
-    assert!(ws.root.join(craft_anything_engine::workspace::ACTIVITY_LOG).is_file());
+    assert!(ws.root.join(axiom_engine::workspace::ACTIVITY_LOG).is_file());
     // Finished: the record stays, named for what it is now.
     assert!(runs.finish(&ws.root));
     h.run_steps(3);
@@ -1552,9 +1552,9 @@ fn a_running_build_says_what_it_is_on_and_opens_up_into_its_activity() {
 
 #[test]
 fn a_build_that_stopped_part_way_offers_to_continue() {
-    use craft_anything_ai::rebuild::{RunSet, StandIns};
-    use craft_anything_ai::{AiConfig, BackendConfig, BackendEntry, BackendKind, BackendOptions};
-    use craft_anything_engine::workspace::{Status, TargetRef, Workspace};
+    use axiom_ai::rebuild::{RunSet, StandIns};
+    use axiom_ai::{AiConfig, BackendConfig, BackendEntry, BackendKind, BackendOptions};
+    use axiom_engine::workspace::{Status, TargetRef, Workspace};
     let d = tempfile::tempdir().unwrap();
     // Paused by the person, and one the app closed on mid-build (its status still says Building).
     let mut paused = Workspace::create(d.path(), "Alpha", "A notes app", TargetRef::None).unwrap();
@@ -1594,7 +1594,7 @@ fn a_build_that_stopped_part_way_offers_to_continue() {
     h.run_steps(3);
     assert_eq!(Workspace::open(&paused.root).unwrap().manifest.status, Status::Ready);
     assert!(h.query_by_label("Continue").is_none(), "nothing left to carry on");
-    h.get_by_label(craft_anything_engine::tools::project_tools::CALLED_DONE);
+    h.get_by_label(axiom_engine::tools::project_tools::CALLED_DONE);
     h.state_mut().open_workspace(cut.clone());
     h.run_steps(3);
     h.get_by_label("Beta, Interrupted");
@@ -1620,9 +1620,9 @@ fn the_builders_open_questions_show_beside_the_project() {
 
 #[test]
 fn a_new_project_can_start_in_a_folder_that_already_has_the_persons_files() {
-    use craft_anything_ai::rebuild::StandIns;
-    use craft_anything_engine::workspace::{ExistingFiles, Workspace};
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_ai::rebuild::StandIns;
+    use axiom_engine::workspace::{ExistingFiles, Workspace};
+    use axiom_ui_egui::state::Modal;
     let (d, mine) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
     std::fs::write(mine.path().join("index.html"), "<p>hi</p>").unwrap();
     let runs = StandIns::new();
@@ -1630,7 +1630,7 @@ fn a_new_project_can_start_in_a_folder_that_already_has_the_persons_files() {
     let mut h = harness(move || stand_in_app(dir, &r));
     h.run_steps(2);
     h.state_mut().state.make.request = "Add a contact form".into();
-    craft_anything_ui_egui::folders::picked(h.state_mut(), mine.path().to_path_buf());
+    axiom_ui_egui::folders::picked(h.state_mut(), mine.path().to_path_buf());
     h.run_steps(3);
     assert!(matches!(h.state().state.modal, Some(Modal::ExistingFiles)), "it asks what the files are");
     h.get_by_label("Don't ask again (you can change this in Settings)").click();
@@ -1655,7 +1655,7 @@ fn a_new_project_can_start_in_a_folder_that_already_has_the_persons_files() {
     // The next folder with files uses the remembered answer.
     let other = tempfile::tempdir().unwrap();
     std::fs::write(other.path().join("notes.md"), "ideas").unwrap();
-    craft_anything_ui_egui::folders::picked(h.state_mut(), other.path().to_path_buf());
+    axiom_ui_egui::folders::picked(h.state_mut(), other.path().to_path_buf());
     h.run_steps(2);
     assert!(h.state().state.modal.is_none() && h.state().state.make.existing == Some(ExistingFiles::Edit));
     h.state_mut().pause();
@@ -1665,7 +1665,7 @@ fn a_new_project_can_start_in_a_folder_that_already_has_the_persons_files() {
 
 #[test]
 fn settings_list_projects_from_more_folders_and_remove_them_from_the_list_only() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_engine::workspace::{TargetRef, Workspace};
     let (d, more) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
     let elsewhere = Workspace::create(more.path(), "Elsewhere", "A timer", TargetRef::None).unwrap();
     let dir = d.path().to_path_buf();
@@ -1692,7 +1692,7 @@ fn a_typed_space_stays_in_a_settings_path() {
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         a.state.settings_open = true;
-        a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Engines;
+        a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Engines;
         a
     });
     h.run_steps(3);
@@ -1707,7 +1707,7 @@ fn a_typed_space_stays_in_a_settings_path() {
 
 #[test]
 fn a_paragraph_is_drawn_as_one_piece_of_text() {
-    use craft_anything_ui_egui::state::FeedItem;
+    use axiom_ui_egui::state::FeedItem;
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         demo::fill_project(&mut a);
@@ -1722,8 +1722,8 @@ fn a_paragraph_is_drawn_as_one_piece_of_text() {
 
 #[test]
 fn make_says_who_builds_and_a_picked_builder_stays_with_the_project() {
-    use craft_anything_ai::{BackendConfig, BackendKind, rebuild::StandIns};
-    use craft_anything_engine::workspace::Workspace;
+    use axiom_ai::{BackendConfig, BackendKind, rebuild::StandIns};
+    use axiom_engine::workspace::Workspace;
     let d = tempfile::tempdir().unwrap();
     let runs = StandIns::new();
     let (dir, r) = (d.path().to_path_buf(), runs.clone());
@@ -1756,7 +1756,7 @@ fn make_says_who_builds_and_a_picked_builder_stays_with_the_project() {
 
 #[test]
 fn with_nothing_to_build_with_start_offers_what_was_found_instead_of_a_dead_end() {
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_ui_egui::state::Modal;
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         a.backends.clear();
@@ -1781,7 +1781,7 @@ fn with_nothing_to_build_with_start_offers_what_was_found_instead_of_a_dead_end(
 
 #[test]
 fn an_ai_can_be_turned_off_and_removed_in_settings() {
-    use craft_anything_ai::rebuild::StandIns;
+    use axiom_ai::rebuild::StandIns;
     let d = tempfile::tempdir().unwrap();
     let runs = StandIns::new();
     let (dir, r) = (d.path().to_path_buf(), runs.clone());
@@ -1789,7 +1789,7 @@ fn an_ai_can_be_turned_off_and_removed_in_settings() {
         let mut a = stand_in_app(dir, &r);
         a.backends = a.hub.backends();
         a.state.settings_open = true;
-        a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Ai;
+        a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Ai;
         a
     });
     h.run_steps(3);
@@ -1805,7 +1805,7 @@ fn an_ai_can_be_turned_off_and_removed_in_settings() {
 
 #[test]
 fn start_is_in_view_at_a_common_window_height() {
-    use craft_anything_engine::workspace::TargetRef;
+    use axiom_engine::workspace::TargetRef;
     for app_target in [false, true] {
         let mut h = harness_sized(egui::vec2(1280.0, 900.0), move || {
             let mut a = demo::app(demo::engine(Mode::Beginner, true));
@@ -1823,7 +1823,7 @@ fn start_is_in_view_at_a_common_window_height() {
 
 #[test]
 fn typed_drafts_come_back_after_a_restart_and_stay_with_their_project() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
+    use axiom_engine::workspace::{TargetRef, Workspace};
     struct Mem(std::collections::HashMap<String, String>);
     impl eframe::Storage for Mem {
         fn get_string(&self, key: &str) -> Option<String> {
@@ -1873,7 +1873,7 @@ fn the_ask_screen_waits_only_for_its_own_answer() {
     let (tx, rx) = std::sync::mpsc::channel::<()>();
     let other = h.state_mut().jobs.spawn("Download an engine", true, move |j| {
         while matches!(rx.recv_timeout(Duration::from_millis(20)), Err(std::sync::mpsc::RecvTimeoutError::Timeout)) && !j.cancel.is_cancelled() {}
-        Ok(craft_anything_ui_egui::Done::Nothing)
+        Ok(axiom_ui_egui::Done::Nothing)
     });
     h.run_steps(2);
     assert!(!h.state().answering());
@@ -1887,7 +1887,7 @@ fn the_ask_screen_waits_only_for_its_own_answer() {
 
 #[test]
 fn closing_the_ghidra_question_means_the_project_doesnt_start_later() {
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_ui_egui::state::Modal;
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         a.ghidra.start_after = Some(Box::new(a.state.make.clone()));
@@ -1916,9 +1916,9 @@ fn a_project_that_needs_you_says_so_in_the_sidebar() {
 
 #[test]
 fn a_paused_build_shows_where_it_stopped() {
-    use craft_anything_ai::rebuild::Step;
-    use craft_anything_engine::workspace::{Status, TargetRef, Workspace};
-    use craft_anything_ui_egui::state::FeedItem;
+    use axiom_ai::rebuild::Step;
+    use axiom_engine::workspace::{Status, TargetRef, Workspace};
+    use axiom_ui_egui::state::FeedItem;
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "Notes", "A notes app", TargetRef::None).unwrap();
     ws.manifest.status = Status::Stopped;
@@ -1941,7 +1941,7 @@ fn a_paused_build_shows_where_it_stopped() {
 
 #[test]
 fn opening_another_target_starts_a_new_conversation() {
-    use craft_anything_ui_egui::state::ChatItem;
+    use axiom_ui_egui::state::ChatItem;
     let d = tempfile::tempdir().unwrap();
     let other = d.path().join("notes.txt");
     std::fs::write(&other, "hello").unwrap();
@@ -1979,7 +1979,7 @@ fn advanced_mode_keeps_projects_and_their_questions_in_sight() {
 fn the_website_dialog_is_ready_to_type_into() {
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
-        a.state.modal = Some(craft_anything_ui_egui::state::Modal::Website);
+        a.state.modal = Some(axiom_ui_egui::state::Modal::Website);
         a
     });
     h.run_steps(3);
@@ -1988,8 +1988,8 @@ fn the_website_dialog_is_ready_to_type_into() {
 
 #[test]
 fn a_project_is_renamed_duplicated_and_deleted_from_its_page() {
-    use craft_anything_engine::workspace::{TargetRef, Workspace};
-    use craft_anything_ui_egui::state::Modal;
+    use axiom_engine::workspace::{TargetRef, Workspace};
+    use axiom_ui_egui::state::Modal;
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
     let root = ws.root.clone();
@@ -2069,7 +2069,7 @@ fn the_models_hub_shows_cards_and_switches_tabs() {
     h.get_by_label("Stop");
     h.get_by_label("Search").click();
     h.run_steps(3);
-    assert_eq!(h.state().models.tab, craft_anything_ui_egui::models_ui::Tab::Search);
+    assert_eq!(h.state().models.tab, axiom_ui_egui::models_ui::Tab::Search);
     h.get_by_label("On this computer").click();
     h.run_steps(3);
     h.get_by_label("No models yet");
@@ -2077,7 +2077,7 @@ fn the_models_hub_shows_cards_and_switches_tabs() {
 
 #[test]
 fn earlier_chats_are_listed_and_open_again() {
-    use craft_anything_ui_egui::state::{ChatItem, Screen};
+    use axiom_ui_egui::state::{ChatItem, Screen};
     let mut h = harness(|| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         a.state.chat =

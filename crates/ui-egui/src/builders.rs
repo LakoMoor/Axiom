@@ -1,12 +1,12 @@
 //! Who builds: the AIs that can build, the one that builds by default, the choice on Make
 //! ("Built by"), and the dialog when nothing can build yet. One rule decides "can it build?"
-//! ([`craft_anything_ai::default_builder`]), so the Make screen's warning and Start agree.
+//! ([`axiom_ai::default_builder`]), so the Make screen's warning and Start agree.
 
 use crate::i18n::{tr, trf};
 use crate::state::Modal;
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, icons, widgets};
-use craft_anything_ai::{BackendConfig, BackendKind};
+use axiom_ai::{BackendConfig, BackendKind};
 use egui::{RichText, Ui, Vec2};
 
 /// One AI that could build.
@@ -48,7 +48,7 @@ impl CraftApp {
     /// What builds when the person doesn't choose: the default from Settings → AI, else an agent
     /// app found on this computer.
     pub fn default_builder(&self) -> Option<String> {
-        craft_anything_ai::default_builder(&self.backends, self.builder.as_deref()).or_else(|| self.found_agents().next()).map(|b| b.name.clone())
+        axiom_ai::default_builder(&self.backends, self.builder.as_deref()).or_else(|| self.found_agents().next()).map(|b| b.name.clone())
     }
 
     /// Something can build.
@@ -104,7 +104,7 @@ impl CraftApp {
     }
 
     /// How hard a Claude AI thinks from now on.
-    pub fn set_effort(&mut self, name: &str, effort: craft_anything_ai::Effort) {
+    pub fn set_effort(&mut self, name: &str, effort: axiom_ai::Effort) {
         let (hub, name) = (self.hub.clone(), name.to_string());
         self.jobs.spawn(tr("Change how hard an AI thinks"), false, move |_| {
             hub.set_effort(&name, Some(effort)).map_err(|e| e.message)?;

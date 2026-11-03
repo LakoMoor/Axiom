@@ -3,10 +3,8 @@
 
 use super::artifact_tools::resolve_evidence_input;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{
-    Authority, Confidence, Coverage, CoverageStatus, Environment, EvidenceBuilder, Limitation, Location, Subject, ToolError, host_triple,
-};
-use craft_anything_platform::capture::{self, Event, EventKind, Limits, SandboxRequest, Sig, Spec, Terminal};
+use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, Environment, EvidenceBuilder, Limitation, Location, Subject, ToolError, host_triple};
+use axiom_platform::capture::{self, Event, EventKind, Limits, SandboxRequest, Sig, Spec, Terminal};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -380,7 +378,7 @@ fn runtime_walkthrough_record(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOu
     };
 
     let ct = ctx.cancel.clone();
-    let cancel: craft_anything_platform::process::Cancel = Arc::new(move || ct.is_cancelled());
+    let cancel: axiom_platform::process::Cancel = Arc::new(move || ct.is_cancelled());
     ctx.report(Some(0.0), "running the program");
     let cap = capture::capture(spec, cancel)?;
 
@@ -596,7 +594,7 @@ mod tests {
     use crate::{CallOptions, Caller, Consent, Engine};
     use serde_json::{Value, json};
 
-    fn call_consent(e: &Engine, id: &str, p: Value) -> Result<Value, craft_anything_evidence::ToolError> {
+    fn call_consent(e: &Engine, id: &str, p: Value) -> Result<Value, axiom_evidence::ToolError> {
         e.call(id, p, CallOptions::new(Caller::Cli).with_consent(Consent::Granted)).map(|o| o.to_json())
     }
 
@@ -616,13 +614,13 @@ mod tests {
     fn capture_needs_consent() {
         let e = Engine::new(crate::testing::session());
         let err = e.call("runtime_walkthrough_record", json!({"executable": "/bin/echo"}), CallOptions::new(Caller::Mcp)).unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::ConsentRequired);
+        assert_eq!(err.code, axiom_evidence::ErrorCode::ConsentRequired);
     }
 
     #[test]
     #[cfg_attr(not(any(target_os = "linux", target_os = "macos")), ignore)]
     fn capture_and_compare_echo() {
-        if craft_anything_platform::which::which("sh").is_none() {
+        if axiom_platform::which::which("sh").is_none() {
             return;
         }
         let e = Engine::new(crate::testing::session());
@@ -698,8 +696,7 @@ mod tests {
     #[test]
     fn reserved_env_is_rejected() {
         let e = Engine::new(crate::testing::session());
-        let err =
-            call_consent(&e, "runtime_walkthrough_record", json!({"executable": "/bin/echo", "environment": {"CRAFT_ANYTHING_RUN_ID": "x"}})).unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::BadInput);
+        let err = call_consent(&e, "runtime_walkthrough_record", json!({"executable": "/bin/echo", "environment": {"AXIOM_RUN_ID": "x"}})).unwrap_err();
+        assert_eq!(err.code, axiom_evidence::ErrorCode::BadInput);
     }
 }

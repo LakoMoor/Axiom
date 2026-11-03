@@ -1,11 +1,11 @@
 //! Owned processes: the only way Axiom runs another program.
 //!
 //! ```no_run
-//! use craft_anything_platform::process::Process;
+//! use axiom_platform::process::Process;
 //! use std::time::Duration;
 //! let out = Process::new("git").args(["--version"]).timeout(Duration::from_secs(5)).run_checked()?;
 //! println!("{}", out.stdout_text());
-//! # Ok::<(), craft_anything_evidence::ToolError>(())
+//! # Ok::<(), axiom_evidence::ToolError>(())
 //! ```
 //!
 //! Guarantees:
@@ -21,7 +21,7 @@
 //! Use [`Process::spawn`] and poll [`RunningProcess::try_result`] instead.
 
 use crate::sync::Mutex;
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use process_wrap::std::{ChildWrapper, CommandWrap};
 use std::ffi::{OsStr, OsString};
 use std::io::{Read, Write};
@@ -781,9 +781,9 @@ fn take(buf: &Arc<Mutex<Capped>>) -> (Vec<u8>, bool) {
 /// click.
 ///
 /// ```no_run
-/// use craft_anything_platform::process::Launch;
+/// use axiom_platform::process::Launch;
 /// Launch::new("/path/to/game").cwd("/path/to").hide_console().start()?;
-/// # Ok::<(), craft_anything_evidence::ToolError>(())
+/// # Ok::<(), axiom_evidence::ToolError>(())
 /// ```
 #[derive(Debug, Clone)]
 pub struct Launch {
@@ -1150,10 +1150,10 @@ mod launch_tests {
 
     #[test]
     fn a_missing_program_is_a_tool_error_with_remediation() {
-        let e = Launch::new("craft-anything-no-such-program-xyz").remediation("Install it.").start().unwrap_err();
+        let e = Launch::new("axiom-no-such-program-xyz").remediation("Install it.").start().unwrap_err();
         assert_eq!(e.code, ErrorCode::EngineMissing);
         assert_eq!(e.remediation.as_deref(), Some("Install it."));
-        assert!(e.message.contains("craft-anything-no-such-program-xyz"), "{}", e.message);
+        assert!(e.message.contains("axiom-no-such-program-xyz"), "{}", e.message);
     }
 
     #[test]

@@ -4,7 +4,7 @@
 
 use crate::openai::{LOCAL_SERVERS, OpenAi};
 use crate::{BackendConfig, BackendKind, Detected};
-use craft_anything_evidence::ErrorCode;
+use axiom_evidence::ErrorCode;
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::PathBuf;
 use std::sync::mpsc;
@@ -94,7 +94,7 @@ pub fn agent_clis() -> Vec<Detected> {
     crate::cli_agents::KNOWN
         .iter()
         .filter_map(|(id, prog, display)| {
-            craft_anything_platform::which(prog).map(|p| Detected {
+            axiom_platform::which(prog).map(|p| Detected {
                 suggestion: cfg(display, BackendKind::AgentCli, id),
                 reason: format!("Found {display} at {}", p.display()),
                 needs_key: false,
@@ -120,7 +120,7 @@ fn opencode_config(var: impl Fn(&str) -> Option<String>, home: Option<PathBuf>) 
 /// (`provider.<id>.options.baseURL`), as (name, base URL): one on another port or machine is
 /// offered too (#83, #73). Hosted services are left out; they need a key this scan doesn't have.
 pub fn opencode_servers(text: &str) -> Vec<(String, String)> {
-    let Ok(doc) = craft_anything_formats::jsonc::parse(text, false) else { return Vec::new() };
+    let Ok(doc) = axiom_formats::jsonc::parse(text, false) else { return Vec::new() };
     let config = doc.to_value();
     let Some(providers) = config.get("provider").and_then(serde_json::Value::as_object) else { return Vec::new() };
     providers

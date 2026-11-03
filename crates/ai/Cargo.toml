@@ -1,6 +1,6 @@
 [package]
-name = "craft-anything-ai"
-description = "AI backends, the agent loop and crews for Craft Anything"
+name = "axiom-ai"
+description = "AI backends, the agent loop and crews for Axiom"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,11 +11,11 @@ workspace = true
 
 [dependencies]
 schemars = { workspace = true }
-craft-anything-evidence = { workspace = true }
-craft-anything-engine = { workspace = true }
-craft-anything-engines = { workspace = true }
-craft-anything-formats = { workspace = true }
-craft-anything-platform = { workspace = true }
+axiom-evidence = { workspace = true }
+axiom-engine = { workspace = true }
+axiom-engines = { workspace = true }
+axiom-formats = { workspace = true }
+axiom-platform = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }
@@ -34,4 +34,4 @@ keyring = { version = "3", default-features = false, features = ["windows-native
 
 [dev-dependencies]
 tempfile = "3"
-craft-anything-testkit = { workspace = true }
+axiom-testkit = { workspace = true }

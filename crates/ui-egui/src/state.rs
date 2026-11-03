@@ -1,9 +1,9 @@
 //! UI state. Plain serde data: everything the screens show is derived from this plus the engine.
 
-use craft_anything_engine::TargetKind;
-use craft_anything_engine::evidence::Evidence;
-use craft_anything_engine::project::Purpose;
-use craft_anything_engine::workspace::TargetRef;
+use axiom_engine::TargetKind;
+use axiom_engine::evidence::Evidence;
+use axiom_engine::project::Purpose;
+use axiom_engine::workspace::TargetRef;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -54,7 +54,7 @@ pub struct MakeDraft {
     pub folder_files: Option<(Vec<String>, usize)>,
     /// What those files are to the project.
     #[serde(default)]
-    pub existing: Option<craft_anything_engine::workspace::ExistingFiles>,
+    pub existing: Option<axiom_engine::workspace::ExistingFiles>,
     /// "Don't ask again" is ticked in the question about them.
     #[serde(default)]
     pub remember_existing: bool,
@@ -88,7 +88,7 @@ impl Default for MakeDraft {
     }
 }
 
-pub use craft_anything_ai::rebuild::feed::{FeedItem, PlanStatus, PlanStep};
+pub use axiom_ai::rebuild::feed::{FeedItem, PlanStatus, PlanStep};
 
 /// The first-run steps. Never more than four.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]

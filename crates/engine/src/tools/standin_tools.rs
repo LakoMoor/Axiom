@@ -1,7 +1,7 @@
 //! A stand-in backend: answer a rebuilt front end's requests from a recording of the original's
 //! network traffic, so the builder can test it without the real backend.
 //!
-//! `web_standin_build` writes the description (see `craft_anything_analysis::standin`), and is that
+//! `web_standin_build` writes the description (see `axiom_analysis::standin`), and is that
 //! file's only writer. `web_standin_start` serves one on loopback, held by the session until
 //! `web_standin_stop` or the session ends. `web_standin_show` says what was asked for and had no
 //! recorded answer, which is what tells a builder what's still missing.
@@ -10,10 +10,10 @@ use super::artifact_tools::{abs_path, env, read_capped};
 use super::native_common::spec;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use crate::versioned::{Step, upgrade};
-use craft_anything_analysis::standin::{self, Answer, BodyLeftOut, BuildOptions, NearbyRoute, NoMatchReason, STANDIN_VERSION, StandIn, Turns};
-use craft_anything_evidence::{Authority, Confidence, Coverage, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex};
-use craft_anything_platform::standin_server::{self, Answerer, Limits, LoopbackServer, Request, Response};
-use craft_anything_platform::sync::Mutex;
+use axiom_analysis::standin::{self, Answer, BodyLeftOut, BuildOptions, NearbyRoute, NoMatchReason, STANDIN_VERSION, StandIn, Turns};
+use axiom_evidence::{Authority, Confidence, Coverage, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex};
+use axiom_platform::standin_server::{self, Answerer, Limits, LoopbackServer, Request, Response};
+use axiom_platform::sync::Mutex;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -33,7 +33,7 @@ const MAX_MISSING: usize = 1_000;
 const MAX_LOGGED_PATH: usize = 512;
 const MAX_LOGGED_QUERY_NAMES: usize = 32;
 /// Tells a client which kind of answer it got: a recorded 404 and "nothing recorded" look alike otherwise.
-const ANSWER_HEADER: &str = "X-Craft-Anything-Stand-In";
+const ANSWER_HEADER: &str = "X-Axiom-Stand-In";
 
 /// Steps that bring an older file to the current version (none yet).
 const STANDIN_STEPS: &[Step<Value>] = &[];
@@ -189,7 +189,7 @@ fn web_standin_build(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, Too
     let text = serde_json::to_vec(&built).map_err(|e| ToolError::internal(e.to_string()))?;
     std::fs::create_dir_all(&dir).map_err(|e| ToolError::io(dir.display(), e))?;
     // Bodies can hold personal data nobody named, so the file is only readable by this person.
-    craft_anything_platform::write_atomic_private(&out, &text)?;
+    axiom_platform::write_atomic_private(&out, &text)?;
 
     let limit = p.limit.clamp(1, 1000);
     let total = built.routes.len();

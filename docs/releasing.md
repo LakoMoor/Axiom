@@ -1,4 +1,4 @@
-# Releasing Craft Anything
+# Releasing Axiom
 
 The recipe is shared by every Crafting App: `release/playbook.md` in
 [craftrules](https://github.com/storytold/craftrules) (`../craftrules`), and the runbook for cutting
@@ -18,7 +18,7 @@ release: `gh workflow run ci.yml --ref main`. The other workflows (`freebsd.yml`
 1. Bump the version on `main`: `cargo xtask version set X.Y.Z` (the workspace version in the root
    `Cargo.toml` is the single source; `cargo xtask version` prints it).
 2. Fast-forward `release` to `main`. The push runs `.github/workflows/release.yml`, which builds every
-   platform and creates or updates the draft GitHub Release **Craft Anything vX.Y.Z**.
+   platform and creates or updates the draft GitHub Release **Axiom vX.Y.Z**.
 3. When every job is green, publish the draft.
 
 A dry run of the unsigned platforms from any branch: `gh workflow run release.yml --ref <branch>`.
@@ -27,24 +27,24 @@ A dry run of the unsigned platforms from any branch: `gh workflow run release.ym
 
 | Platform | Files |
 |---|---|
-| macOS | `craft-anything-<v>-macos-universal.dmg` (`Craft Anything.app`), `craft-anything-cli-<v>-macos-universal.zip` |
-| Windows | `craft-anything-<v>-windows-{x64,x86,arm64}.msi` and `-portable.zip` |
-| Linux | `craft-anything-<v>-linux-{x86_64,aarch64}.{AppImage,AppImage.zsync,deb,rpm,tar.gz,flatpak}`, `craft-anything-<v>-linux-riscv64.tar.gz` |
-| FreeBSD | `craft-anything-<v>-freebsd-x86_64.tar.gz` |
-| Web | `craft-anything-web-<v>.zip` (the browser viewer, `apps/craft-anything-web`) |
+| macOS | `axiom-<v>-macos-universal.dmg` (`Axiom.app`), `axiom-cli-<v>-macos-universal.zip` |
+| Windows | `axiom-<v>-windows-{x64,x86,arm64}.msi` and `-portable.zip` |
+| Linux | `axiom-<v>-linux-{x86_64,aarch64}.{AppImage,AppImage.zsync,deb,rpm,tar.gz,flatpak}`, `axiom-<v>-linux-riscv64.tar.gz` |
+| FreeBSD | `axiom-<v>-freebsd-x86_64.tar.gz` |
+| Web | `axiom-web-<v>.zip` (the browser viewer, `apps/axiom-web`) |
 
 Plus `SHA256SUMS.txt`.
 
 ## App-specific choices
 
-- **No file associations.** Craft Anything opens any file, so it claims no file type and no URL
+- **No file associations.** Axiom opens any file, so it claims no file type and no URL
   scheme on any platform. It appears in Windows' "Open with" list and accepts paths on the
   command line. Projects (`*.cany`) are folders.
-- **The macOS executable** is `Craft Anything.app/Contents/MacOS/craft-anything`. Only the bundle
-  carries the display name. `craft-anything-cli` sits beside it, as it does in the Windows zip: the
+- **The macOS executable** is `Axiom.app/Contents/MacOS/axiom`. Only the bundle
+  carries the display name. `axiom-cli` sits beside it, as it does in the Windows zip: the
   app starts it as the coding agents' MCP server, so an app without it can't build (#91).
 - **Windows portable mode:** the portable zip ships `portable.txt`. While it sits next to the exe,
-  settings live in `CraftAnythingData\` (`crates/engine/src/settings.rs`).
+  settings live in `AxiomData\` (`crates/engine/src/settings.rs`).
 - **Flatpak** grants `--share=network` (AI backends, engine downloads) and `--filesystem=home:ro`
   (files to inspect, passed by path).
 - **Fonts** are committed in `assets/fonts` (OFL-1.1). Release and CI builds also embed craft-fonts
@@ -52,4 +52,4 @@ Plus `SHA256SUMS.txt`.
   the fallbacks for Korean, Chinese, Japanese, Thai, Arabic, Hebrew, Devanagari and symbols; a
   build without them shows those as boxes (#19). Every package ships all their licences
   (`OFL-*.txt`, craft-fonts' as `OFL-<font>.txt`).
-- **The WiX UpgradeCode** `8F69A8B5-4384-479B-B3FF-93C5374BCA51` belongs to Craft Anything for good.
+- **The WiX UpgradeCode** `8F69A8B5-4384-479B-B3FF-93C5374BCA51` belongs to Axiom for good.

@@ -2,7 +2,7 @@
 //! (and comparing a rebuild with it). Uses the operating system's own capture through `xcap`, on
 //! Windows and macOS; elsewhere it says it isn't available yet.
 
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 
 /// Whether this system can picture a window: Windows and macOS for now (ROADMAP R2.4).
 pub const SUPPORTED: bool = cfg!(any(windows, target_os = "macos"));

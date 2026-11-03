@@ -14,7 +14,7 @@
 use super::*;
 use crate::agent::{EngineHost, LoopConfig, ReadOnlyHost};
 use crate::cli_agents::{CliConversation, CliSpec};
-use craft_anything_engine::Toolset;
+use axiom_engine::Toolset;
 use serde::Serialize;
 use std::time::{Duration, Instant, SystemTime};
 
@@ -58,7 +58,7 @@ pub struct Answered {
 /// the UI thread.
 pub fn ask(
     hub: &AiHub,
-    settings: &craft_anything_engine::Settings,
+    settings: &axiom_engine::Settings,
     logs: Option<std::path::PathBuf>,
     ws: &Workspace,
     question: &str,
@@ -87,7 +87,7 @@ pub fn ask(
         }
         _ => {
             // An engine of its own, pointed at this project, so a build running meanwhile keeps its.
-            let engine = Arc::new(Engine::new(craft_anything_engine::Session::new(settings.clone())));
+            let engine = Arc::new(Engine::new(axiom_engine::Session::new(settings.clone())));
             engine.session().ext.insert(Arc::new(InboxDir(ws.inbox_dir())));
             let host = Arc::new(ReadOnlyHost(EngineHost(engine)));
             let slot = hub.build_model(&entry)?;

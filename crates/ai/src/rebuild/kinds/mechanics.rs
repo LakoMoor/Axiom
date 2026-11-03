@@ -1,11 +1,11 @@
 //! Games (and apps decompiled in Deep mode) keep their numbers in `app/MECHANICS.md` for people and in `app/mechanics.json` for
-//! checks ([`craft_anything_engine::mechanics`]). [`MechanicsCheck`] holds the build to the
+//! checks ([`axiom_engine::mechanics`]). [`MechanicsCheck`] holds the build to the
 //! sheet: it must exist and be readable, and every number in it must appear in the code as
 //! written unless it's marked estimated (a value the code computes, or keeps in other units, is
 //! written there as the sheet has it). The note also says which values have no source.
 
 use super::*;
-use craft_anything_engine::mechanics::{self, MechanicValue, SheetProblem};
+use axiom_engine::mechanics::{self, MechanicValue, SheetProblem};
 use std::collections::HashSet;
 
 /// What every game brief asks for, so the check can read the numbers.
@@ -75,7 +75,7 @@ impl Check for MechanicsCheck {
             .values
             .iter()
             .filter_map(|v| match v.value {
-                MechanicValue::Number(n) if !v.estimated => Some(craft_anything_engine::workspace::Claim::new(
+                MechanicValue::Number(n) if !v.estimated => Some(axiom_engine::workspace::Claim::new(
                     format!("{} ({n}) is used in the code", v.name),
                     found.contains(&key(n)),
                     "not in the code as written",

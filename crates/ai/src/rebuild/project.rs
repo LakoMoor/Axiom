@@ -2,8 +2,8 @@
 //! asset budget from settings and whether assets may be generated. Shared by the CLI's `rebuild` and the `rebuild_start` tool.
 
 use super::*;
-use craft_anything_engine::Settings;
-use craft_anything_engine::workspace::{ExistingFiles, suggest_name};
+use axiom_engine::Settings;
+use axiom_engine::workspace::{ExistingFiles, suggest_name};
 
 /// Where a new project goes.
 #[derive(Debug, Clone, Copy, Default)]

@@ -188,12 +188,12 @@ pub fn which_in(name: &str, path: Option<OsString>) -> Vec<PathBuf> {
     out
 }
 
-/// File name of the command-line binary (`craft-anything-cli`, plus `.exe` on Windows).
+/// File name of the command-line binary (`axiom-cli`, plus `.exe` on Windows).
 pub fn cli_file_name() -> String {
-    format!("craft-anything-cli{}", std::env::consts::EXE_SUFFIX)
+    format!("axiom-cli{}", std::env::consts::EXE_SUFFIX)
 }
 
-/// Absolute path of the installed `craft-anything-cli`: this executable when it is the CLI, else
+/// Absolute path of the installed `axiom-cli`: this executable when it is the CLI, else
 /// a sibling of this executable (the desktop app ships next to it), else the first one on `PATH`.
 pub fn self_cli_path() -> Option<PathBuf> {
     let name = cli_file_name();
@@ -215,7 +215,7 @@ pub fn self_cli_path() -> Option<PathBuf> {
             }
         }
     }
-    which("craft-anything-cli")
+    which("axiom-cli")
 }
 
 #[cfg(windows)]

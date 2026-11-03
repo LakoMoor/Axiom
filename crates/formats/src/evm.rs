@@ -664,7 +664,7 @@ fn reverts_soon(code: &[u8], ins: &[Ins], mut k: usize, index_of: &dyn Fn(usize)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::formats as fx;
+    use axiom_testkit::formats as fx;
 
     #[test]
     fn dispatcher_selectors_and_metadata() {
@@ -719,14 +719,14 @@ mod tests {
     #[test]
     fn hostile_inputs_do_not_panic() {
         let (code, _) = fx::evm_runtime();
-        for m in craft_anything_testkit::mutations(&code) {
+        for m in axiom_testkit::mutations(&code) {
             let _ = analyze(&m);
         }
         for n in 0..code.len() {
             let _ = analyze(&code[..n]);
         }
         for seed in 0..200 {
-            let n = craft_anything_testkit::noise(seed, 300);
+            let n = axiom_testkit::noise(seed, 300);
             let _ = analyze(&n);
             let _ = decode_input(&n, Encoding::Auto);
         }

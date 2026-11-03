@@ -88,7 +88,7 @@ pub fn well_known(id: &str) -> Vec<PathBuf> {
 }
 
 pub(crate) fn find_on_path(exes: &[&str]) -> Option<PathBuf> {
-    let path = craft_anything_platform::which::search_path()?;
+    let path = axiom_platform::which::search_path()?;
     for dir in std::env::split_paths(&path) {
         for exe in exes {
             let p = dir.join(exe);

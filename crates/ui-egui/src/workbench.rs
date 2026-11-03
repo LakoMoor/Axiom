@@ -6,7 +6,7 @@ use crate::i18n::tr;
 use crate::state::{BottomTab, CenterTab, Fill, RailKind, RightTab};
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, Pick, Route, chat, icons, widgets};
-use craft_anything_engine::Consent;
+use axiom_engine::Consent;
 use egui::{Margin, RichText, Ui, Vec2};
 use serde_json::{Value, json};
 
@@ -712,7 +712,7 @@ fn result_view(app: &mut CraftApp, ui: &mut Ui) {
     }
 }
 
-fn evidence_view(ui: &mut Ui, e: &craft_anything_engine::evidence::Evidence, t: &Tokens) {
+fn evidence_view(ui: &mut Ui, e: &axiom_engine::evidence::Evidence, t: &Tokens) {
     egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
         evidence_ui::proof_card(ui, e, true, false);
         ui.add_space(10.0);
@@ -844,9 +844,9 @@ fn unknowns(app: &mut CraftApp, ui: &mut Ui) {
                 ui.horizontal(|ui| {
                     let sev = format!("{:?}", u.severity);
                     let col = match u.severity {
-                        craft_anything_engine::evidence::Severity::Critical | craft_anything_engine::evidence::Severity::High => t.danger,
-                        craft_anything_engine::evidence::Severity::Medium => t.warning,
-                        craft_anything_engine::evidence::Severity::Low => t.text_dim,
+                        axiom_engine::evidence::Severity::Critical | axiom_engine::evidence::Severity::High => t.danger,
+                        axiom_engine::evidence::Severity::Medium => t.warning,
+                        axiom_engine::evidence::Severity::Low => t.text_dim,
                     };
                     widgets::pill(ui, &sev, col, t.raised);
                     widgets::pill(ui, &format!("{:?}", u.status), t.text_dim, t.raised);

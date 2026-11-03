@@ -523,6 +523,300 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
+name = "axiom"
+version = "0.3.0"
+dependencies = [
+ "axiom-ai",
+ "axiom-engine",
+ "axiom-platform",
+ "axiom-setup",
+ "axiom-ui-egui",
+ "eframe",
+ "log",
+ "png 0.17.16",
+ "rfd",
+ "serde_json",
+ "winresource",
+]
+
+[[package]]
+name = "axiom-ai"
+version = "0.3.0"
+dependencies = [
+ "axiom-engine",
+ "axiom-engines",
+ "axiom-evidence",
+ "axiom-formats",
+ "axiom-platform",
+ "axiom-testkit",
+ "dirs",
+ "keyring",
+ "log",
+ "schemars",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml 0.9.12+spec-1.1.0",
+ "ureq",
+]
+
+[[package]]
+name = "axiom-analysis"
+version = "0.3.0"
+dependencies = [
+ "axiom-disasm",
+ "axiom-evidence",
+ "axiom-formats",
+ "axiom-js",
+ "axiom-testkit",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "axiom-cli"
+version = "0.3.0"
+dependencies = [
+ "axiom-ai",
+ "axiom-engine",
+ "axiom-engines",
+ "axiom-evidence",
+ "axiom-mcp",
+ "axiom-platform",
+ "axiom-setup",
+ "clap",
+ "ctrlc",
+ "log",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "winresource",
+]
+
+[[package]]
+name = "axiom-disasm"
+version = "0.3.0"
+dependencies = [
+ "axiom-formats",
+ "axiom-testkit",
+ "iced-x86",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "yaxpeax-arch",
+ "yaxpeax-arm",
+]
+
+[[package]]
+name = "axiom-engine"
+version = "0.3.0"
+dependencies = [
+ "axiom-analysis",
+ "axiom-disasm",
+ "axiom-engines",
+ "axiom-evidence",
+ "axiom-formats",
+ "axiom-js",
+ "axiom-platform",
+ "axiom-testkit",
+ "base64 0.22.1",
+ "bitflags 2.13.2",
+ "dirs",
+ "hex",
+ "image",
+ "log",
+ "png 0.17.16",
+ "regex",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.21",
+ "toml 0.9.12+spec-1.1.0",
+]
+
+[[package]]
+name = "axiom-engines"
+version = "0.3.0"
+dependencies = [
+ "axiom-evidence",
+ "axiom-formats",
+ "axiom-platform",
+ "axiom-testkit",
+ "base64 0.22.1",
+ "hex",
+ "log",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.21",
+ "toml 0.9.12+spec-1.1.0",
+ "ureq",
+ "wasmtime",
+]
+
+[[package]]
+name = "axiom-evidence"
+version = "0.3.0"
+dependencies = [
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "axiom-formats"
+version = "0.3.0"
+dependencies = [
+ "axiom-testkit",
+ "bzip2-rs",
+ "lzma-rs",
+ "miniz_oxide 0.8.9",
+ "object 0.36.7",
+ "p256",
+ "p384",
+ "rsa",
+ "rustc-demangle",
+ "ruzstd",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "thiserror 2.0.21",
+ "wasmparser 0.261.0",
+ "wasmprinter 0.261.0",
+]
+
+[[package]]
+name = "axiom-js"
+version = "0.3.0"
+dependencies = [
+ "axiom-testkit",
+ "hex",
+ "oxc_allocator",
+ "oxc_ast",
+ "oxc_ast_visit",
+ "oxc_codegen",
+ "oxc_parser",
+ "oxc_semantic",
+ "oxc_span",
+ "oxc_syntax",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "axiom-mcp"
+version = "0.3.0"
+dependencies = [
+ "axiom-engine",
+ "axiom-evidence",
+ "axiom-platform",
+ "log",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "axiom-platform"
+version = "0.3.0"
+dependencies = [
+ "axiom-evidence",
+ "hex",
+ "log",
+ "nix 0.31.3",
+ "portable-pty",
+ "process-wrap",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "vt100",
+ "windows",
+ "xcap",
+]
+
+[[package]]
+name = "axiom-setup"
+version = "0.3.0"
+dependencies = [
+ "axiom-engine",
+ "axiom-engines",
+ "axiom-evidence",
+ "axiom-formats",
+ "axiom-platform",
+ "log",
+ "schemars",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml 0.9.12+spec-1.1.0",
+ "toml_edit",
+ "yaml-rust2",
+]
+
+[[package]]
+name = "axiom-testkit"
+version = "0.3.0"
+dependencies = [
+ "miniz_oxide 0.8.9",
+ "p256",
+ "rand 0.8.8",
+ "rsa",
+ "serde_json",
+ "sha1",
+ "sha2",
+]
+
+[[package]]
+name = "axiom-ui-egui"
+version = "0.3.0"
+dependencies = [
+ "axiom-ai",
+ "axiom-engine",
+ "axiom-engines",
+ "axiom-platform",
+ "axiom-setup",
+ "axiom-testkit",
+ "eframe",
+ "egui",
+ "egui_extras",
+ "egui_kittest",
+ "log",
+ "pollster 0.4.0",
+ "rfd",
+ "serde",
+ "serde_json",
+ "sys-locale",
+ "tempfile",
+]
+
+[[package]]
+name = "axiom-web"
+version = "0.3.0"
+dependencies = [
+ "axiom-analysis",
+ "axiom-evidence",
+ "axiom-formats",
+ "eframe",
+ "egui",
+ "log",
+ "rfd",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
 name = "base16ct"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1118,300 +1412,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "craft-anything"
-version = "0.3.0"
-dependencies = [
- "craft-anything-ai",
- "craft-anything-engine",
- "craft-anything-platform",
- "craft-anything-setup",
- "craft-anything-ui-egui",
- "eframe",
- "log",
- "png 0.17.16",
- "rfd",
- "serde_json",
- "winresource",
-]
-
-[[package]]
-name = "craft-anything-ai"
-version = "0.3.0"
-dependencies = [
- "craft-anything-engine",
- "craft-anything-engines",
- "craft-anything-evidence",
- "craft-anything-formats",
- "craft-anything-platform",
- "craft-anything-testkit",
- "dirs",
- "keyring",
- "log",
- "schemars",
- "serde",
- "serde_json",
- "tempfile",
- "toml 0.9.12+spec-1.1.0",
- "ureq",
-]
-
-[[package]]
-name = "craft-anything-analysis"
-version = "0.3.0"
-dependencies = [
- "craft-anything-disasm",
- "craft-anything-evidence",
- "craft-anything-formats",
- "craft-anything-js",
- "craft-anything-testkit",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "craft-anything-cli"
-version = "0.3.0"
-dependencies = [
- "clap",
- "craft-anything-ai",
- "craft-anything-engine",
- "craft-anything-engines",
- "craft-anything-evidence",
- "craft-anything-mcp",
- "craft-anything-platform",
- "craft-anything-setup",
- "ctrlc",
- "log",
- "serde",
- "serde_json",
- "tempfile",
- "winresource",
-]
-
-[[package]]
-name = "craft-anything-disasm"
-version = "0.3.0"
-dependencies = [
- "craft-anything-formats",
- "craft-anything-testkit",
- "iced-x86",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
- "yaxpeax-arch",
- "yaxpeax-arm",
-]
-
-[[package]]
-name = "craft-anything-engine"
-version = "0.3.0"
-dependencies = [
- "base64 0.22.1",
- "bitflags 2.13.2",
- "craft-anything-analysis",
- "craft-anything-disasm",
- "craft-anything-engines",
- "craft-anything-evidence",
- "craft-anything-formats",
- "craft-anything-js",
- "craft-anything-platform",
- "craft-anything-testkit",
- "dirs",
- "hex",
- "image",
- "log",
- "png 0.17.16",
- "regex",
- "schemars",
- "serde",
- "serde_json",
- "sha1",
- "sha2",
- "tempfile",
- "thiserror 2.0.21",
- "toml 0.9.12+spec-1.1.0",
-]
-
-[[package]]
-name = "craft-anything-engines"
-version = "0.3.0"
-dependencies = [
- "base64 0.22.1",
- "craft-anything-evidence",
- "craft-anything-formats",
- "craft-anything-platform",
- "craft-anything-testkit",
- "hex",
- "log",
- "serde",
- "serde_json",
- "sha1",
- "sha2",
- "tempfile",
- "thiserror 2.0.21",
- "toml 0.9.12+spec-1.1.0",
- "ureq",
- "wasmtime",
-]
-
-[[package]]
-name = "craft-anything-evidence"
-version = "0.3.0"
-dependencies = [
- "hex",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "craft-anything-formats"
-version = "0.3.0"
-dependencies = [
- "bzip2-rs",
- "craft-anything-testkit",
- "lzma-rs",
- "miniz_oxide 0.8.9",
- "object 0.36.7",
- "p256",
- "p384",
- "rsa",
- "rustc-demangle",
- "ruzstd",
- "serde",
- "serde_json",
- "sha1",
- "sha2",
- "thiserror 2.0.21",
- "wasmparser 0.261.0",
- "wasmprinter 0.261.0",
-]
-
-[[package]]
-name = "craft-anything-js"
-version = "0.3.0"
-dependencies = [
- "craft-anything-testkit",
- "hex",
- "oxc_allocator",
- "oxc_ast",
- "oxc_ast_visit",
- "oxc_codegen",
- "oxc_parser",
- "oxc_semantic",
- "oxc_span",
- "oxc_syntax",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "craft-anything-mcp"
-version = "0.3.0"
-dependencies = [
- "craft-anything-engine",
- "craft-anything-evidence",
- "craft-anything-platform",
- "log",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "craft-anything-platform"
-version = "0.3.0"
-dependencies = [
- "craft-anything-evidence",
- "hex",
- "log",
- "nix 0.31.3",
- "portable-pty",
- "process-wrap",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "vt100",
- "windows",
- "xcap",
-]
-
-[[package]]
-name = "craft-anything-setup"
-version = "0.3.0"
-dependencies = [
- "craft-anything-engine",
- "craft-anything-engines",
- "craft-anything-evidence",
- "craft-anything-formats",
- "craft-anything-platform",
- "log",
- "schemars",
- "serde",
- "serde_json",
- "tempfile",
- "toml 0.9.12+spec-1.1.0",
- "toml_edit",
- "yaml-rust2",
-]
-
-[[package]]
-name = "craft-anything-testkit"
-version = "0.3.0"
-dependencies = [
- "miniz_oxide 0.8.9",
- "p256",
- "rand 0.8.8",
- "rsa",
- "serde_json",
- "sha1",
- "sha2",
-]
-
-[[package]]
-name = "craft-anything-ui-egui"
-version = "0.3.0"
-dependencies = [
- "craft-anything-ai",
- "craft-anything-engine",
- "craft-anything-engines",
- "craft-anything-platform",
- "craft-anything-setup",
- "craft-anything-testkit",
- "eframe",
- "egui",
- "egui_extras",
- "egui_kittest",
- "log",
- "pollster 0.4.0",
- "rfd",
- "serde",
- "serde_json",
- "sys-locale",
- "tempfile",
-]
-
-[[package]]
-name = "craft-anything-web"
-version = "0.3.0"
-dependencies = [
- "craft-anything-analysis",
- "craft-anything-evidence",
- "craft-anything-formats",
- "eframe",
- "egui",
- "log",
- "rfd",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
 ]
 
 [[package]]
@@ -7974,7 +7974,7 @@ checksum = "ec7a2a501ed189703dba8b08142f057e887dfc4b2cc4db2d343ac6376ba3e0b9"
 name = "xtask"
 version = "0.3.0"
 dependencies = [
- "craft-anything-engine",
+ "axiom-engine",
  "proc-macro2",
  "syn 2.0.119",
  "toml 0.9.12+spec-1.1.0",

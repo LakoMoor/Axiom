@@ -6,8 +6,8 @@
 
 use super::screenshot::{NO_PROGRAM, OwnRun, run_with};
 use super::*;
-use craft_anything_engine::self_test::{SELF_TEST_VERSION as VERSION, SelfTestReport as Report};
-use craft_anything_engine::workspace::Claim;
+use axiom_engine::self_test::{SELF_TEST_VERSION as VERSION, SelfTestReport as Report};
+use axiom_engine::workspace::Claim;
 
 /// What every game brief asks for, so the check can see the core loop played.
 pub const SELF_TEST_CONTRACT: &str = "Give the game a `--self-test <file.json>` option too: start a game the way a player would, drive the player with scripted input for a few seconds, measure from the game's own state whether each step of the core loop works, save the results to that file and exit: {\"version\": 1, \"steps\": [{\"step\": \"move\", \"passed\": true, \"detail\": \"walked 3.1 m forward\"}, {\"step\": \"act\", \"passed\": true, \"detail\": \"fired 5 shots, 2 hit\"}, {\"step\": \"hud\", \"passed\": true, \"detail\": \"health, ammo and the objective are drawn\"}]}. \"move\": the player (or what they steer) moves; \"act\": their main action works (firing, mining, jumping, eating…); \"hud\": the on-screen information the original shows (score, health, ammo…) is drawn. Axiom runs it after each build, and the game isn't ready until every step passes.";

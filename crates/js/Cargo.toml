@@ -1,6 +1,6 @@
 [package]
-name = "craft-anything-js"
-description = "JavaScript, Electron and web-bundle analysis for Craft Anything"
+name = "axiom-js"
+description = "JavaScript, Electron and web-bundle analysis for Axiom"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -25,4 +25,4 @@ oxc_codegen = { workspace = true }
 oxc_semantic = { workspace = true }
 
 [dev-dependencies]
-craft-anything-testkit = { workspace = true }
+axiom-testkit = { workspace = true }

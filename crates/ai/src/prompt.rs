@@ -44,7 +44,7 @@ pub fn system_prompt(beginner: bool, clean_room: bool, investigation: &str) -> S
 /// loop, and point it at our MCP tools.
 pub fn cli_preamble(beginner: bool) -> String {
     format!(
-        "{METHOD}\n\n{}\n\nUse the craft-anything MCP tools for all analysis (start with core_investigation_show).\n\n## Request\n",
+        "{METHOD}\n\n{}\n\nUse the axiom MCP tools for all analysis (start with core_investigation_show).\n\n## Request\n",
         if beginner { BEGINNER } else { EXPERIENCED }
     )
 }

@@ -20,7 +20,7 @@
 use crate::inbox::now_ms;
 use crate::project::write_atomic;
 use crate::versioned::{self, upgrade};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -1275,7 +1275,7 @@ mod tests {
     }
 
     #[test]
-    fn a_folder_with_names_craft_anything_uses_is_refused() {
+    fn a_folder_with_names_axiom_uses_is_refused() {
         let d = tempfile::tempdir().unwrap();
         let checks = d.path().join("checks-here");
         std::fs::create_dir_all(checks.join("checks")).unwrap();
@@ -1326,7 +1326,7 @@ mod tests {
     }
 
     #[test]
-    fn craft_anythings_records_are_its_own_even_when_the_app_is_the_folder() {
+    fn axioms_records_are_its_own_even_when_the_app_is_the_folder() {
         let d = tempfile::tempdir().unwrap();
         std::fs::write(d.path().join("index.html"), "<p>hi</p>").unwrap();
         let ws = Workspace::create_at(d.path(), "Site", "x", TargetRef::None, Some(ExistingFiles::Edit)).unwrap();

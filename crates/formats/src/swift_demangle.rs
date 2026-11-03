@@ -1339,7 +1339,7 @@ mod tests {
             }
         }
         for seed in 0..2000u64 {
-            let n = craft_anything_testkit::noise(seed, 40);
+            let n = axiom_testkit::noise(seed, 40);
             let t: String = n.iter().map(|b| char::from(b"0123456789ABCDGFKMNSTWVyztlpqcfvx_aiuOPEQRZmsYo"[usize::from(*b) % 47])).collect();
             let _ = demangle(&format!("$s{t}"));
         }

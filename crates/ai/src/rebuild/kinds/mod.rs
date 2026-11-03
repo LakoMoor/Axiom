@@ -148,7 +148,7 @@ impl CheckCx<'_> {
     }
 
     /// How builds are judged (`[build]` in settings).
-    pub fn build_settings(&self) -> craft_anything_engine::settings::BuildSettings {
+    pub fn build_settings(&self) -> axiom_engine::settings::BuildSettings {
         self.worker.engine.session().settings.build.clone()
     }
 
@@ -165,7 +165,7 @@ impl Worker {
     pub(super) fn run_checks(&self, ws: &Workspace, kind: &dyn TargetKind, round: u32) -> Result<Vec<CheckResult>, ToolError> {
         let mut cx = CheckCx { worker: self, ws, round };
         let mut out = Vec::new();
-        let from_plugins = craft_anything_engine::wasm_plugins::checks(&self.engine.session());
+        let from_plugins = axiom_engine::wasm_plugins::checks(&self.engine.session());
         let plugin_checks = from_plugins
             .into_iter()
             .filter(|c| c.kinds.is_empty() || c.kinds.iter().any(|k| k == kind.id()))

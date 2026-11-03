@@ -1,9 +1,9 @@
 # AGENTS.md: guide for AI agents and contributors
 
-Craft Anything is a native, pure-Rust app that shows anyone how a piece of software works (programs, apps, files,
+Axiom is a native, pure-Rust app that shows anyone how a piece of software works (programs, apps, files,
 websites, phones) with evidence-backed answers, then helps them rebuild it. It ships a desktop app (egui), a CLI and
-an MCP server, all driven by one engine. Display name **Craft Anything**; machine names `craft-anything-*`; bundle id
-`ai.storyteller.craft-anything`. Standards shared across the Crafting Apps live in `../craftrules` (read its
+an MCP server, all driven by one engine. Display name **Axiom**; machine names `axiom-*`; bundle id
+`ai.storyteller.axiom`. Standards shared across the Crafting Apps live in `../craftrules` (read its
 `AGENTS.md`); follow them. Repos never share code.
 
 **Original work only:** never copy code, scripts, schemas, names, assets or wording from another project, and
@@ -28,7 +28,7 @@ crates/
   setup      L5  Connect to coding-agent apps; doctor; uninstall
   ui-egui    L6  The egui interface (Beginner + Experienced). The only crate that may use egui/eframe/winit/rfd.
   testkit        Test helpers and synthetic sample builders
-apps/  craft-anything (desktop) · craft-anything-cli (CLI + `mcp`) · craft-anything-web (browser viewer)
+apps/  axiom (desktop) · axiom-cli (CLI + `mcp`) · axiom-web (browser viewer)
 xtask/ cargo xtask layers | tools [--check] | wasm | secrets [--history] | ci | version [set X.Y.Z]
 ```
 
@@ -57,11 +57,11 @@ Layering is enforced by `cargo xtask layers`. Register new crates in `xtask/src/
 8. **No secrets, no personal data** in requests, logs, tests or the repo (it is public): no API keys, tokens,
    private keys, `.env` files or local paths, only obvious fakes like `sk-test`. `cargo xtask secrets` checks what
    git would commit (`--history` checks every commit); enable the hook once per clone with
-   `git config core.hooksPath .githooks`. Generic `CraftAnything-dev` User-Agent.
+   `git config core.hooksPath .githooks`. Generic `Axiom-dev` User-Agent.
 9. **Safe Rust only.** `unsafe_code = "forbid"` everywhere, no exceptions. Prefer pure-Rust crates; any dependency
    must be safe to use from safe code.
 10. **Never crash, never lock up, around other programs.** Every external program (Ghidra, Java, adb, a browser,
-    an agent CLI, ssh, git…) runs through `craft_anything_platform::process` only, never `std::process::Command`
+    an agent CLI, ssh, git…) runs through `axiom_platform::process` only, never `std::process::Command`
     directly:
     - stdin is closed (or a pipe we write to), never inherited, so nothing can sit waiting at a prompt; ssh gets
       `BatchMode=yes`; tools get their non-interactive flags;
@@ -70,7 +70,7 @@ Layering is enforced by `cargo xtask layers`. Register new crates in `xtask/src/
     - a missing program, non-zero exit, bad output or timeout is a `ToolError` with a plain-English remediation,
       never a panic or a hang;
     - nothing slow ever runs on the UI thread: the UI sends work to background threads and polls results.
-11. **Never lock up on a lock.** Use `craft_anything_platform::sync::Mutex`, never `std::sync::Mutex` (clippy
+11. **Never lock up on a lock.** Use `axiom_platform::sync::Mutex`, never `std::sync::Mutex` (clippy
     refuses it). It stops a real deadlock as soon as it forms, the waiter's work unwinding to its `catch_unwind` as
     an error; the watchdog reports anything held too long. Long jobs are fine: label the guard (`guard.label(id)`,
     as `Engine::call` does for tools) and they're waited for, not treated as stuck. A guard that isn't bound to a

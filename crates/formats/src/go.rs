@@ -790,7 +790,7 @@ fn read_pclntab(r: &Reader<'_>, base: usize, size: usize, located_by: &'static s
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::formats as fx;
+    use axiom_testkit::formats as fx;
 
     #[test]
     fn elf_inline_buildinfo_and_pclntab_120() {
@@ -834,7 +834,7 @@ mod tests {
 
     #[test]
     fn non_go_and_quoting() {
-        let r = inspect(&craft_anything_testkit::elf64(craft_anything_testkit::ElfArch::X86_64, true).0, None).unwrap();
+        let r = inspect(&axiom_testkit::elf64(axiom_testkit::ElfArch::X86_64, true).0, None).unwrap();
         assert!(!r.is_go);
         assert_eq!(unquote_prefix("\"a\\tb\\x41\\u00e9\\101\" rest"), Some(("a\tbA\u{e9}A".to_string(), 20)));
         assert_eq!(unquote_prefix("\"open"), None);
@@ -846,7 +846,7 @@ mod tests {
     #[test]
     fn hostile_inputs_do_not_panic() {
         for sample in [fx::go_elf(), fx::go_macho()] {
-            for m in craft_anything_testkit::mutations(&sample) {
+            for m in axiom_testkit::mutations(&sample) {
                 let _ = inspect(&m, None);
             }
             for n in 0..sample.len().min(600) {
@@ -854,10 +854,10 @@ mod tests {
             }
         }
         for seed in 0..64 {
-            let mut n = craft_anything_testkit::noise(seed, 2048);
+            let mut n = axiom_testkit::noise(seed, 2048);
             n[..4].copy_from_slice(b"\x7fELF");
             let _ = inspect(&n, None);
-            let _ = inspect(&craft_anything_testkit::noise(seed, 512), None);
+            let _ = inspect(&axiom_testkit::noise(seed, 512), None);
         }
     }
 }
