@@ -111,10 +111,12 @@ pub fn choice_tile(ui: &mut Ui, size: Vec2, icon: &str, label: &str, blurb: &str
     let text_h = g.size().y + sub.as_ref().map_or(0.0, |s| s.size().y + 3.0);
     let (rect, resp) = ui.allocate_exact_size(Vec2::new(size.x, size.y.max(text_h + 24.0)), Sense::click());
     let h = hover_t(ui, &resp);
+    // A surface at rest and a quiet edge; the chosen one is lifted by its own tint and the check,
+    // not outlined to point at it (a ring is for the field that has focus).
     let (fill, stroke) = if on {
-        (t.accent_soft, Stroke::new(2.0, t.accent))
+        (t.accent_soft, Stroke::new(1.0, theme::mix(t.card_border, t.accent, 0.55)))
     } else {
-        (theme::mix(Color32::TRANSPARENT, t.hover, h), Stroke::new(1.0, theme::mix(t.field_border, t.text_faint, h)))
+        (theme::mix(t.raised, t.hover, h), Stroke::new(1.0, theme::mix(t.card_border, t.field_border, h)))
     };
     ui.painter().rect(rect, t.radius, fill, stroke, egui::StrokeKind::Inside);
     let icon_rect = egui::Rect::from_center_size(egui::pos2(rect.left() + 28.0, rect.center().y), Vec2::splat(24.0));

@@ -97,8 +97,12 @@ pub const RADIUS_SM: f32 = 10.0;
 pub const RADIUS: f32 = 14.0;
 pub const RADIUS_LG: f32 = 20.0;
 /// The window's own corners, and the gap between the glass panels floating in it.
-pub const WINDOW_RADIUS: f32 = 18.0;
+/// Concentric corners, as Apple's guidance has them: the window's radius minus the gap to a
+/// panel is the panel's radius, and the panel's minus the padding to a row is the row's.
+pub const WINDOW_RADIUS: f32 = 26.0;
 pub const GAP: f32 = 8.0;
+pub const CARD_RADIUS: f32 = WINDOW_RADIUS - GAP;
+pub const ROW_RADIUS: f32 = CARD_RADIUS - GAP;
 
 /// The app colour: the deep accent (#1659c4). White on it passes WCAG AA; on its
 /// bright accent (#2d81ff, used for hover) it doesn't.
@@ -130,15 +134,15 @@ impl Tokens {
             // and controls its warm ink (#f2f1ee) laid over the background at 4-15%.
             ThemeKind::Studio => Tokens {
                 kind,
-                chrome: Color32::from_rgb(0x10, 0x10, 0x14),
-                canvas: Color32::from_rgb(0x12, 0x13, 0x16),
-                card: Color32::from_rgb(0x1b, 0x1c, 0x1f),
-                card_border: Color32::from_rgb(0x34, 0x34, 0x36),
-                raised: Color32::from_rgb(0x22, 0x23, 0x25),
-                field: Color32::from_rgb(0x1b, 0x1c, 0x1f),
-                field_border: Color32::from_rgb(0x6c, 0x6c, 0x6c),
-                hover: Color32::from_rgb(0x22, 0x23, 0x25),
-                pressed: Color32::from_rgb(0x2d, 0x2e, 0x30),
+                chrome: Color32::from_rgb(0x0e, 0x10, 0x18),
+                canvas: Color32::from_rgb(0x10, 0x12, 0x1a),
+                card: Color32::from_rgb(0x17, 0x1a, 0x24),
+                card_border: Color32::from_rgb(0x2e, 0x33, 0x45),
+                raised: Color32::from_rgb(0x1e, 0x22, 0x2d),
+                field: Color32::from_rgb(0x17, 0x1a, 0x24),
+                field_border: Color32::from_rgb(0x68, 0x6f, 0x85),
+                hover: Color32::from_rgb(0x1e, 0x22, 0x2d),
+                pressed: Color32::from_rgb(0x28, 0x2d, 0x3c),
                 text: Color32::from_rgb(0xf2, 0xf1, 0xee),
                 text_dim: Color32::from_rgb(0xb3, 0xb3, 0xb2),
                 text_faint: Color32::from_rgb(0x8d, 0x8d, 0x8d),
@@ -148,12 +152,12 @@ impl Tokens {
                 accent_ink: Color32::from_rgb(0x74, 0xaa, 0xff),
                 accent_soft: Color32::from_rgba_unmultiplied(0x2d, 0x81, 0xff, 44),
                 on_accent: Color32::WHITE,
-                separator: Color32::from_rgb(0x24, 0x25, 0x27),
+                separator: Color32::from_rgb(0x22, 0x27, 0x35),
                 shadow: Color32::from_black_alpha(120),
                 danger: Color32::from_rgb(0xff, 0x62, 0x59),
                 warning: BEST_GUESS,
                 success: Color32::from_rgb(0x5b, 0xbf, 0x8f),
-                code_bg: Color32::from_rgb(0x06, 0x06, 0x07),
+                code_bg: Color32::from_rgb(0x06, 0x07, 0x0b),
                 backdrop: Color32::from_rgb(0x0a, 0x0b, 0x10),
                 glow_a: Color32::from_rgba_unmultiplied(0x2d, 0x81, 0xff, 54),
                 glow_b: Color32::from_rgba_unmultiplied(0x8a, 0x5c, 0xff, 38),
@@ -168,15 +172,15 @@ impl Tokens {
             // raised #faf9f7 for cards, ink #101014.
             ThemeKind::StudioLight => Tokens {
                 kind,
-                chrome: Color32::from_rgb(0xe9, 0xe8, 0xe4),
-                canvas: Color32::from_rgb(0xf2, 0xf1, 0xee),
-                card: Color32::from_rgb(0xfa, 0xf9, 0xf7),
-                card_border: Color32::from_rgb(0xce, 0xcd, 0xcb),
-                raised: Color32::from_rgb(0xe9, 0xe8, 0xe4),
-                field: Color32::from_rgb(0xfa, 0xf9, 0xf7),
-                field_border: Color32::from_rgb(0x86, 0x85, 0x85),
-                hover: Color32::from_rgb(0xe4, 0xe4, 0xe1),
-                pressed: Color32::from_rgb(0xdb, 0xda, 0xd8),
+                chrome: Color32::from_rgb(0xe6, 0xe9, 0xf1),
+                canvas: Color32::from_rgb(0xee, 0xf0, 0xf6),
+                card: Color32::from_rgb(0xf9, 0xfa, 0xfd),
+                card_border: Color32::from_rgb(0xcb, 0xd0, 0xdc),
+                raised: Color32::from_rgb(0xe8, 0xeb, 0xf3),
+                field: Color32::from_rgb(0xf9, 0xfa, 0xfd),
+                field_border: Color32::from_rgb(0x80, 0x87, 0x99),
+                hover: Color32::from_rgb(0xe2, 0xe6, 0xef),
+                pressed: Color32::from_rgb(0xd8, 0xdd, 0xe8),
                 text: Color32::from_rgb(0x10, 0x10, 0x14),
                 text_dim: Color32::from_rgb(0x3d, 0x3d, 0x40),
                 text_faint: Color32::from_rgb(0x5d, 0x5c, 0x5e),
@@ -186,12 +190,12 @@ impl Tokens {
                 accent_ink: BRAND,
                 accent_soft: Color32::from_rgba_unmultiplied(0x2d, 0x81, 0xff, 28),
                 on_accent: Color32::WHITE,
-                separator: Color32::from_rgb(0xdb, 0xda, 0xd8),
+                separator: Color32::from_rgb(0xd8, 0xdd, 0xe8),
                 shadow: Color32::from_black_alpha(20),
                 danger: Color32::from_rgb(0xb3, 0x26, 0x1e),
                 warning: Color32::from_rgb(0x9a, 0x67, 0x00),
                 success: Color32::from_rgb(0x12, 0x75, 0x36),
-                code_bg: Color32::from_rgb(0xe9, 0xe8, 0xe4),
+                code_bg: Color32::from_rgb(0xe8, 0xeb, 0xf3),
                 backdrop: Color32::from_rgb(0xe6, 0xe9, 0xf1),
                 glow_a: Color32::from_rgba_unmultiplied(0x2d, 0x81, 0xff, 46),
                 glow_b: Color32::from_rgba_unmultiplied(0xff, 0x8f, 0xb8, 40),

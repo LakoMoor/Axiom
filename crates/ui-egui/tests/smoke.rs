@@ -985,7 +985,11 @@ fn settings_window_tabs_draw() {
     h.run_steps(3);
     // The window keeps its width on every tab: its close button (left of the title bar's) doesn't
     // move (#68).
-    let edge = |h: &Harness<'static, CraftApp>| h.get_all_by_label("Close").map(|n| n.rect().right()).fold(f32::INFINITY, f32::min);
+    // On a Mac the title bar's Close is the light at the far left, so the window's is the right-most.
+    let edge = |h: &Harness<'static, CraftApp>| {
+        let rights = h.get_all_by_label("Close").map(|n| n.rect().right());
+        if cfg!(target_os = "macos") { rights.fold(f32::NEG_INFINITY, f32::max) } else { rights.fold(f32::INFINITY, f32::min) }
+    };
     let right = edge(&h);
     for tab in ["Engines", "AI", "Builds", "Plugins", "Safety", "General"] {
         h.get_by_label(tab).click();
