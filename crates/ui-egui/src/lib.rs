@@ -1519,13 +1519,21 @@ impl CraftApp {
         self.tick(&ctx);
         self.shortcuts(&ctx);
         let t = theme::Tokens::get(&ctx);
+        // The window is glass floating on a soft backdrop: rounded, unless it fills the screen. The
+        // workbench's panels still fill their rectangles, so it keeps square corners.
+        let workbench = self.settings.first_run_done && !(self.beginner() || self.state.screen != Screen::Workbench);
+        let corner = if titlebar::maximized(&ctx) || workbench { 0.0 } else { theme::WINDOW_RADIUS };
+        theme::backdrop(&ctx.layer_painter(egui::LayerId::background()), ctx.content_rect(), corner, &t);
         // The title bar is on every screen: it is how the window moves, resizes and closes.
-        egui::Panel::top("titlebar").exact_size(titlebar::HEIGHT).frame(egui::Frame::new().fill(t.chrome)).show(ui, |ui| {
+        egui::Panel::top("titlebar").exact_size(titlebar::HEIGHT).show_separator_line(false).frame(egui::Frame::new()).show(ui, |ui| {
             guard_ui(ui, "title bar", |ui| titlebar::show(self, ui));
         });
         self.stuck_banner(ui, &ctx);
         if !self.settings.first_run_done {
-            egui::CentralPanel::default().frame(egui::Frame::new().fill(t.canvas)).show(ui, |ui| guard_ui(ui, "first run", |ui| first_run::show(self, ui)));
+            egui::CentralPanel::default().frame(egui::Frame::new().inner_margin(egui::Margin { left: 8, right: 8, top: 0, bottom: 8 })).show(ui, |ui| {
+                theme::glass_card(ui.painter(), ui.max_rect(), t.radius_lg, &t);
+                guard_ui(ui, "first run", |ui| first_run::show(self, ui))
+            });
             titlebar::window_edge(&ctx);
             titlebar::resize_edges(&ctx);
             return;
@@ -1533,11 +1541,19 @@ impl CraftApp {
 
         if self.beginner() || self.state.screen != Screen::Workbench {
             egui::Panel::left("app-sidebar")
-                .exact_size(sidebar::width(self, &ctx))
+                .exact_size(sidebar::width(self, &ctx) + 12.0)
                 .resizable(false)
-                .frame(egui::Frame::new().fill(t.chrome).inner_margin(egui::Margin::symmetric(8, 0)))
-                .show(ui, |ui| guard_ui(ui, "sidebar", |ui| sidebar::show(self, ui)));
-            egui::CentralPanel::default().frame(egui::Frame::new().fill(t.canvas)).show(ui, |ui| {
+                .show_separator_line(false)
+                .frame(egui::Frame::new().inner_margin(egui::Margin { left: 8, right: 4, top: 0, bottom: 8 }))
+                .show(ui, |ui| {
+                    guard_ui(ui, "sidebar", |ui| {
+                        let card = ui.max_rect();
+                        theme::glass_card(ui.painter(), card, t.radius_lg, &t);
+                        ui.scope_builder(egui::UiBuilder::new().max_rect(card.shrink2(egui::vec2(8.0, 0.0))), |ui| sidebar::show(self, ui));
+                    })
+                });
+            egui::CentralPanel::default().frame(egui::Frame::new().inner_margin(egui::Margin { left: 4, right: 8, top: 0, bottom: 8 })).show(ui, |ui| {
+                theme::glass_card(ui.painter(), ui.max_rect(), t.radius_lg, &t);
                 guard_ui(ui, "simple", |ui| match self.state.screen {
                     Screen::Home | Screen::Workbench => home::show(self, ui),
                     Screen::Ask => chat::ask_screen(self, ui),
@@ -1695,6 +1711,11 @@ pub fn guard_ui(ui: &mut egui::Ui, what: &str, f: impl FnOnce(&mut egui::Ui)) {
 impl eframe::App for CraftApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.show(ui);
+    }
+
+    /// The window is transparent, so the rounded glass shows the desktop at its corners.
+    fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
+        [0.0, 0.0, 0.0, 0.0]
     }
 
     fn save(&mut self, storage: &mut dyn eframe::Storage) {

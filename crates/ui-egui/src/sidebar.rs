@@ -119,9 +119,25 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
     });
     ui.painter().hline(ui.max_rect().x_range(), ui.cursor().top() + 1.0, egui::Stroke::new(1.0, t.separator));
     ui.add_space(10.0);
-    if row(ui, "settings", "Settings", None, app.state.settings_open).clicked() {
+    let settings = row(ui, "settings", "Settings", None, app.state.settings_open);
+    if settings.clicked() {
         app.state.settings_open = !app.state.settings_open;
     }
+    // Right-click for the profile-style menu: the places a person goes from here.
+    settings.context_menu(|ui| {
+        if ui.button(tr("Settings")).clicked() {
+            app.state.settings_open = true;
+            ui.close();
+        }
+        if ui.button(tr("Models")).clicked() {
+            app.state.screen = Screen::Models;
+            ui.close();
+        }
+        if ui.button(tr("Agent")).clicked() {
+            app.state.screen = Screen::Agent;
+            ui.close();
+        }
+    });
 }
 
 /// A folded section's heading: a row as tall as the open one, with something `width` wide centred.
@@ -151,7 +167,8 @@ pub(crate) fn row(ui: &mut Ui, icon: &str, label: &str, status: Option<(egui::Co
     let (rect, resp) = ui.allocate_exact_size(Vec2::new(ui.available_width(), ROW_H), Sense::click());
     let h = widgets::hover_t(ui, &resp);
     let fill = if on { t.pressed } else { theme::mix(egui::Color32::TRANSPARENT, t.hover, h) };
-    ui.painter().rect_filled(rect, t.radius, fill);
+    // Capsule rows, as in the macOS apps.
+    ui.painter().rect_filled(rect, rect.height() / 2.0, fill);
     let ink = if on { t.text } else { theme::mix(t.text_dim, t.text, h) };
     // Project names are shown as written; the app's own rows are translated.
     let text = if status.is_some() { label.to_string() } else { tr(label) };

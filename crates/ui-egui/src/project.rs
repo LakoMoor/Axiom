@@ -610,10 +610,10 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
         egui::Panel::right("project-side")
             .exact_size(SIDE_W)
             .resizable(false)
-            .frame(egui::Frame::new().fill(t.canvas).inner_margin(Margin::same(20)))
+            .frame(egui::Frame::new().inner_margin(Margin::same(20)))
             .show(ui, |ui| egui::ScrollArea::vertical().show(ui, |ui| side(app, ui, &ws)));
     }
-    egui::CentralPanel::default().frame(egui::Frame::new().fill(t.canvas).inner_margin(chat::PANE_MARGIN)).show(ui, |ui| {
+    egui::CentralPanel::default().frame(egui::Frame::new().inner_margin(chat::PANE_MARGIN)).show(ui, |ui| {
         let width = ui.available_width();
         let max_w = width.min(720.0);
         let pad = ((width - max_w) / 2.0).max(0.0);

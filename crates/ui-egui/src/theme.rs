@@ -78,10 +78,27 @@ pub struct Tokens {
     pub warning: Color32,
     pub success: Color32,
     pub code_bg: Color32,
+    /// The glass surfaces float on: a deep base with two soft glows.
+    pub backdrop: Color32,
+    pub glow_a: Color32,
+    pub glow_b: Color32,
+    /// A glass panel's fill (translucent white over the backdrop), its rim light and the sheen
+    /// along its top edge.
+    pub glass: Color32,
+    pub glass_rim: Color32,
+    pub sheen: Color32,
     pub radius_sm: f32,
     pub radius: f32,
     pub radius_lg: f32,
 }
+
+/// Corner radii: soft everywhere, a pill for chips and the main buttons.
+pub const RADIUS_SM: f32 = 10.0;
+pub const RADIUS: f32 = 14.0;
+pub const RADIUS_LG: f32 = 20.0;
+/// The window's own corners, and the gap between the glass panels floating in it.
+pub const WINDOW_RADIUS: f32 = 18.0;
+pub const GAP: f32 = 8.0;
 
 /// The app colour: the deep accent (#1659c4). White on it passes WCAG AA; on its
 /// bright accent (#2d81ff, used for hover) it doesn't.
@@ -137,9 +154,15 @@ impl Tokens {
                 warning: BEST_GUESS,
                 success: Color32::from_rgb(0x5b, 0xbf, 0x8f),
                 code_bg: Color32::from_rgb(0x06, 0x06, 0x07),
-                radius_sm: 6.0,
-                radius: 8.0,
-                radius_lg: 12.0,
+                backdrop: Color32::from_rgb(0x0a, 0x0b, 0x10),
+                glow_a: Color32::from_rgba_unmultiplied(0x2d, 0x81, 0xff, 54),
+                glow_b: Color32::from_rgba_unmultiplied(0x8a, 0x5c, 0xff, 38),
+                glass: Color32::from_rgba_unmultiplied(0xff, 0xff, 0xff, 12),
+                glass_rim: Color32::from_rgba_unmultiplied(0xff, 0xff, 0xff, 36),
+                sheen: Color32::from_rgba_unmultiplied(0xff, 0xff, 0xff, 16),
+                radius_sm: RADIUS_SM,
+                radius: RADIUS,
+                radius_lg: RADIUS_LG,
             },
             // the light: warm paper (#f2f1ee), its sunken #e9e8e4 for the sidebar,
             // raised #faf9f7 for cards, ink #101014.
@@ -169,9 +192,15 @@ impl Tokens {
                 warning: Color32::from_rgb(0x9a, 0x67, 0x00),
                 success: Color32::from_rgb(0x12, 0x75, 0x36),
                 code_bg: Color32::from_rgb(0xe9, 0xe8, 0xe4),
-                radius_sm: 6.0,
-                radius: 8.0,
-                radius_lg: 12.0,
+                backdrop: Color32::from_rgb(0xe6, 0xe9, 0xf1),
+                glow_a: Color32::from_rgba_unmultiplied(0x2d, 0x81, 0xff, 46),
+                glow_b: Color32::from_rgba_unmultiplied(0xff, 0x8f, 0xb8, 40),
+                glass: Color32::from_rgba_unmultiplied(0xff, 0xff, 0xff, 150),
+                glass_rim: Color32::from_rgba_unmultiplied(0xff, 0xff, 0xff, 230),
+                sheen: Color32::from_rgba_unmultiplied(0xff, 0xff, 0xff, 120),
+                radius_sm: RADIUS_SM,
+                radius: RADIUS,
+                radius_lg: RADIUS_LG,
             },
         }
     }
@@ -193,6 +222,10 @@ impl Tokens {
     }
     pub fn r_lg(&self) -> CornerRadius {
         CornerRadius::same(self.radius_lg as u8)
+    }
+    /// Fully rounded ends.
+    pub fn r_pill(&self) -> CornerRadius {
+        CornerRadius::same(255)
     }
 }
 
@@ -361,13 +394,62 @@ pub fn scroll_style() -> egui::style::ScrollStyle {
 /// How opaque a scroll bar's thumb is at rest (over the text colour).
 const SCROLL_THUMB_AT_REST: f32 = 0.5;
 
+/// A soft round glow: `color` at the centre, fading to nothing at `radius`.
+fn glow(painter: &egui::Painter, centre: egui::Pos2, radius: f32, color: Color32) {
+    const STEPS: usize = 48;
+    let mut mesh = egui::Mesh::default();
+    mesh.colored_vertex(centre, color);
+    for i in 0..STEPS {
+        let a = (i as f32 / STEPS as f32) * std::f32::consts::TAU;
+        mesh.colored_vertex(centre + egui::vec2(a.cos(), a.sin()) * radius, Color32::TRANSPARENT);
+    }
+    for i in 0..STEPS {
+        mesh.add_triangle(0, 1 + i as u32, 1 + ((i + 1) % STEPS) as u32);
+    }
+    painter.add(egui::Shape::mesh(mesh));
+}
+
+/// What the glass floats on: a deep base with two soft glows, inside the window's rounded shape.
+pub fn backdrop(painter: &egui::Painter, rect: egui::Rect, radius: f32, t: &Tokens) {
+    painter.rect_filled(rect, radius, t.backdrop);
+    let reach = rect.width().min(rect.height() * 1.6) * 0.5;
+    glow(painter, egui::pos2(rect.left() + rect.width() * 0.2, rect.top() + rect.height() * 0.2), reach, t.glow_a);
+    glow(painter, egui::pos2(rect.right() - rect.width() * 0.16, rect.bottom() - rect.height() * 0.14), reach * 0.9, t.glow_b);
+}
+
+/// A panel of glass: a soft shadow, a translucent fill, a rim of light and a sheen along the top.
+pub fn glass_card(painter: &egui::Painter, rect: egui::Rect, radius: f32, t: &Tokens) {
+    painter.add(egui::Shadow { offset: [0, 8], blur: 28, spread: 0, color: t.shadow }.as_shape(rect, radius));
+    painter.rect_filled(rect, radius, t.glass);
+    // The sheen fades out toward both sides and downward, so it has no visible edges.
+    let top = rect.top() + 1.0;
+    let (l, r) = (rect.left() + radius * 0.5, rect.right() - radius * 0.5);
+    if r - l > 8.0 {
+        let xs = [l, l + (r - l) * 0.25, l + (r - l) * 0.75, r];
+        let mut mesh = egui::Mesh::default();
+        for (i, x) in xs.iter().enumerate() {
+            let edge = i == 0 || i == xs.len() - 1;
+            mesh.colored_vertex(egui::pos2(*x, top), if edge { Color32::TRANSPARENT } else { t.sheen });
+        }
+        for x in xs {
+            mesh.colored_vertex(egui::pos2(x, top + 48.0), Color32::TRANSPARENT);
+        }
+        for i in 0..3u32 {
+            mesh.add_triangle(i, i + 1, i + 5);
+            mesh.add_triangle(i, i + 5, i + 4);
+        }
+        painter.add(egui::Shape::mesh(mesh));
+    }
+    painter.rect_stroke(rect, radius, Stroke::new(1.0, t.glass_rim), egui::StrokeKind::Inside);
+}
+
 /// Apply a theme. `roomy` = Beginner mode (bigger type, more air).
 pub fn apply(ctx: &egui::Context, kind: ThemeKind, roomy: bool) {
     let t = Tokens::for_kind(kind);
     ctx.data_mut(|d| d.insert_temp(tokens_id(), t));
     ctx.set_theme(if t.dark() { egui::Theme::Dark } else { egui::Theme::Light });
     let mut v = if t.dark() { Visuals::dark() } else { Visuals::light() };
-    v.panel_fill = t.chrome;
+    v.panel_fill = Color32::TRANSPARENT;
     v.window_fill = t.card;
     v.window_stroke = Stroke::new(1.0, t.card_border);
     v.extreme_bg_color = t.field;
@@ -378,7 +460,7 @@ pub fn apply(ctx: &egui::Context, kind: ThemeKind, roomy: bool) {
     v.warn_fg_color = t.warning;
     v.error_fg_color = t.danger;
     v.window_corner_radius = t.r_lg();
-    v.menu_corner_radius = t.r();
+    v.menu_corner_radius = t.r_lg();
     v.window_shadow = egui::Shadow { offset: [0, 10], blur: 28, spread: 0, color: t.shadow };
     v.popup_shadow = egui::Shadow { offset: [0, 4], blur: 14, spread: 0, color: t.shadow };
     v.text_edit_bg_color = Some(t.field);

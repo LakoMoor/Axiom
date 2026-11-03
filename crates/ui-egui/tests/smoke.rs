@@ -473,7 +473,7 @@ fn a_finished_build_can_be_pinned_and_opened_from_the_sidebar() {
     ws.save().unwrap();
     let root = ws.root.clone();
     let projects = d.path().to_path_buf();
-    let mut h = harness(move || {
+    let mut h = harness_sized(egui::vec2(1280.0, 1000.0), move || {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         // Pins are listed from the project folders in settings: only this test's.
         a.engine.session().settings.projects_dir = Some(projects);

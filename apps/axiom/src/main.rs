@@ -42,6 +42,8 @@ fn main() -> eframe::Result {
         .with_min_inner_size([760.0, 520.0])
         // Our own title bar draws the window controls, moves and resizes the window.
         .with_decorations(false)
+        // Transparent, so the rounded glass window shows the desktop at its corners.
+        .with_transparent(true)
         .with_resizable(true)
         .with_drag_and_drop(true);
     // On macOS a window icon replaces the Dock icon, and the bundle's own icon is the one padded to

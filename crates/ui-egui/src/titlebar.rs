@@ -15,7 +15,7 @@ pub const HEIGHT: f32 = 40.0;
 /// How close to the window edge the pointer must be to resize.
 const EDGE: f32 = 5.0;
 
-fn maximized(ctx: &egui::Context) -> bool {
+pub fn maximized(ctx: &egui::Context) -> bool {
     ctx.input(|i| i.viewport().maximized.unwrap_or(false) || i.viewport().fullscreen.unwrap_or(false))
 }
 
