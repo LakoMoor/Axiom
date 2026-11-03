@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Build the browser version and zip it:  $DIST/axiom-web-<version>.zip
 #
-# Usage: packaging/web/package.sh [--skip-build]
+# Usage: packaging/web/package.sh [--viewer] [--skip-build]
+#   (no flag)  the whole app, the same one the desktop window runs (apps/axiom-web/app.html)
+#   --viewer   the small file viewer (apps/axiom-web/index.html)
 #
 # Needs: trunk (brew install trunk / cargo install trunk --locked) and the wasm32-unknown-unknown
 # target. The zip holds a self-contained static site in axiom-web-<version>/ that works
@@ -11,9 +13,19 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
 HERE="$ROOT/packaging/web"
 
-if [ "${1:-}" != "--skip-build" ]; then
+PAGE=app.html
+SKIP_BUILD=0
+for arg in "$@"; do
+  case "$arg" in
+    --viewer) PAGE=index.html ;;
+    --skip-build) SKIP_BUILD=1 ;;
+    *) echo "unknown argument: $arg" >&2; exit 2 ;;
+  esac
+done
+if [ "$SKIP_BUILD" != 1 ]; then
   command -v trunk >/dev/null || { echo "error: trunk not found (cargo install trunk --locked)" >&2; exit 1; }
-  (cd "$ROOT/apps/axiom-web" && trunk build --release)
+  # The page comes first: newer trunk reads a value after --release as its argument.
+  (cd "$ROOT/apps/axiom-web" && trunk build "$PAGE" --release)
 fi
 
 SITE="$ROOT/dist/web"

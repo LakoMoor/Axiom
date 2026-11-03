@@ -1,9 +1,10 @@
 name: GitHub Pages
-# Publishes the website in site/. The browser app is added here again when it is the real app.
+# Publishes the website in site/, and under /app/ the whole app built for the browser (the same one
+# the desktop window runs).
 on:
   push:
     branches: [main]
-    paths: ['site/**', '.github/workflows/pages.yml']
+    paths: ['site/**', 'crates/**', 'apps/**', 'packaging/web/**', 'Cargo.toml', 'Cargo.lock', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +22,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Rust for the browser
+        run: rustup toolchain install 1.99.0 --profile minimal --target wasm32-unknown-unknown && rustup default 1.99.0
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+        with:
+          key: pages-app
+      - uses: LakoMoor/axiom-actions/actions/install-trunk@main
+      - name: Build the app for the browser
+        working-directory: apps/axiom-web
+        run: trunk build app.html --release
+      - name: Put it on the site under /app/
+        run: |
+          # The wasm must stay under the hosts' per-file cap (packaging/web/package.sh checks the same).
+          test "$(wc -c < dist/web/*.wasm)" -lt 25165824
+          mkdir -p site/app
+          cp -R dist/web/. site/app/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
