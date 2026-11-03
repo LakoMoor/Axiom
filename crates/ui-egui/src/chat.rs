@@ -397,6 +397,16 @@ pub(crate) fn activity_row(ui: &mut Ui, text: RichText) {
     });
 }
 
+/// Draw `items` as a feed (agent mode); consent cards are not offered there, an agent app asks
+/// through its own settings.
+pub(crate) fn feed(ui: &mut Ui, items: &[ChatItem], beginner: bool) {
+    let mut ignored = Vec::new();
+    for (i, item) in items.iter().enumerate() {
+        ui.push_id(i, |ui| item_ui(ui, item, beginner, false, false, &mut ignored));
+        ui.add_space(MESSAGE_GAP);
+    }
+}
+
 fn item_ui(ui: &mut Ui, item: &ChatItem, beginner: bool, dense: bool, open: bool, actions: &mut Vec<ChatAction>) {
     let t = Tokens::get(ui.ctx());
     match item {

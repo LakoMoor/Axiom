@@ -618,6 +618,35 @@ impl AiHub {
         Ok(Box::new(conv))
     }
 
+    /// Agent mode: a general coding agent (an agent app such as OpenCode) working in `folder` with
+    /// the person's tasks, outside any rebuild. It may edit files in the folder. `backend` names an
+    /// enabled agent app; none picks the first one that is OpenCode, else the first agent app.
+    pub fn start_agent(&self, backend: Option<&str>, folder: PathBuf, beginner: bool) -> Result<Box<dyn Conversation>, ToolError> {
+        let cfg = self.config();
+        let entry = match backend {
+            Some(n) => self.entry(n)?,
+            None => {
+                let agents = || cfg.enabled().filter(|e| e.config.kind == BackendKind::AgentCli);
+                agents().find(|e| e.config.model == "opencode").or_else(|| agents().next()).cloned().ok_or_else(|| {
+                    ToolError::unavailable("No coding agent app is set up.").with_remediation("Add OpenCode (or another agent app) in Settings → AI.")
+                })?
+            }
+        };
+        if entry.config.kind != BackendKind::AgentCli {
+            return Err(ToolError::invalid(format!("{} is not an agent app.", entry.config.name))
+                .with_remediation("Pick a coding agent app such as OpenCode for agent mode."));
+        }
+        let (deep, logs, inbox) = {
+            let session = self.engine.session();
+            (!session.clean_room(), failure_log::dir_in(&session.config_dir()), session.config_dir().join("agent-inbox"))
+        };
+        let mut spec = cli_agents::CliSpec::new(entry.config.clone(), entry.options.clone(), beginner, Some(folder));
+        spec.builder = Some(cli_agents::Builder { investigation: None, inbox });
+        spec.deep = deep;
+        spec.logs = Some(logs);
+        Ok(Box::new(cli_agents::CliConversation::new(spec)))
+    }
+
     /// A builder conversation on an API backend: our agent loop with the Build toolset (files and
     /// commands in the project) enabled from the start, and room for a long build. In Deep mode
     /// every toolset is enabled, so it can look inside the original with all of them.

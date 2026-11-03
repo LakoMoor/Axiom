@@ -571,7 +571,7 @@ mod piped {
                 executable: "cmd.exe".into(),
                 args: args.iter().map(Into::into).collect(),
                 cwd: None,
-                env: vec![("CRAFT_TEST_WORD".into(), "first".into())],
+                env: vec![("AXIOM_TEST_WORD".into(), "first".into())],
                 terminal: Terminal::default(),
                 events: Vec::new(),
                 timeout: Duration::from_millis(timeout_ms),
@@ -585,7 +585,7 @@ mod piped {
             let never: Cancel = std::sync::Arc::new(|| false);
             let only_errors = capture(spec(&["/c", "echo oops 1>&2 & exit 2"], 10_000), never.clone()).unwrap();
             assert_eq!(only_errors.terminal.lines, ["oops"], "no blank line before error output alone");
-            let c = capture(spec(&["/c", "echo %CRAFT_TEST_WORD% & exit 3"], 10_000), never.clone()).unwrap();
+            let c = capture(spec(&["/c", "echo %AXIOM_TEST_WORD% & exit 3"], 10_000), never.clone()).unwrap();
             assert_eq!((c.exit.reason.as_str(), c.exit.code), ("exited", Some(3)));
             assert_eq!(c.terminal.lines, ["first"]);
             assert_eq!(c.manifest.pty_backend, "pipes");

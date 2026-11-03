@@ -71,6 +71,7 @@ const ACTIONS: &[Action] = &[
     a("open_pin",            "open a pinned build (or another copy)",          Tool(&["project_pin_open"])),
     a("stop_pin",            "close what a pin opened",                        Tool(&["project_pin_stop"])),
     a("add_pictures",        "pictures of the original for the builder",       Tool(&["rebuild_start"])),
+    a("agent_send",          "give the coding agent a task in a folder",       Pending { tool: Some("agent_run"), why: "R2.11: agent mode starts as a screen; its tool comes next" }),
     a("attach",              "attach pictures to the next message",            Pending { tool: None, why: "rebuild_note and rebuild_start take text; attachments with a message come next" }),
     a("raise_asset_budget",  "give a project another default budget for generated assets", Tool(&["project_assets_budget"])),
     a("set_generate_assets", "let a game's builder generate pictures and 3D models, or not", Tool(&["project_assets_allow"])),

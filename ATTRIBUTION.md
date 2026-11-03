@@ -41,6 +41,6 @@ Axiom's own icon, drawn for this project and covered by the repository's licence
 
 ## Optional build-time fonts
 
-Builds made with `CRAFT_FONTS_DIR` (craft-fonts), releases among them, also embed the fonts in
-that folder (all OFL-1.1). Their packages ship each one's licence as `OFL-<font>.txt`; craft-fonts'
+Builds made with `AXIOM_FONTS_DIR` (axiom-fonts), releases among them, also embed the fonts in
+that folder (all OFL-1.1). Their packages ship each one's licence as `OFL-<font>.txt`; axiom-fonts'
 own `ATTRIBUTION.md` names their authors and pinned sources.

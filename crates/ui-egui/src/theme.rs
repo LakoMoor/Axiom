@@ -240,8 +240,8 @@ pub static DM_SANS_MEDIUM: &[u8] = include_bytes!("../../../assets/fonts/DMSans-
 pub static DM_SANS_BOLD: &[u8] = include_bytes!("../../../assets/fonts/DMSans-Bold.ttf");
 pub static JETBRAINS_MONO: &[u8] = include_bytes!("../../../assets/fonts/JetBrainsMono-Regular.ttf");
 
-/// A font from the optional craft-fonts build input (empty unless built with `CRAFT_FONTS_DIR`).
-pub struct CraftFont {
+/// A font from the optional axiom-fonts build input (empty unless built with `AXIOM_FONTS_DIR`).
+pub struct AxiomFont {
     pub family: &'static str,
     pub style: &'static str,
     /// ISO 15924 scripts the font is for, e.g. `"Jpan"`.
@@ -249,10 +249,10 @@ pub struct CraftFont {
     pub bytes: &'static [u8],
 }
 
-include!(concat!(env!("OUT_DIR"), "/craft_fonts.rs"));
+include!(concat!(env!("OUT_DIR"), "/axiom_fonts.rs"));
 
 /// Install DM Sans (three weights: body, labels and bold for headings; it has no static
-/// SemiBold), JetBrains Mono (code), plus any craft-fonts as fallbacks.
+/// SemiBold), JetBrains Mono (code), plus any axiom-fonts as fallbacks.
 pub fn install_fonts(ctx: &egui::Context) {
     let mut fonts = FontDefinitions::default();
     let mut add = |name: &str, bytes: &'static [u8]| {
@@ -263,7 +263,7 @@ pub fn install_fonts(ctx: &egui::Context) {
     add("DMSans-Bold", DM_SANS_BOLD);
     add("JetBrainsMono", JETBRAINS_MONO);
     let mut fallbacks = Vec::new();
-    for f in CRAFT_FONTS {
+    for f in AXIOM_FONTS {
         let name = format!("craft:{}:{}", f.family, f.style);
         fonts.font_data.insert(name.clone(), Arc::new(FontData::from_static(f.bytes)));
         if f.style.eq_ignore_ascii_case("regular") {
@@ -307,7 +307,7 @@ enum FallbackRank {
     Serif,
 }
 
-/// Which face a craft-fonts name looks like, from the family name: a face made for the interface's
+/// Which face a axiom-fonts name looks like, from the family name: a face made for the interface's
 /// language first, a book face last.
 fn fallback_rank(name: &str) -> FallbackRank {
     let n = name.to_ascii_lowercase();
@@ -731,11 +731,11 @@ mod tests {
         assert_eq!(fallback_rank("craft:BIZ UDPGothic:Regular"), FallbackRank::Local);
     }
 
-    /// Releases are built with craft-fonts (#19), and so is CI; a build without them has only
+    /// Releases are built with axiom-fonts (#19), and so is CI; a build without them has only
     /// DM Sans, and shows other scripts as boxes.
     #[test]
-    fn with_craft_fonts_every_script_people_type_shows() {
-        if CRAFT_FONTS.is_empty() {
+    fn with_axiom_fonts_every_script_people_type_shows() {
+        if AXIOM_FONTS.is_empty() {
             return;
         }
         let ctx = egui::Context::default();

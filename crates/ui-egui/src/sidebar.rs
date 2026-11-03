@@ -60,6 +60,9 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             app.state.screen = Screen::Workbench;
             app.ensure_rail_loaded();
         }
+        if row(ui, "bot", "Agent", None, app.state.screen == Screen::Agent).clicked() {
+            app.state.screen = Screen::Agent;
+        }
         if row(ui, "cpu", "Models", None, app.state.screen == Screen::Models).clicked() {
             app.state.screen = Screen::Models;
         }

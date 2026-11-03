@@ -80,7 +80,7 @@ metadata, directory indexes and a real firmware extraction were not newly checke
 - Live end-to-end runs (2026-10-18, Windows 10, headless CLI): a website clone reached Ready
   at 96% likeness in 1.5 min; a small desktop app rebuilt in Rust + egui reached Ready in 9 min (checked
   only by building); a game rebuild in Rust reached Build and was stopped before Check. The
-  website case is an opt-in test: `CRAFT_E2E=1 cargo test -p axiom-cli --test live_rebuild`.
+  website case is an opt-in test: `AXIOM_E2E=1 cargo test -p axiom-cli --test live_rebuild`.
 - Approvals differ by agent (roadmap R2.2): Claude Code asks our approval tool; OpenCode's builder
   runs with `--auto`; Hermes's `-z` turns its approvals off on every run, chats included, so a Hermes
   chat isn't limited to analysing and Clean room's approval rule doesn't reach it. Hermes is opt-in

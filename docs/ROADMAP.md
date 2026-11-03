@@ -227,7 +227,7 @@ Owner: maintainers · Status: done (branch `test/r0.7-live-e2e`; runs on 2026-10
 - [x] Game target: Muck → Rust reached Build (game written and compiled, the builder screenshotting
       its own result) and was stopped on purpose before Check; a polished game isn't the goal.
       It first failed at once because "in Rust" was ignored (fixed in #4)
-- [x] Opt-in test (`CRAFT_E2E=1`) that runs the website case
+- [x] Opt-in test (`AXIOM_E2E=1`) that runs the website case
       (`apps/axiom-cli/tests/live_rebuild.rs`)
 
 ---
@@ -939,6 +939,18 @@ to the project next. Pins are the engine's (tools), kept in the project's `pinne
 - [ ] How much space pins take in Settings. Showing a pin's folder is done in the right-click menu,
       through `project_open_folder` with `pin` — claimed: muraa-p, branch bugfix/r2.10-pin-folder
 - [ ] Live check on Windows: rebuild a project while its frozen pin runs, and the build isn't blocked
+
+### R2.11 Agent mode
+Owner: open · Status: in progress (branch `feature/agent-mode`)
+An ordinary coding-agent mode beside study-and-rebuild: pick a folder, give tasks, an agent app
+(OpenCode first) works in it. We run the agent app as an external program (through
+`platform::process`, as for builds); no code of it is copied.
+- [x] `AiHub::start_agent` and an Agent screen (folder picker, task box, feed, Stop), the sidebar's "Agent"
+- [ ] Per-task approvals in the feed (consent cards) instead of the agent app's own policy
+- [ ] Choose the agent app on the screen (now: the first OpenCode, else the first agent app)
+- [ ] Keep agent conversations in the sidebar history and resume them (`session_id`)
+- [ ] Our own local models (the Models hub) as the agent's brain through an OpenAI-compatible endpoint
+- [ ] A headless tool (`agent_run`) so the CLI and MCP can use it too (rule 2: everything is a tool)
 
 ## M3 Engine depth
 

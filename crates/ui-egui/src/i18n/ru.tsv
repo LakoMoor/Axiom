@@ -246,3 +246,10 @@ Deep mode	Глубокий режим
 Clean room mode	Режим «чистая комната»
 Deep mode: tools may look inside the original. Click for Clean room.	Глубокий режим: инструменты могут заглядывать внутрь оригинала. Нажмите, чтобы включить «чистую комнату».
 Clean room: nothing inside the original is read. Click for Deep mode.	Чистая комната: внутрь оригинала ничего не читается. Нажмите, чтобы включить глубокий режим.
+Change folder	Сменить папку
+Choose a folder first	Сначала выберите папку
+It can read and change files in the folder, and run commands there.	Он может читать и менять файлы в папке и запускать там команды.
+Pick a folder and tell the agent what to do in it.	Выберите папку и скажите агенту, что в ней сделать.
+Pick the folder the agent works in	Выберите папку, в которой работает агент
+What should the agent do?	Что должен сделать агент?
+Give the agent a task	Дайте агенту задачу

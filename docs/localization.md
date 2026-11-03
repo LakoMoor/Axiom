@@ -57,8 +57,8 @@ The existing snapshot example accepts `--lang zh-hans` or
 cargo run -p axiom-ui-egui --example snapshot -- --lang zh-hant --only settings --out-dir target/snapshots/zh-hant
 ```
 
-Chinese glyphs use the existing craft-fonts fallback, which release and CI builds
-already include. Local builds must set `CRAFT_FONTS_DIR` to a craft-fonts checkout
+Chinese glyphs use the existing axiom-fonts fallback, which release and CI builds
+already include. Local builds must set `AXIOM_FONTS_DIR` to a axiom-fonts checkout
 before compiling to get the same glyph coverage. The catalogs add no font assets.
 Check both scripts, clipping, narrow windows and native file dialogs visually
 on each platform; catalog coverage alone does not verify layout or fonts.
