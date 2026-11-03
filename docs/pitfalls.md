@@ -453,3 +453,7 @@ naming a tool.
 branch; `git stash` keeps only tracked files, so a new file stayed in the tree and `git add -A`
 put it into the other PR. Use `git stash -u` (or commit the work in progress on its own branch),
 and read `git status` before `git add -A`.
+
+**A registry name with capitals.** The first release run failed both Flatpak jobs at the push: the image
+name came from `github.repository` (`LakoMoor/Axiom`) and container registries accept lowercase only.
+Lowercase any name built from an owner or repository before it reaches a registry (`flatpak-oci.sh` does).
