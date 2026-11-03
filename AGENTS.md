@@ -3,8 +3,7 @@
 Axiom is a native, pure-Rust app that shows anyone how a piece of software works (programs, apps, files,
 websites, phones) with evidence-backed answers, then helps them rebuild it. It ships a desktop app (egui), a CLI and
 an MCP server, all driven by one engine. Display name **Axiom**; machine names `axiom-*`; bundle id
-`ai.storyteller.axiom`. Standards shared across the Crafting Apps live in `../craftrules` (read its
-`AGENTS.md`); follow them. Repos never share code.
+`ai.storyteller.axiom`. Repos never share code.
 
 **Original work only:** never copy code, scripts, schemas, names, assets or wording from another project, and
 never name other reverse-engineering products in source, docs, UI or commit messages.
@@ -36,7 +35,7 @@ Layering is enforced by `cargo xtask layers`. Register new crates in `xtask/src/
 
 ## Golden rules
 
-1. **Never crash** (`../craftrules/standards/never-crash.md`). Hostile input is our main input. No
+1. **Never crash**. Hostile input is our main input. No
    `unwrap`/`expect`/`panic!`/`todo!`/`unimplemented!`/`unreachable!`/indexing on input-derived values in non-test
    code; every production crate root carries the deny attribute. Checked arithmetic, bounded recursion, capped
    allocations. Every crash fix gets a regression test.

@@ -162,11 +162,11 @@ foreach ($f in 'README.md', 'LICENSE', 'LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE'
   $p = Join-Path $Root $f
   if (Test-Path $p) { Copy-Item $p $Portable }
 }
-# The embedded fonts (assets/fonts, and craft-fonts' with CRAFT_FONTS_DIR as releases build) are
-# OFL-1.1: ship their licences, craft-fonts' as OFL-<font>.txt.
+# The embedded fonts (assets/fonts, and axiom-fonts' with AXIOM_FONTS_DIR as releases build) are
+# OFL-1.1: ship their licences, axiom-fonts' as OFL-<font>.txt.
 Get-ChildItem -Path (Join-Path $Root 'assets\fonts') -Filter 'OFL-*.txt' -ErrorAction SilentlyContinue | ForEach-Object { Copy-Item $_.FullName $Portable }
-if ($env:CRAFT_FONTS_DIR) {
-  Get-ChildItem -Path (Join-Path $env:CRAFT_FONTS_DIR 'fonts\*\OFL.txt') -ErrorAction SilentlyContinue | ForEach-Object { Copy-Item $_.FullName (Join-Path $Portable "OFL-$($_.Directory.Name).txt") }
+if ($env:AXIOM_FONTS_DIR) {
+  Get-ChildItem -Path (Join-Path $env:AXIOM_FONTS_DIR 'fonts\*\OFL.txt') -ErrorAction SilentlyContinue | ForEach-Object { Copy-Item $_.FullName (Join-Path $Portable "OFL-$($_.Directory.Name).txt") }
 }
 # portable.txt beside axiom.exe switches on portable mode: settings, logs and the engine
 # store go to AxiomData\ next to the exe instead of %APPDATA% (crates/engine/src/settings.rs).

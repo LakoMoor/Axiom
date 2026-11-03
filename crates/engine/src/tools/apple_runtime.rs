@@ -253,7 +253,7 @@ fn lldb_script(p: &ObserveCallsParams) -> String {
         }
     }
     // A breakpoint command that records the argument registers and continues.
-    setup.push_str("breakpoint command add --script-type python -o 'frame = bp_loc.GetThread().GetSelectedFrame() if bp_loc else None\\nprint(\"CRAFT_HIT\", frame.GetFunctionName() if frame else \"?\")\\nreturn False' 1\n");
+    setup.push_str("breakpoint command add --script-type python -o 'frame = bp_loc.GetThread().GetSelectedFrame() if bp_loc else None\\nprint(\"AXIOM_HIT\", frame.GetFunctionName() if frame else \"?\")\\nreturn False' 1\n");
     let args = p.arguments.iter().map(|a| a.replace('"', "\\\"")).map(|a| format!("\"{a}\"")).collect::<Vec<_>>().join(" ");
     setup.push_str(&format!("process launch -- {args}\n"));
     setup
@@ -310,7 +310,7 @@ mod macos {
         let _ = std::fs::remove_dir_all(&root);
 
         let hits: Vec<Value> =
-            out.stdout_text().lines().filter_map(|l| l.strip_prefix("CRAFT_HIT ").map(|f| json!({"function": f.trim()}))).take(p.max_events).collect();
+            out.stdout_text().lines().filter_map(|l| l.strip_prefix("AXIOM_HIT ").map(|f| json!({"function": f.trim()}))).take(p.max_events).collect();
         let truncated = hits.len() >= p.max_events;
         let summary = format!(
             "Observed {} call(s) under lldb while running {}.",
