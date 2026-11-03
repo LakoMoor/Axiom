@@ -6,4 +6,5 @@ pub mod catalog;
 pub mod hf;
 pub mod server;
 pub mod store;
+pub mod strata;
 pub mod tools;

@@ -1,6 +1,6 @@
 //! The models hub as tools: what to run, what's here, downloads, and running a model as an AI.
 
-use super::{catalog, hf, server, store};
+use super::{catalog, hf, server, store, strata};
 use crate::AiHub;
 use axiom_engine::EngineRef;
 use axiom_engine::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
@@ -99,6 +99,33 @@ pub fn specs() -> Vec<ToolSpec> {
             server_stop,
         ),
         spec(
+            "models_strata_status",
+            "Is Strata set up?",
+            "Whether Strata (the one-click local model program) is installed here, whether it is serving a model, and the packs it can set up (`packs`, each with the memory it needs).",
+            "Checks whether the easy way to run a big model is ready.",
+            Effects::READ_ONLY,
+            schema_of::<NoParams>,
+            strata_status,
+        ),
+        spec(
+            "models_strata_install",
+            "Install Strata",
+            "Download Strata's installer from its release, check it against the release's SHA-256 list, and run it. Installs into the home folder; needs no administrator rights. Asks for consent: it runs a program from the internet.",
+            "Installs the easy way to run a big model on your computer.",
+            net | Effects::WRITES_FILESYSTEM | Effects::LAUNCHES_PROCESS | Effects::EXECUTES_FOREIGN_CODE,
+            schema_of::<NoParams>,
+            strata_install,
+        ),
+        spec(
+            "models_strata_start",
+            "Start a model with Strata",
+            "Set up and start a Strata pack (`pack`: everyday or coder; default everyday). The first time this downloads the model, which is large. When it answers, it is added as an AI named `Local: Strata`.",
+            "Downloads and starts a ready-made model, then lets you chat with it.",
+            net | Effects::WRITES_FILESYSTEM | Effects::LAUNCHES_PROCESS,
+            schema_of::<StrataStartParams>,
+            strata_start,
+        ),
+        spec(
             "models_servers_list",
             "Models running now",
             "The model servers running in this session, with their addresses and how long they have been up.",
@@ -158,6 +185,14 @@ pub struct DownloadParams {
 pub struct FileParams {
     /// The model file's name, as models_installed_list shows it.
     pub file: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct StrataStartParams {
+    /// Which pack: everyday (default) or coder.
+    #[serde(default)]
+    pub pack: Option<String>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -326,6 +361,39 @@ fn server_stop(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError
     let stopped = servers(ctx).stop(&p.file);
     let _ = hub(ctx).and_then(|h| h.remove_backend(&backend_name(&p.file)));
     Ok(ToolOutput::Value(json!({"file": p.file, "stopped": stopped})))
+}
+
+fn strata_status(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
+    let _: NoParams = parse_params(params)?;
+    Ok(ToolOutput::Value(json!(strata::status())))
+}
+
+fn strata_install(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
+    let _: NoParams = parse_params(params)?;
+    let cancel = cancel_of(ctx);
+    let dir = ctx.session.settings.engine_store_dir().join("strata-installer");
+    let program = {
+        let reporter = &*ctx;
+        strata::install(&dir, &cancel, &|m| reporter.report(None, m))?
+    };
+    let _ = std::fs::remove_dir_all(&dir);
+    Ok(ToolOutput::Value(json!({"installed": true, "program": program.display().to_string()})))
+}
+
+fn strata_start(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
+    let p: StrataStartParams = parse_params(params)?;
+    let id = p.pack.as_deref().unwrap_or("everyday");
+    let chosen = strata::pack(id)
+        .ok_or_else(|| ToolError::invalid(format!("There is no pack called {id}.")).with_remediation("Use everyday or coder (see models_strata_status)."))?;
+    let program = strata::locate()
+        .ok_or_else(|| ToolError::new(ErrorCode::EngineMissing, "Strata isn't installed.").with_remediation("Install it with models_strata_install."))?;
+    let cancel = cancel_of(ctx);
+    let url = {
+        let reporter = &*ctx;
+        strata::launch(&program, chosen, &cancel, &|m| reporter.report(None, m))?
+    };
+    hub(ctx).and_then(|h| h.add_server(strata::AI_NAME, &url, None, None))?;
+    Ok(ToolOutput::Value(json!({"running": true, "url": url, "ai": strata::AI_NAME, "pack": chosen.id})))
 }
 
 fn servers_list(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
