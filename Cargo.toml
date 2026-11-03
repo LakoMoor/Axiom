@@ -40,7 +40,7 @@ log = "0.4"
 toml = "0.9"
 eframe = { version = "0.36", default-features = false }
 egui = "0.36"
-egui_extras = { version = "0.36", default-features = false }
+egui_extras = { version = "0.37", default-features = false }
 egui_kittest = "0.36"
 rfd = "0.17"
 rayon = "1"
