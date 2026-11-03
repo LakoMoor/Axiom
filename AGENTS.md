@@ -33,6 +33,27 @@ xtask/ cargo xtask layers | tools [--check] | wasm | secrets [--history] | ci | 
 
 Layering is enforced by `cargo xtask layers`. Register new crates in `xtask/src/main.rs`.
 
+## File layout (the same shape as a well-kept Rust application repository)
+
+Agents and contributors keep to this layout and do not invent new top-level folders.
+
+| Where | What goes there |
+|---|---|
+| `crates/` | Libraries only, one folder per crate, `axiom-<name>`. Nothing runnable by itself. |
+| `apps/` | The programs a person starts: desktop, CLI (with `mcp`), browser viewer. No logic that a crate could own. |
+| `xtask/` | Repository tasks (`cargo xtask …`): checks, docs generation, versioning. |
+| `docs/` | Written guides, one topic per file in `kebab-case.md`; generated files say so at the top. |
+| `packaging/<system>/` | Installers, bundles, manifests and their scripts, one folder per system. |
+| `assets/` | Small shared pictures and icons only. Files over 1 MB are refused; screenshots go in the PR. |
+| `site/` | The public website. |
+| `examples/` | Small runnable examples. |
+| top level | `README*.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, `LICENSE-*`, `NOTICE`, `Cargo.toml`, `Cargo.lock`, tool configs (`rustfmt.toml`, `clippy.toml`, `deny.toml`). |
+
+Inside a crate: `src/lib.rs` is the entry point, one module per file named for what it owns, tests
+beside the code (`#[cfg(test)]`) and integration tests in `tests/`. Data that ships with a crate
+(locale tables, catalogues) sits in the crate, in a folder named for what it is (`i18n/`).
+Every change that the person can notice gets a line in `CHANGELOG.md`.
+
 ## Golden rules
 
 1. **Never crash**. Hostile input is our main input. No
