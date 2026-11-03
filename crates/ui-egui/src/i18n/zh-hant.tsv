@@ -1396,3 +1396,10 @@ The model is running. Pick it in the AI list.	模型已在執行。請在 AI 清
 What do you want to build?	你想建置什麼？
 binary	二進位
 {n} file(s) · +{a} −{d}	{n} 個檔案 · +{a} −{d}
+Change folder	更改資料夾
+Choose a folder first	請先選擇資料夾
+It can read and change files in the folder, and run commands there.	它可以讀取和修改資料夾中的檔案，並在其中執行指令。
+Pick a folder and tell the agent what to do in it.	選擇一個資料夾，告訴代理要做什麼。
+Pick the folder the agent works in	選擇代理工作的資料夾
+What should the agent do?	代理要做什麼？
+Give the agent a task	給代理一個任務

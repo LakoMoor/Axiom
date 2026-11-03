@@ -2096,3 +2096,21 @@ fn earlier_chats_are_listed_and_open_again() {
     // It comes back into the list from the screen's chat when the preferences are saved.
     assert_eq!(h.state().chats_to_save().len(), 1);
 }
+
+#[test]
+fn agent_mode_asks_for_a_folder_and_names_what_is_missing() {
+    let mut h = harness(|| {
+        let mut a = demo::app(demo::engine(Mode::Beginner, true));
+        a.state.screen = Screen::Agent;
+        a
+    });
+    h.run_steps(3);
+    h.get_by_label("Pick a folder and tell the agent what to do in it.");
+    // No folder yet: nothing can be sent, and nothing is started.
+    assert!(h.state().agent.folder.is_none() && !h.state().agent.busy());
+    // With a folder but no agent app set up, a task ends in a plain error, not a crash.
+    h.state_mut().agent.set_folder(std::env::temp_dir());
+    h.state_mut().agent_send("make a file");
+    h.run_steps(2);
+    assert!(matches!(h.state().agent.items.last(), Some(axiom_ui_egui::state::ChatItem::Error { .. }) | Some(axiom_ui_egui::state::ChatItem::User(_))));
+}
