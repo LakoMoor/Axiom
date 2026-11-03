@@ -27,10 +27,10 @@
   <launchable type="desktop-id">ai.storyteller.axiom.desktop</launchable>
   <icon type="stock">ai.storyteller.axiom</icon>
   <!-- Only url types known to appstream 0.15 (Ubuntu 22.04, where CI validates): no vcs-browser. -->
-  <url type="homepage">https://getartcraft.com/apps/axiom</url>
+  <url type="homepage">https://github.com/LakoMoor/Axiom</url>
   <url type="bugtracker">https://github.com/LakoMoor/Axiom/issues</url>
   <url type="help">https://github.com/LakoMoor/Axiom</url>
-  <url type="contact">https://discord.gg/artcraft</url>
+  <url type="contact">https://github.com/LakoMoor/Axiom/issues</url>
   <categories>
     <category>Development</category>
     <category>Debugger</category>

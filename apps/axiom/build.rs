@@ -15,7 +15,7 @@ fn main() {
     res.set_icon("../../assets/app-icon/axiom.ico")
         .set("ProductName", "Axiom")
         .set("FileDescription", "Axiom: find out how any software works")
-        .set("LegalCopyright", "Copyright (c) the ArtCraft Team and the Axiom contributors. MIT OR Apache-2.0.")
+        .set("LegalCopyright", "Copyright (c) the Axiom contributors. MIT OR Apache-2.0.")
         .set("OriginalFilename", "axiom.exe")
         .set("InternalName", "axiom");
     if let Err(e) = res.compile() {

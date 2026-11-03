@@ -12,9 +12,9 @@ const CARD: Color32 = Color32::from_rgb(0x1a, 0x1a, 0x1c);
 const CARD_BORDER: Color32 = Color32::from_rgb(0x2a, 0x2a, 0x2e);
 const TEXT: Color32 = Color32::from_rgb(0xec, 0xec, 0xf0);
 const TEXT_DIM: Color32 = Color32::from_rgb(0xa9, 0xa9, 0xb2);
-/// The app colour (getartcraft.com's deep accent), as in the desktop app.
+/// The app colour (the deep accent), as in the desktop app.
 const BRAND: Color32 = Color32::from_rgb(0x16, 0x59, 0xc4);
-/// The app colour as text on the dark background (getartcraft.com's light accent).
+/// The app colour as text on the dark background (the light accent).
 const BRAND_INK: Color32 = Color32::from_rgb(0x74, 0xaa, 0xff);
 const SEEN_IT: Color32 = Color32::from_rgb(0x3f, 0xb2, 0x7f);
 const WORKED_OUT: Color32 = Color32::from_rgb(0x5b, 0x8d, 0xef);

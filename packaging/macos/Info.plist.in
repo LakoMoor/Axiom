@@ -43,7 +43,7 @@
   <key>NSRequiresAquaSystemAppearance</key>
   <false/>
   <key>NSHumanReadableCopyright</key>
-  <string>Copyright © the ArtCraft Team and the Axiom contributors. MIT OR Apache-2.0.</string>
+  <string>Copyright © the Axiom contributors. MIT OR Apache-2.0.</string>
 
 </dict>
 </plist>

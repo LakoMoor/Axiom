@@ -1,14 +1,5 @@
 <p align="center">
-  <a href="https://getartcraft.com/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/brand/artcraft-logo-white.svg">
-      <img alt="ArtCraft" src="docs/brand/artcraft-logo.svg" width="200">
-    </picture>
-  </a>
-</p>
-
-<p align="center">
-  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.axiom.png" width="128" height="128" alt="Axiom 아이콘: 파란 타일 위에 새겨진 까마귀">
+  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.axiom.png" width="128" height="128" alt="Axiom">
 </p>
 
 <h1 align="center">Axiom</h1>
@@ -31,13 +22,7 @@
 </p>
 
 <p align="center">
-  <a href="https://discord.gg/artcraft"><img alt="ArtCraft 커뮤니티 디스코드 참여하기" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
-</p>
-
-<p align="center">
-  <a href="#downloads"><b>Axiom 다운로드</b></a> ·
-  <a href="https://getartcraft.com/">ArtCraft</a> ·
-  <a href="https://getartcraft.com/apps">모든 Crafting Apps</a>
+  <a href="#downloads"><b>Axiom 다운로드</b></a>
 </p>
 
 <br>
@@ -48,11 +33,6 @@
   <sub>웹사이트 프로젝트: 각 검사는 빌드가 원본과 얼마나 비슷한지 보여 주고, 규칙을 벗어나는 작업은 직접 승인하며, 계획에서는 남은 일을 확인할 수 있습니다.</sub>
 </p>
 
-> [!NOTE]
-> **ArtCraft는 다양한 분야의 예술가들이 모인 커뮤니티입니다.** 화가, 사진가,
-> 영화 제작자, 일러스트레이터, 디자이너, 애니메이터, 취미 창작자, 그리고 지난주에
-> 연필을 처음 든 사람까지. 무언가를 만든다면 여러분도 우리 일원입니다. **[디스코드에 인사하러 오세요](https://discord.gg/artcraft).**
-
 <p align="center">
   <a href="#how-it-works">작동 방식</a> ·
   <a href="#two-ways-to-use-it">두 가지 사용 방법</a> ·
@@ -61,8 +41,7 @@
   <a href="#under-the-hood">내부 구조</a> ·
   <a href="#get-started">시작하기</a> ·
   <a href="#status">현재 상태</a> ·
-  <a href="#downloads">다운로드</a> ·
-  <a href="https://discord.gg/artcraft">디스코드</a>
+  <a href="#downloads">다운로드</a>
 </p>
 
 <br>
@@ -201,7 +180,7 @@ axiom-cli rebuild - "Add a contact form" --project-folder "<your folder>" --exis
 > - **부분적으로 됨:** API 키와 다른 코딩 에이전트로 빌드(구현은 되었지만 실제 실행은 아직 안 함), 앱과 게임의 동작 검사, 모의 대상(stand-in)으로만 테스트된 일부 엔진 도구.
 > - **다음:** 첫 공개 릴리스(Windows, macOS, Linux, FreeBSD용 설치 프로그램과 브라우저 뷰어는 CI에 준비되어 있음), 그다음 관리형 요금제.
 >
-> [docs/STATUS.md](docs/STATUS.md)에 자세한 내용과 각 부분을 확인한 방법이, [docs/tool-status.md](docs/tool-status.md)에 도구별 점검표가, [docs/ROADMAP.md](docs/ROADMAP.md)에 항목별 계획이 있습니다. 이슈를 남기거나, [디스코드](https://discord.gg/artcraft)에서 고장 난 부분을 알려 주세요.
+> [docs/STATUS.md](docs/STATUS.md)에 자세한 내용과 각 부분을 확인한 방법이, [docs/tool-status.md](docs/tool-status.md)에 도구별 점검표가, [docs/ROADMAP.md](docs/ROADMAP.md)에 항목별 계획이 있습니다. 이슈를 남겨 주세요.
 
 **책임 있는 사용.** Axiom은 본인이 소유하거나 살펴볼 권한이 있는 소프트웨어에만 사용하세요. DRM, 로그인, 안티치트를 절대 우회하지 않습니다. 재구현은 근거를 바탕으로 레이아웃, 스타일, 동작을 재현하며, 에이전트는 본인이 소유하거나 허가받았음을 확인하지 않는 한 로고, 사진, 텍스트를 복사하지 않도록 지시받습니다.
 
@@ -270,60 +249,14 @@ RISC-V(riscv64): `axiom-<ver>-linux-riscv64.tar.gz`, tarball만 제공합니다.
 <br>
 
 <p align="center">
-  <a href="https://discord.gg/artcraft"><img alt="ArtCraft 커뮤니티 디스코드 참여하기" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
-</p>
-
-<h3 align="center"><a id="come-make-things-with-us"></a>우리 함께 만들어요</h3>
-
-<p align="center">
-  우리 디스코드에는 모든 분야의 창작자가 모입니다. 그림, 사진, 스케치, 영상 편집,
-  서체 디자인을 하는 분들부터 아직 무엇을 좋아하는지 알아가는 중인 사람들까지요. 작업 중인 것을 공유하고,
-  도움을 요청하고, 고장 난 부분을 알려 주고, 무엇을 할 수 있었으면 하는지 말해 주세요.
-  여러분이 어떤 작업을 하든, 작업을 시작한 지 얼마나 되었든, 이곳에서는 모두 환영합니다.
-</p>
-
-<p align="center">
-  <a href="https://discord.gg/artcraft"><b>discord.gg/artcraft</b></a> ·
-  <a href="https://getartcraft.com/">getartcraft.com</a> ·
-  <a href="https://getartcraft.com/apps">The Crafting Apps</a> ·
   <a href="https://github.com/LakoMoor/Axiom">Axiom</a>
 </p>
-
----
-
-## <a id="the-craft-app-suite"></a>The Craft App Suite
-
-|                                                                                                                                                                                            | 앱                 | 용도                                                     | 코드                                                  | 자세히 보기                                             |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:| ------------------ | -------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------- |
-| <img src="https://raw.githubusercontent.com/storytold/photocraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.photocraft.png" alt="" width="32" height="32">                     | **PhotoCraft**     | 이미지 편집: 레이어, 마스크, 텍스트, 실제 PSD 파일       | [GitHub](https://github.com/storytold/photocraft)     | [웹사이트](https://getartcraft.com/apps/photocraft)     |
-| <img src="https://raw.githubusercontent.com/storytold/vectorcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.vectorcraft.png" alt="" width="32" height="32">                   | **VectorCraft**    | 벡터 일러스트레이션                                      | [GitHub](https://github.com/storytold/vectorcraft)    | [웹사이트](https://getartcraft.com/apps/vectorcraft)    |
-| <img src="https://raw.githubusercontent.com/storytold/filmcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.filmcraft.png" alt="" width="32" height="32">                       | **FilmCraft**      | 영상 편집, 색보정, 사운드                                | [GitHub](https://github.com/storytold/filmcraft)      | [웹사이트](https://getartcraft.com/apps/filmcraft)      |
-| <img src="https://raw.githubusercontent.com/storytold/lightcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.lightcraft.png" alt="" width="32" height="32">                     | **LightCraft**     | 사진 보관함과 RAW 현상                                   | [GitHub](https://github.com/storytold/lightcraft)     | [웹사이트](https://getartcraft.com/apps/lightcraft)     |
-| <img src="https://raw.githubusercontent.com/storytold/pdfcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.pdfcraft.png" alt="" width="32" height="32">                         | **PdfCraft**       | PDF 읽기, 정리, 보호                                     | [GitHub](https://github.com/storytold/pdfcraft)       | [웹사이트](https://getartcraft.com/apps/pdfcraft)       |
-| <img src="https://raw.githubusercontent.com/storytold/effectcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.effectcraft.png" alt="" width="32" height="32">                   | **EffectCraft**    | 모션 그래픽과 시각 효과                                  | [GitHub](https://github.com/storytold/effectcraft)    | [웹사이트](https://getartcraft.com/apps/effectcraft)    |
-| <img src="https://raw.githubusercontent.com/storytold/designcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.designcraft.png" alt="" width="32" height="32">                   | **DesignCraft**    | 페이지 레이아웃과 출판                                   | [GitHub](https://github.com/storytold/designcraft)    | [웹사이트](https://getartcraft.com/apps/designcraft)    |
-| <img src="https://raw.githubusercontent.com/storytold/figcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.figcraft.png" alt="" width="32" height="32">                         | **FigCraft**       | 인터페이스 디자인과 프로토타이핑                         | [GitHub](https://github.com/storytold/figcraft)       | [웹사이트](https://getartcraft.com/apps/figcraft)       |
-| <img src="https://raw.githubusercontent.com/storytold/wordcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.wordcraft.png" alt="" width="32" height="32">                       | **WordCraft**      | 워드 프로세싱과 문서                                     | [GitHub](https://github.com/storytold/wordcraft)      | [웹사이트](https://getartcraft.com/apps/wordcraft)      |
-| <img src="https://raw.githubusercontent.com/storytold/soundcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.soundcraft.png" alt="" width="32" height="32">                     | **SoundCraft**     | 오디오 녹음과 편집                                       | [GitHub](https://github.com/storytold/soundcraft)     | [웹사이트](https://getartcraft.com/apps/soundcraft)     |
-| <img src="https://raw.githubusercontent.com/storytold/deckcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.deckcraft.png" alt="" width="32" height="32">                       | **DeckCraft**      | 프레젠테이션과 슬라이드 덱                               | [GitHub](https://github.com/storytold/deckcraft)      | [웹사이트](https://getartcraft.com/apps/deckcraft)      |
-| <img src="https://raw.githubusercontent.com/storytold/cadcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.cadcraft.png" alt="" width="32" height="32">                         | **CADCraft**       | 컴퓨터 지원 설계(CAD)                                    | [GitHub](https://github.com/storytold/cadcraft)       | [웹사이트](https://getartcraft.com/apps/cadcraft)       |
-| <img src="https://raw.githubusercontent.com/storytold/gridcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.gridcraft.png" alt="" width="32" height="32">                       | **GridCraft**      | 스프레드시트와 데이터                                    | [GitHub](https://github.com/storytold/gridcraft)      | [웹사이트](https://getartcraft.com/apps/gridcraft)      |
-| <img src="https://raw.githubusercontent.com/storytold/texturecraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.texturecraft.png" alt="" width="32" height="32">                 | **TextureCraft**   | 3D 텍스처 페인팅                                         | [GitHub](https://github.com/storytold/texturecraft)   | [웹사이트](https://getartcraft.com/apps/texturecraft)   |
-| <img src="https://raw.githubusercontent.com/LakoMoor/Axiom/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.axiom.png" alt="" width="32" height="32">             | **Axiom** | 원하는 소프트웨어를 분석하고, 나만의 작품을 만들어 보세요 | [GitHub](https://github.com/LakoMoor/Axiom) | [웹사이트](https://getartcraft.com/apps/axiom) |
-| <img src="https://raw.githubusercontent.com/tangency-labs/solidcraft/main/assets/icons/app/linux/exports/hicolor/64x64/apps/io.tangencylabs.solidcraft.png" alt="" width="32" height="32"> | **SolidCraft**     | Tangency Labs의 파라메트릭 3D CAD(커뮤니티 앱)           | [GitHub](https://github.com/tangency-labs/solidcraft) |                                                         |
 
 ## <a id="license-and-credits"></a>라이선스와 크레딧
 
 Axiom은 [MIT](LICENSE-MIT) 또는 [Apache-2.0](LICENSE-APACHE) 듀얼 라이선스이며, 원하는 쪽을 선택할 수 있습니다.
-Copyright (c) 2026 ArtCraft Team and the Axiom contributors. 필수 고지는 [NOTICE](NOTICE)에 있습니다.
+Copyright (c) 2026 the Axiom contributors. 필수 고지는 [NOTICE](NOTICE)에 있습니다.
 
 동봉된 폰트, 아이콘, 이미지 및 기타 에셋은 각자의 오픈 라이선스를 유지합니다. 각 항목의 작성자, 출처, 라이선스는 [ATTRIBUTION.md](ATTRIBUTION.md)에 나와 있습니다.
 
 스크린샷에 보이는 것은 그 용도로 만든 예시 프로젝트입니다: example.com, 뱀 게임, 작은 계산기 프로그램.
-
-[`docs/brand/`](docs/brand/)에 있는 ArtCraft 이름, 워드마크, 로고는 ArtCraft Team의 상표이며 이 라이선스의 적용을 받지 않습니다. 수정하지 않은 상태에서만, 이 저장소와 Axiom의 일부로서만 사용할 수 있으며, 이때 [`docs/brand/LICENSE-brand.txt`](docs/brand/LICENSE-brand.txt)를 따라야 합니다. 포크와 수정본은 이를 제거해야 합니다.
-
-<p align="center">
-  <a href="https://getartcraft.com/"><img alt="ArtCraft" src="docs/brand/artcraft-mark.svg" width="28"></a><br>
-  <sub><a href="https://getartcraft.com/">ArtCraft</a> 팀과 커뮤니티가 만들었습니다.</sub>
-</p>

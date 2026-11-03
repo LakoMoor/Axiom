@@ -2,6 +2,4 @@ Axiom app icon (axiom.svg and every file derived from it in this directory:
 axiom-1024.png, axiom.icns, axiom.ico and hicolor/).
 
 This is Axiom's own icon, an "A" with an inspection probe on its crossbar, drawn for this project.
-It replaces the upstream raven icon, which was not open source. It is covered by the repository's
-MIT OR Apache-2.0 license. File names keep the upstream "axiom" stem until the packaging
-and bundle identifiers are migrated.
+It is covered by the repository's MIT OR Apache-2.0 license.

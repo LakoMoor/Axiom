@@ -37,9 +37,9 @@
          .exe need an .exe icon identifier (ICE50), even when the source is an ICO. -->
     <Icon Id="AxiomIcon.exe" SourceFile="$(var.IconPath)" />
     <Property Id="ARPPRODUCTICON" Value="AxiomIcon.exe" />
-    <Property Id="ARPURLINFOABOUT" Value="https://getartcraft.com/apps/axiom" />
-    <Property Id="ARPURLUPDATEINFO" Value="https://getartcraft.com/apps/axiom" />
-    <Property Id="ARPHELPLINK" Value="https://discord.gg/artcraft" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/LakoMoor/Axiom" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/LakoMoor/Axiom" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/LakoMoor/Axiom/issues" />
 
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="INSTALLFOLDER" Name="Axiom" />

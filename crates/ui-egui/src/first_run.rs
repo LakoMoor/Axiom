@@ -27,7 +27,7 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
         });
         ui.add_space(12.0);
     });
-    // Where you are, the ArtCraft way: "02 / 04  AI", plus a progress hairline.
+    // Where you are, the Axiom way: "02 / 04  AI", plus a progress hairline.
     let step = app.state.first_run.index();
     let y = full.bottom() - 34.0;
     let names = ["Welcome", "AI", "Purpose", "Ready"];

@@ -1,13 +1,12 @@
 # Axiom app icon
 
-The **raven**: the Crafting Apps' shared icon, made by the ArtCraft team. An engraved raven head
-in getartcraft.com's ink `#101014` with paper `#f2f1ee` highlights, on a rounded tile in
-ArtCraft's mark blue `#4e7bfb`. It is not open source: see `LICENSE.txt`.
+Axiom's own icon: a white "A" with an inspection probe on its crossbar, on a rounded blue tile
+(`#4671ff`). It is covered by the repository's licence: see `LICENSE.txt`.
 
-The interface follows getartcraft.com too (`theme.rs`): its warm near-black and paper
-backgrounds and ink, its deep accent `#1659c4` (`theme::BRAND`) for filled controls so white text
-on them passes WCAG AA, its bright accent `#2d81ff` for hover and its light accent `#74aaff` for
-blue text on dark surfaces. Headings and text are DM Sans.
+The interface uses a warm near-black and paper background with ink text (`theme.rs`), a deep
+accent `#1659c4` (`theme::BRAND`) for filled controls so white text on them passes WCAG AA, a
+bright accent `#2d81ff` for hover and a light accent `#74aaff` for blue text on dark surfaces.
+Headings and text are DM Sans.
 
 ## Geometry
 
