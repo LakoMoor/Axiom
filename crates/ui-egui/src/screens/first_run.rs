@@ -62,19 +62,35 @@ fn welcome(app: &mut CraftApp, ui: &mut Ui) {
     ui.add_space(6.0);
     ui.label(RichText::new(tr("Find out how any software works, then craft your own.")).size(theme::LEAD).color(t.text_dim));
     ui.add_space(36.0);
-    let w = 270.0;
-    ui.horizontal(|ui| {
-        ui.add_space(((ui.available_width() - (w * 2.0 + 16.0)) / 2.0).max(0.0));
+    // Two cards side by side; on a narrow screen (a phone) one above the other, each as wide as it.
+    let side_by_side = ui.available_width() >= 270.0 * 2.0 + 16.0 + 16.0;
+    let w = if side_by_side { 270.0 } else { ui.available_width().min(420.0) };
+    let mut chosen = None;
+    let mut cards = |ui: &mut Ui| {
         if choice_card(ui, w, "graduation-cap", "I'm new to this", "Plain words, big buttons, and I'll explain everything.").clicked() {
-            app.settings.mode = Mode::Beginner;
-            app.state.first_run = FirstRunStep::Brain;
+            chosen = Some(Mode::Beginner);
         }
-        ui.add_space(16.0);
+        if side_by_side {
+            ui.add_space(16.0);
+        } else {
+            ui.add_space(12.0);
+        }
         if choice_card(ui, w, "terminal", "Show me everything", "Every tool as well: a workbench with functions, bytes, references and evidence.").clicked() {
-            app.settings.mode = Mode::Experienced;
-            app.state.first_run = FirstRunStep::Brain;
+            chosen = Some(Mode::Experienced);
         }
-    });
+    };
+    if side_by_side {
+        ui.horizontal(|ui| {
+            ui.add_space(((ui.available_width() - (w * 2.0 + 16.0)) / 2.0).max(0.0));
+            cards(ui);
+        });
+    } else {
+        cards(ui);
+    }
+    if let Some(mode) = chosen {
+        app.settings.mode = mode;
+        app.state.first_run = FirstRunStep::Brain;
+    }
     ui.add_space(20.0);
     if widgets::link(ui, "Skip setup").on_hover_text(tr("Start with Simple mode; you can set up AI later in Settings.")).clicked() {
         app.finish_first_run();
@@ -232,7 +248,10 @@ fn brain_card(app: &mut CraftApp, ui: &mut Ui, d: &Detected) {
 fn option_row(ui: &mut Ui, icon: &str, title: &str, sub: &str, on: bool) -> egui::Response {
     let t = Tokens::get(ui.ctx());
     let w = ui.available_width();
-    let (rect, resp) = ui.allocate_exact_size(Vec2::new(w, 64.0), egui::Sense::click());
+    // The sub line wraps in what is left of the row, and the row grows to hold it (a phone's is narrow).
+    let sub_galley = ui.painter().layout(tr(sub).to_string(), egui::FontId::proportional(theme::SMALL), t.text_dim, (w - 14.0 - 40.0 - 14.0 - 52.0).max(60.0));
+    let height = 64.0_f32.max(35.0 + sub_galley.size().y + 12.0);
+    let (rect, resp) = ui.allocate_exact_size(Vec2::new(w, height), egui::Sense::click());
     let h = widgets::hover_t(ui, &resp);
     let fill = if on { t.accent_soft } else { theme::mix(t.card, t.raised, h) };
     let stroke = if on { egui::Stroke::new(1.0, t.accent) } else { egui::Stroke::new(1.0, theme::mix(t.card_border, t.field_border, h)) };
@@ -241,7 +260,7 @@ fn option_row(ui: &mut Ui, icon: &str, title: &str, sub: &str, on: bool) -> egui
     ui.painter().rect_filled(ir, t.radius, t.raised);
     icons::paint(ui, ir, icon, 20.0, if on { t.accent_ink } else { t.icon });
     ui.painter().text(egui::pos2(ir.right() + 14.0, rect.top() + 14.0), Align2::LEFT_TOP, tr(title), theme::semibold(theme::BODY), t.text);
-    ui.painter().text(egui::pos2(ir.right() + 14.0, rect.top() + 35.0), Align2::LEFT_TOP, tr(sub), egui::FontId::proportional(theme::SMALL), t.text_dim);
+    ui.painter().galley(egui::pos2(ir.right() + 14.0, rect.top() + 35.0), sub_galley, t.text_dim);
     if on {
         icons::paint(ui, egui::Rect::from_center_size(egui::pos2(rect.right() - 26.0, rect.center().y), Vec2::splat(20.0)), "check", 18.0, t.accent);
     }

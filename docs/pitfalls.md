@@ -457,3 +457,11 @@ and read `git status` before `git add -A`.
 **A registry name with capitals.** The first release run failed both Flatpak jobs at the push: the image
 name came from `github.repository` (`LakoMoor/Axiom`) and container registries accept lowercase only.
 Lowercase any name built from an owner or repository before it reaches a registry (`flatpak-oci.sh` does).
+
+**An Android window that drew under the system's bars.** The first APK showed the app's title bar
+under the status bar. The root `Ui` covers the whole screen, so setting `safe_area_insets` moved
+only the background, not the panels; and the activity's own action bar made the content rectangle
+report 147 px too much at the top. Lay the interface out in `ctx.content_rect()` (a scope with that
+rect), paint the backdrop on the whole screen, give the activity a theme without an action bar, and
+check the real insets with `adb shell dumpsys window | grep InsetsSource` before trusting a number.
+Look at a screenshot of every screen on the emulator, not only that it starts.

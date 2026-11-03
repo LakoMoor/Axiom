@@ -209,13 +209,36 @@ pub fn show(ui: &mut Ui, text: &mut String, attachments: &[PathBuf], b: PromptBo
                 ui.label(RichText::new(format!("{} {}", tr("Commands:"), crate::slash::names())).size(theme::CAPTION).color(t.text_faint));
             }
             ui.add_space(4.0);
+            // The Clean room / Deep label and the AI chip. In a wide window they sit at the right of the
+            // row; a phone's is too narrow, so they get a row of their own under it.
+            let deep_label = |ui: &mut Ui, out: &mut PromptOut| {
+                if let Some(deep) = b.deep {
+                    let (text, tip, col) = if deep {
+                        ("Deep mode", "Deep mode: tools may look inside the original. Click for Clean room.", t.accent)
+                    } else {
+                        ("Clean room mode", "Clean room: nothing inside the original is read. Click for Deep mode.", t.success)
+                    };
+                    let r = ui.add(egui::Button::new(RichText::new(tr(text)).size(theme::CAPTION).color(col)).frame(false)).on_hover_text(tr(tip));
+                    if r.clicked() {
+                        out.flip_mode = true;
+                    }
+                }
+            };
+            let ai_chip = |ui: &mut Ui, out: &mut PromptOut| {
+                if let Some((names, chosen)) = b.choices {
+                    model_chip(ui, names, chosen, out);
+                }
+            };
+            let phone = crate::phone::is_phone(ui.ctx());
             ui.horizontal(|ui| {
                 if let Some(tip) = b.attach
                     && icons::button(ui, "paperclip", 30.0, false, tip).clicked()
                 {
                     out.attach = true;
                 }
-                ui.label(RichText::new(tr("Enter to send · Shift+Enter for a new line")).size(theme::CAPTION).color(t.text_faint));
+                if !phone {
+                    ui.label(RichText::new(tr("Enter to send · Shift+Enter for a new line")).size(theme::CAPTION).color(t.text_faint));
+                }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if b.send {
                         let ready = !text.trim().is_empty();
@@ -228,22 +251,18 @@ pub fn show(ui: &mut Ui, text: &mut String, attachments: &[PathBuf], b: PromptBo
                     {
                         out.stop = true;
                     }
-                    if let Some((names, chosen)) = b.choices {
-                        model_chip(ui, names, chosen, &mut out);
-                    }
-                    if let Some(deep) = b.deep {
-                        let (text, tip, col) = if deep {
-                            ("Deep mode", "Deep mode: tools may look inside the original. Click for Clean room.", t.accent)
-                        } else {
-                            ("Clean room mode", "Clean room: nothing inside the original is read. Click for Deep mode.", t.success)
-                        };
-                        let r = ui.add(egui::Button::new(RichText::new(tr(text)).size(theme::CAPTION).color(col)).frame(false)).on_hover_text(tr(tip));
-                        if r.clicked() {
-                            out.flip_mode = true;
-                        }
+                    if !phone {
+                        ai_chip(ui, &mut out);
+                        deep_label(ui, &mut out);
                     }
                 });
             });
+            if phone {
+                ui.horizontal(|ui| {
+                    deep_label(ui, &mut out);
+                    ai_chip(ui, &mut out);
+                });
+            }
         })
     });
     out
