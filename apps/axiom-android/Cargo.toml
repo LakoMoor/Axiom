@@ -21,6 +21,7 @@ axiom-engine = { workspace = true }
 axiom-ai = { workspace = true }
 axiom-setup = { workspace = true }
 axiom-ui-egui = { workspace = true }
+egui = { workspace = true }
 eframe = { workspace = true, features = ["default_fonts", "wgpu", "android-native-activity", "persistence"] }
 log = { workspace = true }
 android_logger = "0.15"
@@ -37,6 +38,8 @@ target_sdk_version = 34
 
 [package.metadata.android.application]
 label = "Axiom"
+# No action bar: it would add its own height to the window's content rectangle.
+theme = "@android:style/Theme.DeviceDefault.NoActionBar"
 # `INTERNET` is for the models hub and AI services; nothing else is asked for.
 
 [[package.metadata.android.uses_permission]]

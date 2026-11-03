@@ -602,6 +602,7 @@ dependencies = [
  "axiom-setup",
  "axiom-ui-egui",
  "eframe",
+ "egui",
  "log",
 ]
 

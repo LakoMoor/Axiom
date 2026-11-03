@@ -12,7 +12,7 @@ pub mod kit;
 pub mod screens;
 
 // The modules keep their short paths (`crate::project`, `axiom_ui_egui::home`…).
-pub use chrome::{folders, palette, pins, prompt_box, sidebar, slash, titlebar, usage};
+pub use chrome::{folders, palette, phone, pins, prompt_box, sidebar, slash, titlebar, usage};
 pub use kit::{icons, schema_form, theme, widgets};
 pub use screens::{agent_mode, chat, chats, first_run, home, just_ask, make, manage, models_ui, project, report, settings_ui, workbench};
 pub mod builders;
@@ -1547,25 +1547,52 @@ impl CraftApp {
         // The window is glass floating on a soft backdrop: rounded, unless it fills the screen. The
         // workbench's panels still fill their rectangles, so it keeps square corners.
         let workbench = self.settings.first_run_done && !(self.beginner() || self.state.screen != Screen::Workbench);
-        let corner = if titlebar::maximized(&ctx) || workbench { 0.0 } else { theme::WINDOW_RADIUS };
+        let phone = phone::is_phone(&ctx);
+        let corner = if phone || titlebar::maximized(&ctx) || workbench { 0.0 } else { theme::WINDOW_RADIUS };
         ctx.data_mut(|d| d.insert_temp(egui::Id::new("window-corner"), corner));
-        theme::backdrop(&ctx.layer_painter(egui::LayerId::background()), ctx.content_rect(), corner, &t);
-        // The title bar is on every screen: it is how the window moves, resizes and closes.
-        egui::Panel::top("titlebar").exact_size(titlebar::HEIGHT).show_separator_line(false).frame(egui::Frame::new()).show(ui, |ui| {
-            guard_ui(ui, "title bar", |ui| titlebar::show(self, ui));
-        });
+        // A phone's backdrop fills the whole screen, under the system's bars too.
+        let backdrop = if phone { ctx.viewport_rect() } else { ctx.content_rect() };
+        theme::backdrop(&ctx.layer_painter(egui::LayerId::background()), backdrop, corner, &t);
+        // The title bar is on every screen: it is how the window moves, resizes and closes. A phone's
+        // window is the screen, so it has none.
+        if !phone {
+            egui::Panel::top("titlebar").exact_size(titlebar::HEIGHT).show_separator_line(false).frame(egui::Frame::new()).show(ui, |ui| {
+                guard_ui(ui, "title bar", |ui| titlebar::show(self, ui));
+            });
+        }
         self.stuck_banner(ui, &ctx);
         if !self.settings.first_run_done {
             egui::CentralPanel::default().frame(egui::Frame::new().inner_margin(egui::Margin { left: 8, right: 8, top: 0, bottom: 8 })).show(ui, |ui| {
                 theme::glass_card(ui.painter(), ui.max_rect(), theme::CARD_RADIUS, &t);
                 guard_ui(ui, "first run", |ui| first_run::show(self, ui))
             });
-            titlebar::window_edge(&ctx);
-            titlebar::resize_edges(&ctx);
+            if !phone {
+                titlebar::window_edge(&ctx);
+                titlebar::resize_edges(&ctx);
+            }
             return;
         }
 
-        if self.beginner() || self.state.screen != Screen::Workbench {
+        if phone {
+            egui::Panel::bottom("phone-nav")
+                .exact_size(phone::NAV_HEIGHT + 8.0)
+                .show_separator_line(false)
+                .frame(egui::Frame::new().inner_margin(egui::Margin { left: 8, right: 8, top: 0, bottom: 8 }))
+                .show(ui, |ui| {
+                    theme::glass_card(ui.painter(), ui.max_rect(), theme::CARD_RADIUS, &t);
+                    guard_ui(ui, "phone navigation", |ui| phone::nav_bar(self, ui))
+                });
+            egui::CentralPanel::default().frame(egui::Frame::new().inner_margin(egui::Margin { left: 8, right: 8, top: 8, bottom: 8 })).show(ui, |ui| {
+                theme::glass_card(ui.painter(), ui.max_rect(), theme::CARD_RADIUS, &t);
+                guard_ui(ui, "phone", |ui| match self.state.screen {
+                    Screen::Home | Screen::Workbench => home::show(self, ui),
+                    Screen::Ask => chat::ask_screen(self, ui),
+                    Screen::Project => project::show(self, ui),
+                    Screen::Models => models_ui::show(self, ui),
+                    Screen::Agent => agent_mode::show(self, ui),
+                })
+            });
+        } else if self.beginner() || self.state.screen != Screen::Workbench {
             egui::Panel::left("app-rail")
                 .exact_size(sidebar::RAIL + 8.0)
                 .resizable(false)
@@ -1607,8 +1634,10 @@ impl CraftApp {
         home::modals(self, &ctx);
         self.toasts(&ctx);
         self.drop_overlay(&ctx);
-        titlebar::window_edge(&ctx);
-        titlebar::resize_edges(&ctx);
+        if !phone {
+            titlebar::window_edge(&ctx);
+            titlebar::resize_edges(&ctx);
+        }
     }
 
     /// Messages float over the bottom of the window, newest at the bottom: the screen under them
@@ -1747,7 +1776,14 @@ pub fn guard_ui(ui: &mut egui::Ui, what: &str, f: impl FnOnce(&mut egui::Ui)) {
 
 impl eframe::App for CraftApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        self.show(ui);
+        // On a phone the window covers the whole screen, and the interface stays inside the area the
+        // system's bars leave.
+        if phone::is_phone(ui.ctx()) {
+            let inside = ui.ctx().content_rect();
+            ui.scope_builder(egui::UiBuilder::new().max_rect(inside), |ui| self.show(ui));
+        } else {
+            self.show(ui);
+        }
     }
 
     /// The window is transparent, so the rounded glass shows the desktop at its corners.

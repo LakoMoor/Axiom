@@ -197,7 +197,14 @@ fn choose_target(app: &mut CraftApp, ui: &mut Ui) {
     let website = local.is_none() && (d.editing_url || !d.url.is_empty());
     let scratch = local.is_none() && !website;
     let gap = 10.0;
-    let cols = if ui.available_width() > 760.0 { 4 } else { 2 };
+    // Two tiles a row is too tight for a phone, where the labels would break mid-word: one a row.
+    let cols = if ui.available_width() > 760.0 {
+        4
+    } else if crate::phone::is_phone(ui.ctx()) {
+        1
+    } else {
+        2
+    };
     let tile_w = ((ui.available_width() - gap * (cols as f32 - 1.0)) / cols as f32).floor();
     let size = Vec2::new(tile_w, 60.0);
     let mut pick = None;

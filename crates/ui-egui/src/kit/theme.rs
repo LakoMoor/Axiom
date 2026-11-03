@@ -281,6 +281,9 @@ pub fn install_fonts(ctx: &egui::Context) {
     for fam in [FontFamily::Proportional, FontFamily::Monospace] {
         fonts.families.entry(fam).or_default().extend(fallbacks.iter().cloned());
     }
+    // DM Sans has no arrows (→ ←); the code font does, so text falls back to it for them, after the
+    // language fallbacks so it never takes a letter from them.
+    fonts.families.entry(FontFamily::Proportional).or_default().push("JetBrainsMono".to_owned());
     let base: Vec<String> = fonts.families.get(&FontFamily::Proportional).cloned().unwrap_or_default();
     for (fam, primary) in [("medium", "DMSans-Medium"), ("semibold", "DMSans-Bold")] {
         let mut stack = vec![primary.to_owned()];
