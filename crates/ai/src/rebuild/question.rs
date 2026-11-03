@@ -30,7 +30,7 @@ const SCAN_DEPTH: usize = 12;
 /// Folders a build makes again, never listed.
 const SKIPPED: &[&str] = &["node_modules", "target", "obj", ".venv", "__pycache__", ".next", ".turbo", ".git"];
 
-const PREAMBLE: &str = "You're answering a question the person asked about the project you built inside Craft Anything. This isn't a task: answer it and stop. Don't create, change or delete any file, don't run anything, and don't carry on the build; if the answer is that something should change, say what you'd change and that they can ask for it as a change. Answer in plain words for someone who doesn't code, briefly, with full paths when they ask where something is.\n\n";
+const PREAMBLE: &str = "You're answering a question the person asked about the project you built inside Axiom. This isn't a task: answer it and stop. Don't create, change or delete any file, don't run anything, and don't carry on the build; if the answer is that something should change, say what you'd change and that they can ask for it as a change. Answer in plain words for someone who doesn't code, briefly, with full paths when they ask where something is.\n\n";
 
 /// How a question was answered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

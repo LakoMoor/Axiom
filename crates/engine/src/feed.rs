@@ -126,7 +126,7 @@ pub fn history(ws: &Workspace) -> Vec<FeedItem> {
 }
 
 /// Write the feed into the project folder (only one that exists; never creates one). A feed
-/// saved by a newer Craft Anything is never written over (docs/file-formats.md).
+/// saved by a newer Axiom is never written over (docs/file-formats.md).
 pub fn save(root: &Path, feed: &[FeedItem]) -> Result<(), ToolError> {
     if !root.is_dir() {
         return Ok(());
@@ -137,8 +137,8 @@ pub fn save(root: &Path, feed: &[FeedItem]) -> Result<(), ToolError> {
         .and_then(|v| v.get("version").and_then(Value::as_u64))
         .is_some_and(|v| v > u64::from(FEED_VERSION));
     if newer {
-        return Err(ToolError::new(ErrorCode::NotSupported, "This project's conversation was saved by a newer Craft Anything, so it isn't changed.")
-            .with_remediation("Update Craft Anything to keep its conversation up to date."));
+        return Err(ToolError::new(ErrorCode::NotSupported, "This project's conversation was saved by a newer Axiom, so it isn't changed.")
+            .with_remediation("Update Axiom to keep its conversation up to date."));
     }
     let json = serde_json::to_vec(&Saved { version: FEED_VERSION, items: feed.to_vec() }).map_err(|e| ToolError::internal(e.to_string()))?;
     crate::project::write_atomic(&root.join(FEED_FILE), &json)
@@ -207,7 +207,7 @@ mod tests {
         assert_eq!(asks(&load(&ws)), 1, "kept with its answer");
         record_answer(&ws, &question, "Minimal").unwrap();
         assert_eq!(asks(&load(&ws)), 1, "not twice");
-        // One from a newer Craft Anything is shown as far as we can, never written over.
+        // One from a newer Axiom is shown as far as we can, never written over.
         let newer = br#"{"version":99,"items":[{"User":"From the future"}],"extra":1}"#;
         std::fs::write(ws.root.join(FEED_FILE), newer).unwrap();
         assert!(save(&ws.root, &[FeedItem::User("x".into())]).is_err());

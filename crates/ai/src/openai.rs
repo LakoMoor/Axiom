@@ -18,7 +18,7 @@ pub const KIMI_K3: &str = "moonshotai/kimi-k3";
 pub const OPENROUTER_MODELS: &[&str] = &[OPENROUTER_DEFAULT_MODEL, KIMI_K3];
 /// Generic app identification for OpenRouter (no personal data).
 pub const APP_REFERER: &str = "https://github.com/storytold/craft-anything";
-pub const APP_TITLE: &str = "Craft Anything";
+pub const APP_TITLE: &str = "Axiom";
 
 /// Well-known local servers: (name, base URL).
 pub const LOCAL_SERVERS: &[(&str, &str)] = &[

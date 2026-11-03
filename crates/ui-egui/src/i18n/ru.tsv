@@ -1,0 +1,248 @@
+# Russian UI catalog: English key<TAB>Russian text. See i18n.rs. A string with no row is shown in English.
+Cancel	Отмена
+What can Axiom do?	Что умеет Axiom?
+How do I open an app?	Как открыть приложение?
+Is it safe to look inside programs?	Безопасно ли заглядывать внутрь программ?
+What does this program do?	Что делает эта программа?
+What does it send over the internet?	Что она отправляет в интернет?
+Is it safe to run?	Безопасно ли её запускать?
+Which files does it read or write?	Какие файлы она читает или записывает?
+What are its main parts?	Из каких основных частей она состоит?
+Does it talk to the internet?	Обращается ли она к интернету?
+What does this app do?	Что делает это приложение?
+What permissions does it ask for?	Какие разрешения она просит?
+Which servers does it talk to?	С какими серверами она общается?
+Does it track me?	Следит ли она за мной?
+How is this app built?	Как устроено это приложение?
+What's in this folder?	Что в этой папке?
+What kind of file is this?	Что это за файл?
+What is it	Что это
+Clean room	Чистая комната
+Nothing inside it is read.	Внутрь ничего не заглядывает.
+Deep	Глубокий
+Nothing open yet	Пока ничего не открыто
+Drop a file or app anywhere in this window.	Перетащите файл или приложение в любое место окна.
+Open an app or file	Открыть приложение или файл
+Try asking	Попробуйте спросить
+Explain like I'm new	Объяснять как новичку
+Plain words, short sentences, and every technical word explained.	Простые слова, короткие фразы, каждый термин объяснён.
+Export a report	Экспортировать отчёт
+Everything found so far, as a Markdown file.	Всё найденное на данный момент, файлом Markdown.
+Working on your answer	Готовлю ответ
+What would you like to know about {name}?	Что вы хотите узнать о {name}?
+What would you like to find out?	Что вы хотите выяснить?
+Ask in your own words. Every answer shows how sure we are, and the proof.	Спрашивайте своими словами. Каждый ответ показывает, насколько мы уверены, и доказательства.
+Ask the agent…	Спросите агента…
+Ask anything, e.g. "What does this program do?"	Спросите что угодно, например «Что делает эта программа?»
+Ask a question	Задать вопрос
+Stop	Стоп
+Answered by {name}	Ответил: {name}
+May I run "{title}"?	Можно запустить «{title}»?
+This runs code from the target or changes a device. Nothing runs until you say so.	Это запускает код из цели или меняет устройство. Ничего не запустится, пока вы не разрешите.
+Allow once	Разрешить один раз
+Always for this project	Всегда для этого проекта
+Don't allow	Не разрешать
+Allowed once.	Разрешено один раз.
+Allowed for this project.	Разрешено для этого проекта.
+Not allowed.	Не разрешено.
+Show me the proof	Показать доказательства
+Where we found it	Где мы это нашли
+What we couldn't check	Что мы не смогли проверить
+Looked at everything	Просмотрено всё
+Looked at part of it	Просмотрена часть
+Coverage unknown	Охват неизвестен
+The code	Код
+The raw result	Исходный результат
+Welcome	Добро пожаловать
+Purpose	Цель
+Ready	Готово
+Back	Назад
+Find out how any software works, then craft your own.	Узнайте, как устроено любое ПО, и создайте своё.
+I'm new to this	Я новичок
+Plain words, big buttons, and I'll explain everything.	Простые слова, крупные кнопки, всё объясню.
+Show me everything	Покажите всё
+Every tool as well: a workbench with functions, bytes, references and evidence.	И все инструменты: верстак с функциями, байтами, ссылками и доказательствами.
+Skip setup	Пропустить настройку
+Start with Simple mode; you can set up AI later in Settings.	Начните с простого режима; ИИ можно настроить позже в Настройках.
+Who builds what you make	Кто создаёт то, что вы делаете
+Looking for AI on this computer…	Ищу ИИ на этом компьютере…
+We didn't find an AI on this computer yet	На этом компьютере ИИ пока не найден
+No AI for now	Пока без ИИ
+The built-in engines still show you everything they find.	Встроенные движки всё равно покажут всё, что найдут.
+Continue	Продолжить
+Selected	Выбрано
+Use this	Использовать
+Connect	Подключить
+What brings you here?	Что вас сюда привело?
+Why we ask	Зачем мы спрашиваем
+You're all set	Всё готово
+the built-in engines	встроенные движки
+Let's go	Поехали
+Saved in	Сохранится в
+Change	Изменить
+Choose a folder…	Выбрать папку…
+Got it	Понятно
+Look at a website	Посмотреть сайт
+Website address	Адрес сайта
+Open it	Открыть
+Open something	Открыть что-нибудь
+Version	Версия
+Close	Закрыть
+Done	Готово
+Not now	Не сейчас
+Save	Сохранить
+Remove	Убрать
+Download	Скачать
+Settings	Настройки
+Reset	Сбросить
+Language	Язык
+System	Системный
+Theme	Тема
+General	Общие
+Engines	Движки
+Builds	Сборки
+Plugins	Плагины
+Safety	Безопасность
+Mode	Режим
+Simple	Простой
+Advanced	Расширенный
+Recreate it with darker colours	Воссоздать в более тёмных цветах
+Make my own version of this app	Сделать свою версию этого приложения
+Recreate just its main feature	Воссоздать только главную функцию
+Make a game that plays like this	Сделать игру, похожую на эту
+Make a simpler version of this game	Сделать упрощённую версию этой игры
+A website for my bakery	Сайт для моей пекарни
+A simple snake game	Простая игра «Змейка»
+Make my own version	Сделать свою версию
+Just look inside	Просто заглянуть внутрь
+What do you want to make?	Что вы хотите сделать?
+What do you want to build?	Что вы хотите создать?
+Say it in your own words. Pick something to copy below, or start fresh.	Расскажите своими словами. Выберите ниже, что скопировать, или начните с нуля.
+What do you want to recreate?	Что вы хотите воссоздать?
+Say what you want	Скажите, что вы хотите
+For example: the same game, with a high-score table	Например: та же игра, но с таблицей рекордов
+For example: the same app, but simpler	Например: то же приложение, но проще
+For example: recreate this website	Например: воссоздать этот сайт
+For example: a website for my bakery	Например: сайт для моей пекарни
+Add pictures of the original (optional: screenshots help it look right)	Добавьте картинки оригинала (необязательно: скриншоты помогают добиться сходства)
+Start	Начать
+Say what you want first.	Сначала скажите, что вы хотите.
+What do you want to look inside?	Во что вы хотите заглянуть?
+We only read it; nothing runs. Every answer shows how sure we are.	Мы только читаем; ничего не запускается. Каждый ответ показывает, насколько мы уверены.
+An app or a file	Приложение или файл
+See how a program works: what it does, what it talks to, what's inside.	Узнайте, как работает программа: что делает, с чем общается, что внутри.
+A website	Сайт
+See how a page is built: its layout, styles, scripts and the requests it makes.	Узнайте, как устроена страница: вёрстка, стили, скрипты и запросы.
+An app	Приложение
+A game	Игра
+Nothing — start fresh	Ничего — начать с нуля
+How closely may Axiom look at it?	Насколько глубоко Axiom может это изучать?
+Ideas:	Идеи:
+just now	только что
+{n} min ago	{n} мин назад
+{n} h ago	{n} ч назад
+{n} days ago	{n} дн. назад
+yesterday	вчера
+Needs you	Нужны вы
+Waiting	Ожидает
+Interrupted	Прервано
+Rename…	Переименовать…
+Duplicate	Дублировать
+Delete…	Удалить…
+Rename	Переименовать
+Delete it	Удалить
+Keep it	Оставить
+Open a file…	Открыть файл…
+Open a folder or app bundle…	Открыть папку или пакет приложения…
+Go home	На главную
+Run	Запустить
+Pinned	Закреплено
+Running	Работает
+Open	Открыть
+Open folder	Открыть папку
+Plan	План
+Progress	Ход работы
+Try again	Повторить
+Paused	Приостановлено
+Details	Подробности
+Send	Отправить
+Original	Оригинал
+Your version	Ваша версия
+Pause	Пауза
+Change it	Изменить
+Just ask	Только спросить
+Ask me	Спрашивать меня
+Decide yourself	Решай сам
+Builder's questions:	Вопросы сборщика:
+Enter to send · Shift+Enter for a new line	Enter — отправить · Shift+Enter — новая строка
+Send (Enter)	Отправить (Enter)
+Ask for a change	Попросить об изменении
+Ask for a change, e.g. "make the header blue" or "add a contact form"	Попросите об изменении, например «сделай заголовок синим» или «добавь форму обратной связи»
+Attach pictures (or drop them here)	Прикрепить картинки (или перетащить сюда)
+Built by	Собирает
+Show the sidebar	Показать боковую панель
+Fold the sidebar	Свернуть боковую панель
+New project	Новый проект
+Workbench	Верстак
+Look for projects again	Искать проекты заново
+Projects	Проекты
+Nothing made yet. What you make shows up here.	Пока ничего не создано. Здесь появится то, что вы сделаете.
+Functions	Функции
+Strings	Строки
+Resources	Ресурсы
+Hex	Hex
+Network	Сеть
+Result	Результат
+Home	Главная
+Restore	Восстановить
+Maximise	Развернуть
+Minimise	Свернуть
+Seen it: read directly from the file, page or capture.	Видели: прочитано прямо из файла, страницы или записи.
+Worked it out: computed step by step from things we saw.	Вывели: вычислено по шагам из увиденного.
+Best guess: a reasonable reading, but not proven.	Предположение: разумное толкование, но не доказанное.
+Unknown: we couldn't establish this yet.	Неизвестно: пока не удалось установить.
+Open…	Открыть…
+Loading…	Загрузка…
+Nothing found	Ничего не найдено
+Inspector	Инспектор
+Evidence	Доказательства
+Target	Цель
+Size	Размер
+Path	Путь
+Jobs	Задачи
+Agent	Агент
+Log	Журнал
+Clear finished	Убрать завершённые
+Models	Модели
+AI that runs on this computer, so nothing you write leaves it.	ИИ, который работает на этом компьютере, поэтому ничего из написанного вами не уходит наружу.
+AI that runs on this computer, so nothing you write leaves it. Memory here: {gb} GB.	ИИ, который работает на этом компьютере, поэтому ничего из написанного вами не уходит наружу. Память здесь: {gb} ГБ.
+Recommended	Рекомендуемые
+Search	Поиск
+On this computer	На этом компьютере
+Looking…	Смотрю…
+Searching…	Ищу…
+Downloading…	Скачиваю…
+Search Hugging Face, e.g. qwen or coder	Поиск на Hugging Face, например qwen или coder
+Back to results	Назад к результатам
+No single-file models here.	Здесь нет моделей из одного файла.
+Fits well	Хорошо подходит
+Tight fit	Впритык
+Too big for this computer	Слишком велика для этого компьютера
+Memory unknown	Память неизвестна
+Downloaded	Скачана
+Loading the model… this can take a minute.	Загружаю модель… это может занять минуту.
+Delete this model from the computer	Удалить эту модель с компьютера
+No models yet	Моделей пока нет
+Download one from Recommended or Search.	Скачайте одну из рекомендуемых или найдите через поиск.
+Models on this computer…	Модели на этом компьютере…
+Built-in engines	Встроенные движки
+Forget this chat	Забыть этот чат
+Chats	Чаты
+downloads	загрузок
+likes	лайков
+The model is running. Pick it in the AI list.	Модель запущена. Выберите её в списке ИИ.
+Downloaded.	Скачано.
+Deep mode	Глубокий режим
+Clean room mode	Режим «чистая комната»
+Deep mode: tools may look inside the original. Click for Clean room.	Глубокий режим: инструменты могут заглядывать внутрь оригинала. Нажмите, чтобы включить «чистую комнату».
+Clean room: nothing inside the original is read. Click for Deep mode.	Чистая комната: внутрь оригинала ничего не читается. Нажмите, чтобы включить глубокий режим.

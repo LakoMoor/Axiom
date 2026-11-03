@@ -144,7 +144,7 @@ pub fn delete_modal(app: &mut CraftApp, ui: &mut Ui, root: &Path, close: &mut bo
     // What goes and what stays, in so many words: it can't be undone.
     let m = &ws.manifest;
     let what = if m.app_in_root || !m.start_files.is_empty() {
-        tr("Craft Anything's records, checks and anything it built in app/ are deleted. Your own files in the folder stay as they are.")
+        tr("Axiom's records, checks and anything it built in app/ are deleted. Your own files in the folder stay as they are.")
     } else {
         tr("Its folder is deleted with everything in it: what was built, the checks and the conversation.")
     };

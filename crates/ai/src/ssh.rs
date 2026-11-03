@@ -56,7 +56,7 @@ const SSH_FAILURES: &[(&str, &str, &str)] = &[
         "the computer accepted the login but wouldn't start the program",
         "Check that this computer lets you run programs over ssh and hasn't run out of processes or memory.",
     ),
-    ("permission denied", "the login was refused", "Set up an ssh key or agent for this computer; Craft Anything can't type a password."),
+    ("permission denied", "the login was refused", "Set up an ssh key or agent for this computer; Axiom can't type a password."),
     ("host key verification failed", "this computer's identity isn't trusted yet", "Connect once from a terminal and accept its host key."),
     ("could not resolve hostname", "that computer's name wasn't found", "Check the name in Settings → AI and in ~/.ssh/config."),
     ("connection refused", "the computer refused the connection", "Check that its ssh server is running and the port is right."),

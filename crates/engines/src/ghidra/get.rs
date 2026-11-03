@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 /// Ghidra's engine id, as the engine table, Settings and every listing name it.
 pub const ID: &str = "ghidra";
-/// The Ghidra release Craft Anything installs (it needs Java 21).
+/// The Ghidra release Axiom installs (it needs Java 21).
 pub const VERSION: &str = "12.1.4";
 /// What the person downloads, for the question we ask first (Ghidra 543 MB + Java 196 MB).
 pub const DOWNLOAD_MB: u32 = 740;

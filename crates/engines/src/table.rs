@@ -1,4 +1,4 @@
-//! The external engine table: one typed entry per optional program Craft Anything can use.
+//! The external engine table: one typed entry per optional program Axiom can use.
 //!
 //! Everything about an engine lives in its entry: the id, the name people see, the executables to
 //! look for on each OS, standard install folders, what it is needed for, and how it gets installed
@@ -85,7 +85,7 @@ pub struct ExternalEngine {
     pub id: &'static str,
     /// The name people see ("Install {name} from Settings → Engines").
     pub name: &'static str,
-    /// What Craft Anything uses it for, in a few plain words.
+    /// What Axiom uses it for, in a few plain words.
     pub needed_for: &'static str,
     /// Executable names on macOS and Linux, preferred first.
     pub exes: &'static [&'static str],
@@ -252,6 +252,60 @@ const JADX_PINS: &[Pin] = &[Pin {
     strip_prefix: None,
 }];
 
+/// llama.cpp b12048: its `llama-server` runs a local model behind an OpenAI-compatible address.
+/// SHA-256 as published in the GitHub release's asset digests (CPU builds; the GPU builds are
+/// separate downloads, so these run anywhere).
+const LLAMA_SERVER_PINS: &[Pin] = &[
+    Pin {
+        os: Some("macos"),
+        arch: Some("aarch64"),
+        url: "https://github.com/ggml-org/llama.cpp/releases/download/b12048/llama-b12048-bin-macos-arm64.tar.gz",
+        sha256: "f33ec9aba55f532a00bd8ce8f5bbcaf39258ba033e3997fdda71df945ef8c75a",
+        format: ArchiveFormat::TarGz,
+        strip_prefix: Some("llama-b12048/"),
+    },
+    Pin {
+        os: Some("macos"),
+        arch: Some("x86_64"),
+        url: "https://github.com/ggml-org/llama.cpp/releases/download/b12048/llama-b12048-bin-macos-x64.tar.gz",
+        sha256: "0f69eb85413aa8f9c179bc097b18882e0673f50a960fb3e61d5c6e758fbc2b6a",
+        format: ArchiveFormat::TarGz,
+        strip_prefix: Some("llama-b12048/"),
+    },
+    Pin {
+        os: Some("linux"),
+        arch: Some("x86_64"),
+        url: "https://github.com/ggml-org/llama.cpp/releases/download/b12048/llama-b12048-bin-ubuntu-x64.tar.gz",
+        sha256: "e78c976f183f15d860fd94ada1b8d0ea248650dfd87de658a7a709d6fbd13e10",
+        format: ArchiveFormat::TarGz,
+        strip_prefix: Some("llama-b12048/"),
+    },
+    Pin {
+        os: Some("linux"),
+        arch: Some("aarch64"),
+        url: "https://github.com/ggml-org/llama.cpp/releases/download/b12048/llama-b12048-bin-ubuntu-arm64.tar.gz",
+        sha256: "2ba0692e7b8ba36a2fffa2530a86f9e3e702c1c48fcfa6e7cd2bafbb87ac9226",
+        format: ArchiveFormat::TarGz,
+        strip_prefix: Some("llama-b12048/"),
+    },
+    Pin {
+        os: Some("windows"),
+        arch: Some("x86_64"),
+        url: "https://github.com/ggml-org/llama.cpp/releases/download/b12048/llama-b12048-bin-win-cpu-x64.zip",
+        sha256: "e05b3d640ddc44a4cc8f032c262aceedaec1252a398bee8f4246b1bffaf161be",
+        format: ArchiveFormat::Zip,
+        strip_prefix: None,
+    },
+    Pin {
+        os: Some("windows"),
+        arch: Some("aarch64"),
+        url: "https://github.com/ggml-org/llama.cpp/releases/download/b12048/llama-b12048-bin-win-cpu-arm64.zip",
+        sha256: "eab30e36b247bd8b84b024e1f570e2a598d08e27f282b953e4bbb4055375d2d3",
+        format: ArchiveFormat::Zip,
+        strip_prefix: None,
+    },
+];
+
 /// Ghidra 12.1.4 (any OS), as published in Ghidra's release notes. Installed by `ghidra::get`.
 const GHIDRA_PINS: &[Pin] = &[Pin {
     os: None,
@@ -343,6 +397,16 @@ pub const ENGINES: &[ExternalEngine] = &[
         known_paths: NO_PATHS,
         path_setting: true,
         install: Install::Pinned(ADB_PINS),
+    },
+    ExternalEngine {
+        id: "llamaserver",
+        name: "llama.cpp server",
+        needed_for: "Running local models from the models hub",
+        exes: &["llama-server"],
+        exes_windows: &["llama-server.exe"],
+        known_paths: NO_PATHS,
+        path_setting: true,
+        install: Install::Pinned(LLAMA_SERVER_PINS),
     },
     ExternalEngine {
         id: "jadx",

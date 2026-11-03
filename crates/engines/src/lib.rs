@@ -20,6 +20,7 @@ pub mod table;
 #[cfg(feature = "wasm-plugins")]
 pub mod wasm_plugin;
 
+pub use ghidra::machine_memory_gb;
 pub use table::{ArchiveFormat, ENGINES, ExternalEngine, Install, Pin};
 
 use std::path::{Path, PathBuf};

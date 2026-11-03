@@ -24,7 +24,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 pub static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Parser)]
-#[command(name = "craft-anything-cli", version, about = "Craft Anything on the command line: every tool, the MCP server, setup and doctor.")]
+#[command(name = "craft-anything-cli", version, about = "Axiom on the command line: every tool, the MCP server, setup and doctor.")]
 #[command(after_help = "Every tool is also a subcommand: `craft-anything-cli commands` lists them, `craft-anything-cli <tool> --help` shows its options.\n\
 When a tool has its own --format option (core-target-open, ...), --format after the tool name goes to the tool; pick the output with --output-format (or --format before the tool name). `report` has no format option of its own: use `report --html` for HTML.")]
 pub struct Cli {
@@ -58,15 +58,15 @@ pub enum Command {
         #[arg(long)]
         all_tools: bool,
         /// A folder where questions and approvals for the person are posted (`core_person_ask`,
-        /// `core_action_approve`); the Craft Anything app answers them.
+        /// `core_action_approve`); the Axiom app answers them.
         #[arg(long)]
         inbox: Option<PathBuf>,
     },
-    /// Connect Craft Anything to your coding-agent apps.
+    /// Connect Axiom to your coding-agent apps.
     Setup(setup_cmd::SetupArgs),
     /// Check the install, registrations, engines, AI backends and the MCP server.
     Doctor(setup_cmd::DoctorArgs),
-    /// Remove Craft Anything's registrations and skill from agent apps.
+    /// Remove Axiom's registrations and skill from agent apps.
     Uninstall(setup_cmd::UninstallArgs),
     /// List every tool.
     Commands,

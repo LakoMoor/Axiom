@@ -9,7 +9,7 @@ use craft_anything_engine::mechanics::{self, MechanicValue, SheetProblem};
 use std::collections::HashSet;
 
 /// What every game brief asks for, so the check can read the numbers.
-pub const MECHANICS_CONTRACT: &str = "Keep the same values in app/mechanics.json, which Craft Anything reads after each build: {\"version\": 1, \"values\": [{\"name\": \"walk speed\", \"group\": \"movement\", \"value\": 4.5, \"unit\": \"m/s\", \"source\": \"function 0x140012a0\"}, {\"name\": \"crouch\", \"group\": \"controls\", \"value\": \"hold\", \"estimated\": true}]}. A value is a number, text or true/false; give each one its source or \"estimated\": true, and use the sheet's numbers in the code as they're written there.";
+pub const MECHANICS_CONTRACT: &str = "Keep the same values in app/mechanics.json, which Axiom reads after each build: {\"version\": 1, \"values\": [{\"name\": \"walk speed\", \"group\": \"movement\", \"value\": 4.5, \"unit\": \"m/s\", \"source\": \"function 0x140012a0\"}, {\"name\": \"crouch\", \"group\": \"controls\", \"value\": \"hold\", \"estimated\": true}]}. A value is a number, text or true/false; give each one its source or \"estimated\": true, and use the sheet's numbers in the code as they're written there.";
 
 /// At most this many names are listed in a note.
 const LISTED: usize = 8;
@@ -93,7 +93,7 @@ fn problem_note(p: &SheetProblem) -> String {
         SheetProblem::Missing => "There's no app/mechanics.json yet.".into(),
         SheetProblem::TooLarge => format!("app/mechanics.json is over {} KB: keep it to the values that shape play.", mechanics::MAX_BYTES / 1024),
         SheetProblem::Unreadable(why) => format!("app/mechanics.json can't be read: {why}."),
-        SheetProblem::Newer(v) => format!("app/mechanics.json says version {v}; this Craft Anything reads version {}.", mechanics::MECHANICS_VERSION),
+        SheetProblem::Newer(v) => format!("app/mechanics.json says version {v}; this Axiom reads version {}.", mechanics::MECHANICS_VERSION),
         SheetProblem::Empty => "app/mechanics.json has no values.".into(),
     }
 }

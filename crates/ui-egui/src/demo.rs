@@ -128,6 +128,8 @@ pub fn app(engine: Arc<Engine>) -> CraftApp {
     let mut app = CraftApp::new(engine, hub);
     app.persist = false;
     app.headless = true;
+    // Pictures and tests show a made-up folder, never the real home folder.
+    app.settings.projects_dir = Some(PathBuf::from("/home/me/Axiom"));
     app.backends = vec![BackendConfig {
         name: "Claude".into(),
         kind: BackendKind::Anthropic,
@@ -140,9 +142,64 @@ pub fn app(engine: Arc<Engine>) -> CraftApp {
     app
 }
 
+/// The models hub with sample data (no tools are called).
+pub fn fill_models(app: &mut CraftApp) {
+    use serde_json::json;
+    app.state.screen = Screen::Models;
+    let m = &mut app.models;
+    m.asked = true;
+    m.memory_gb = Some(24);
+    let g = 1u64 << 30;
+    let rows = [
+        ("qwen3-8b", "Qwen3 8B", "Alibaba", "chat", "Qwen3-8B-Q4_K_M.gguf", 5 * g, "comfortable", true, "The sweet spot for a computer with 16 GB of memory."),
+        (
+            "qwen3-14b",
+            "Qwen3 14B",
+            "Alibaba",
+            "chat",
+            "Qwen3-14B-Q4_K_M.gguf",
+            9 * g,
+            "tight",
+            false,
+            "Noticeably more capable; wants 24 GB of memory or more.",
+        ),
+        (
+            "qwen2.5-coder-7b",
+            "Qwen2.5 Coder 7B",
+            "Alibaba",
+            "code",
+            "Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
+            4 * g,
+            "comfortable",
+            false,
+            "Writes and fixes code well on a 16 GB computer.",
+        ),
+        (
+            "llama-3.2-3b",
+            "Llama 3.2 3B",
+            "Meta",
+            "chat",
+            "Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+            2 * g,
+            "comfortable",
+            false,
+            "A good everyday model for a laptop.",
+        ),
+    ];
+    m.recommended = rows
+        .iter()
+        .map(|r| json!({"id": r.0, "title": r.1, "maker": r.2, "focus": r.3, "file": r.4, "size_bytes": r.5, "fit": r.6, "downloaded": r.7, "about": r.8}))
+        .collect();
+    m.running.insert("Qwen3-8B-Q4_K_M.gguf".into());
+}
+
 /// A conversation that shows every kind of chat item.
 pub fn fill_ask(app: &mut CraftApp) {
     deep(app);
+    for q in ["Which files does it read or write?", "What does it send over the internet?"] {
+        app.state.chat = vec![ChatItem::User(q.into()), ChatItem::Assistant { text: "…".into(), backend: None, streaming: false }];
+        app.archive_chat();
+    }
     app.state.screen = Screen::Ask;
     app.state.backend = Some("Claude".into());
     app.state.chat = vec![
@@ -216,7 +273,7 @@ pub fn detected() -> Vec<Detected> {
 fn workspace(slug: &str, name: &str, request: &str, target: TargetRef, status: Status, age_min: u64) -> Workspace {
     let at = craft_anything_engine::inbox::now_ms().saturating_sub(age_min * 60_000);
     Workspace {
-        root: PathBuf::from(format!("/demo/Craft Anything/{slug}")),
+        root: PathBuf::from(format!("/demo/Axiom/{slug}")),
         manifest: Manifest {
             version: craft_anything_engine::workspace::MANIFEST_VERSION,
             name: name.into(),
@@ -312,6 +369,38 @@ pub fn fill_project(app: &mut CraftApp) {
         open_questions: vec!["May the original's logo and text be reused, or must they be placeholders?".into()],
         ..Default::default()
     };
+    // What the latest run changed, so the Changes card has something to show.
+    {
+        use craft_anything_engine::changes::{Change, DiffLine, Kind, Report};
+        let l = |op: char, text: &str| DiffLine { op, text: text.into() };
+        app.facts.root = ws.root.clone();
+        app.changes.root = ws.root.clone();
+        app.changes.open.insert("src/main.rs".into());
+        app.changes.report = Report {
+            has_baseline: true,
+            truncated: false,
+            changes: vec![
+                Change {
+                    path: "src/main.rs".into(),
+                    kind: Kind::Modified,
+                    added: 3,
+                    removed: 1,
+                    binary: false,
+                    truncated: false,
+                    lines: vec![
+                        l(' ', "fn main() {"),
+                        l('-', "    println!(\"Hello\");"),
+                        l('+', "    let name = std::env::args().nth(1);"),
+                        l('+', "    println!(\"Hello, {}\", name.unwrap_or_default());"),
+                        l('+', "    run();"),
+                        l(' ', "}"),
+                    ],
+                },
+                Change { path: "styles.css".into(), kind: Kind::Added, added: 42, removed: 0, binary: false, truncated: false, lines: Vec::new() },
+                Change { path: "old.html".into(), kind: Kind::Deleted, added: 0, removed: 18, binary: false, truncated: false, lines: Vec::new() },
+            ],
+        };
+    }
     app.workspace = Some(ws);
     app.state.screen = Screen::Project;
 }

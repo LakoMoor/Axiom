@@ -289,7 +289,7 @@ fn file_versions() {
     }
     let newer = parse_standin(br#"{"version": 2, "routes": [], "from_the_future": true}"#).unwrap_err();
     assert_eq!(newer.code, ErrorCode::NotSupported);
-    assert!(newer.remediation.as_deref().unwrap_or_default().contains("Update Craft Anything"), "{newer:?}");
+    assert!(newer.remediation.as_deref().unwrap_or_default().contains("Update Axiom"), "{newer:?}");
 }
 
 #[test]

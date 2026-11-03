@@ -27,7 +27,7 @@ pub fn specs() -> Vec<ToolSpec> {
             "engines_jeb_check",
             "Check the JEB connection",
             "Connect to the user-run JEB MCP server set in Settings → Engines (jeb_url, loopback only), report its server information, upstream tools and client information. Never starts JEB.",
-            "Check that Craft Anything can talk to your running JEB.",
+            "Check that Axiom can talk to your running JEB.",
             Toolset::Android,
             Effects::NETWORK_EVIDENCE,
             Requires::Nothing,

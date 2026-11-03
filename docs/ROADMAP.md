@@ -1236,11 +1236,20 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
 - [ ] Remove what is left of the old game-engine wording: the `unity` hint in `formats::hints`,
       the `game_root` folder names in `ai/rebuild/locate.rs`, the Chinese/Japanese/Korean READMEs,
       and the engine items in earlier milestones of this file
-- [ ] Rename the display name to Axiom in the UI, the CLI, the MCP server and the packages (keep
+- [x] Rename the display name to Axiom in the UI, the CLI, the MCP server and the packages (keep
       the `craft-anything-*` machine names); release files are named `axiom-<ver>-…`
-- [ ] A chat-first interface in the style of the ChatGPT and Codex apps: icon rail, projects and
-      chats in the sidebar, a centred chat column, a composer with model and mode choices
-- [ ] A hub of local models: search and download from Hugging Face, recommended models for this
-      computer, one-click start of a local server, and a model picker in the composer
-- [ ] Rewrite the website text (English and Russian) to match
+- [x] Chat-first Home and composer in the style of the ChatGPT app: a centred question, a big box
+      with send and a model chip, the choices as a quiet row under it
+- [x] Chats listed in the sidebar (questions and answers, kept across restarts); mode chip
+- [x] A Changes card in a project's side panel: files the latest run added, changed or deleted,
+      with a line diff (`project_changes_show`)
+- [x] Icon rail: the folded sidebar keeps New project, Models, projects and Settings as icons with
+      their names on hover (chats appear only when it's open)
+- [x] Hub of local models, engine side: `models_*` tools (recommended list with memory fit, Hugging
+      Face search, checked downloads, run through the pinned llama.cpp server, added as an AI)
+- [x] Hub of local models, screen: Models page with recommended cards (memory fit), Hugging Face
+      search, downloads with progress, run/stop/delete (CLI: `craft-anything-cli models_…`)
+- [x] Model picker in the composer; live run on macOS arm64 with Llama 3.2 1B (the extractor now
+      copies links to files beside them, which llama.cpp's libraries need). Not yet run on Linux/Windows
+- [x] Rewrite the website text (English and Russian) to match (models section made honest)
 - [ ] Check the mechanics-sheet and self-test checks of Rust games on a real run

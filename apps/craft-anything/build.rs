@@ -13,9 +13,9 @@ fn main() {
     }
     let mut res = winresource::WindowsResource::new();
     res.set_icon("../../assets/app-icon/craft-anything.ico")
-        .set("ProductName", "Craft Anything")
-        .set("FileDescription", "Craft Anything: find out how any software works")
-        .set("LegalCopyright", "Copyright (c) the ArtCraft Team and the Craft Anything contributors. MIT OR Apache-2.0.")
+        .set("ProductName", "Axiom")
+        .set("FileDescription", "Axiom: find out how any software works")
+        .set("LegalCopyright", "Copyright (c) the ArtCraft Team and the Axiom contributors. MIT OR Apache-2.0.")
         .set("OriginalFilename", "craft-anything.exe")
         .set("InternalName", "craft-anything");
     if let Err(e) = res.compile() {

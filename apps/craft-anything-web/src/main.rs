@@ -1,4 +1,4 @@
-//! Craft Anything in the browser: a small viewer that tells you what a file is.
+//! Axiom in the browser: a small viewer that tells you what a file is.
 //!
 //! It runs only the wasm-safe crates (formats, analysis, evidence), entirely in the page: the file
 //! never leaves the browser. Native programs (ELF, PE, Mach-O, DOS) get the same plain-English

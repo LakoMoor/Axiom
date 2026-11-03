@@ -1,4 +1,4 @@
-//! Render the Craft Anything UI offscreen (no window) and save PNGs of the main screens.
+//! Render the Axiom UI offscreen (no window) and save PNGs of the main screens.
 //!
 //! ```sh
 //! cargo run -p craft-anything-ui-egui --example snapshot -- --out-dir target/snapshots [--scale 2] [--light] [--only NAME] [--width 1440] [--height 900] [--lang fr]
@@ -107,6 +107,13 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_secs(30));
                 Err(String::new())
             });
+            a
+        });
+    }
+    if want("models-hub") {
+        render(&out, "models-hub", w, h, scale, || {
+            let mut a = demo::app(demo::engine(Mode::Beginner, true));
+            demo::fill_models(&mut a);
             a
         });
     }

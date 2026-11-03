@@ -7,7 +7,7 @@ use crate::state::MakeDraft;
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, Pick, icons, widgets};
 use craft_anything_engine::workspace::{Status, TargetRef};
-use egui::{Margin, RichText, Sense, Ui, Vec2};
+use egui::{Margin, RichText, Ui, Vec2};
 
 const SUGGESTIONS_WEB: &[&str] = &["Recreate this website", "Recreate it with darker colours"];
 const SUGGESTIONS_APP: &[&str] = &["Make my own version of this app", "Recreate just its main feature"];
@@ -71,27 +71,20 @@ pub fn hero(app: &mut CraftApp, ui: &mut Ui, w: f32) {
         look(app, ui, w);
         return;
     }
-    ui.label(theme::heading(tr("What do you want to make?"), theme::TITLE));
-    ui.add_space(6.0);
-    ui.label(RichText::new(tr("Choose what to recreate, say what you want, then press Start.")).size(theme::LEAD).color(t.text_dim));
-    ui.add_space(16.0);
-    widgets::card(&t).inner_margin(Margin::same(20)).show(ui, |ui| {
-        ui.set_width(w - 50.0);
-        step_title(ui, 1, "What do you want to recreate?");
-        ui.add_space(12.0);
-        choose_target(app, ui);
-        // How closely the original may be looked at, once there is one.
+    // ChatGPT-like: a centred question, the box right under it, the choices as a quiet row.
+    ui.vertical_centered(|ui| {
+        ui.add_space(28.0);
+        ui.label(theme::heading(tr("What do you want to build?"), theme::TITLE + 6.0));
+        ui.add_space(6.0);
+        ui.label(RichText::new(tr("Say it in your own words. Pick something to copy below, or start fresh.")).size(theme::LEAD).color(t.text_dim));
+        ui.add_space(22.0);
+    });
+    let col = (w - 50.0).min(760.0);
+    ui.vertical_centered(|ui| {
+        ui.set_width(col);
         let d = &app.state.make;
-        if matches!(d.target, TargetRef::Local { .. }) || d.editing_url || !d.url.is_empty() {
-            ui.add_space(14.0);
-            look_inside(app, ui);
-        }
-        ui.add_space(20.0);
-        step_title(ui, 2, "Say what you want");
-        ui.add_space(12.0);
-        // The example matches the tile picked above (a "recreate this website" hint under
-        // "Nothing — start fresh" contradicts the choice).
-        let d = &app.state.make;
+        // The example matches the choice below (a "recreate this website" hint under "Nothing —
+        // start fresh" contradicts it).
         let hint = match &d.target {
             TargetRef::Local { .. } if d.game => "For example: the same game, with a high-score table",
             TargetRef::Local { .. } => "For example: the same app, but simpler",
@@ -101,6 +94,8 @@ pub fn hero(app: &mut CraftApp, ui: &mut Ui, w: f32) {
         };
         // Websites are photographed for the builder; anything else looks right from pictures.
         let website = matches!(resolve_target(d), TargetRef::Website { .. }) || d.editing_url;
+        let names: Vec<String> = app.backends.iter().filter(|b| b.enabled).map(|b| b.name.clone()).collect();
+        let ready = !app.state.make.request.trim().is_empty() && url_problem(&app.state.make.url).is_none() && app.creating.is_none();
         let out = crate::prompt_box::show(
             ui,
             &mut app.state.make.request,
@@ -108,46 +103,61 @@ pub fn hero(app: &mut CraftApp, ui: &mut Ui, w: f32) {
             crate::prompt_box::PromptBox {
                 name: "Say what you want",
                 hint: tr(hint),
-                rows: (3, 10),
+                rows: (2, 10),
                 attach: (!website).then_some("Add pictures of the original (optional: screenshots help it look right)"),
                 stop_button: None,
-                send: false,
+                send: true,
                 recall: false,
                 history: None,
                 font_size: theme::LEAD,
+                choices: Some((&names, app.state.backend.as_deref())),
+                deep: Some(app.settings.deep_mode),
             },
         );
+        if out.flip_mode {
+            app.set_deep(!app.settings.deep_mode);
+        }
+        if let Some(n) = out.choose.clone() {
+            app.choose_backend(Some(n));
+        }
+        if out.open_models {
+            app.state.screen = crate::state::Screen::Models;
+        }
         if let Some(i) = out.remove {
             app.state.make.pictures.remove(i);
         }
         if out.attach {
             app.pick(Pick::Pictures);
         }
-        let submit = out.send;
+        if out.send && ready {
+            app.start_make();
+        }
+        ui.add_space(14.0);
         if app.state.make.request.trim().is_empty() {
-            ui.add_space(10.0);
             suggestions(app, ui);
+            ui.add_space(10.0);
         }
-        if is_game(&app.kinds, &app.state.make) {
-            ui.add_space(22.0);
-            let on = app.state.make.generate_assets;
-            crate::engine_ui::assets_toggle(app, ui, on);
-        }
-        ui.add_space(16.0);
-        ui.horizontal(|ui| {
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            widgets::caption(ui, "What do you want to recreate?");
+            ui.add_space(8.0);
+            choose_target(app, ui);
+            // How closely the original may be looked at, once there is one.
+            let d = &app.state.make;
+            if matches!(d.target, TargetRef::Local { .. }) || d.editing_url || !d.url.is_empty() {
+                ui.add_space(14.0);
+                look_inside(app, ui);
+            }
+            if is_game(&app.kinds, &app.state.make) {
+                ui.add_space(18.0);
+                let on = app.state.make.generate_assets;
+                crate::engine_ui::assets_toggle(app, ui, on);
+            }
+            ui.add_space(16.0);
             crate::builders::built_by(app, ui);
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let ready = !app.state.make.request.trim().is_empty() && url_problem(&app.state.make.url).is_none() && app.creating.is_none();
-                let start = widgets::primary_sized(ui, Some("sparkles"), "Start", ready, 50.0, 14.0);
-                let start = if ready { start } else { start.on_disabled_hover_text(tr("Say what you want first.")) };
-                if (start.clicked() || submit) && ready {
-                    app.start_make();
-                }
-            });
+            // Where it's saved: secondary, so last.
+            ui.add_space(8.0);
+            crate::folders::make_line(app, ui);
         });
-        // Where it's saved: secondary to Start, so under it.
-        ui.add_space(10.0);
-        crate::folders::make_line(app, ui);
     });
 }
 
@@ -177,19 +187,6 @@ fn look(app: &mut CraftApp, ui: &mut Ui, w: f32) {
         {
             app.state.modal = Some(crate::state::Modal::Website);
         }
-    });
-}
-
-/// "1  What do you want to recreate?" — a numbered circle and a plain question.
-fn step_title(ui: &mut Ui, n: u32, text: &str) {
-    let t = Tokens::get(ui.ctx());
-    ui.horizontal(|ui| {
-        let (r, _) = ui.allocate_exact_size(Vec2::splat(28.0), Sense::hover());
-        ui.painter().rect(r, r.width() / 2.0, t.raised, egui::Stroke::new(1.0, t.card_border), egui::StrokeKind::Inside);
-        let g = widgets::label_galley(ui, &n.to_string(), 13.0, t.text);
-        ui.painter().galley_with_override_text_color(r.center() - g.size() / 2.0, g, t.text);
-        ui.add_space(4.0);
-        ui.label(theme::heading(tr(text), theme::SECTION));
     });
 }
 
@@ -275,7 +272,7 @@ fn look_inside(app: &mut CraftApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     // The app's one setting (the title bar's switch), not this project's: said where it's chosen.
     ui.horizontal_wrapped(|ui| {
-        ui.label(RichText::new(tr("How closely may Craft Anything look at it?")).size(theme::BODY).color(t.text_dim));
+        ui.label(RichText::new(tr("How closely may Axiom look at it?")).size(theme::BODY).color(t.text_dim));
         ui.label(RichText::new(tr("For everything you make, like the switch in the title bar.")).size(theme::SMALL).color(t.text_faint));
     });
     ui.add_space(6.0);
@@ -286,8 +283,8 @@ fn look_inside(app: &mut CraftApp, ui: &mut Ui) {
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = gap;
         for (on, icon, label, blurb) in [
-            (false, "shield-check", "Clean room", "Nothing inside it is read; Craft Anything works from what you can see. Your version gets its own art."),
-            (true, "microscope", "Deep", "Craft Anything reads its code and files with every tool it has. For your private use."),
+            (false, "shield-check", "Clean room", "Nothing inside it is read; Axiom works from what you can see. Your version gets its own art."),
+            (true, "microscope", "Deep", "Axiom reads its code and files with every tool it has. For your private use."),
         ] {
             if widgets::choice_tile(ui, size, icon, label, blurb, deep == on).clicked() {
                 pick = Some(on);

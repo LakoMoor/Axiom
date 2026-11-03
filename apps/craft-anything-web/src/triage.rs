@@ -67,7 +67,7 @@ pub fn look(file_name: &str, bytes: &[u8]) -> Look {
 
 /// A plain description of a sniffed kind, and where to look next.
 fn describe(kind: &str) -> (&'static str, &'static str) {
-    const DESKTOP: &str = "Open it in the Craft Anything desktop app to look inside.";
+    const DESKTOP: &str = "Open it in the Axiom desktop app to look inside.";
     match kind {
         "wasm" => ("a WebAssembly module (code that runs in browsers and other hosts)", DESKTOP),
         "dex" => ("Android app code (a DEX file)", DESKTOP),

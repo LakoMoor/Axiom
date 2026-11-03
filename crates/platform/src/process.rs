@@ -1,4 +1,4 @@
-//! Owned processes: the only way Craft Anything runs another program.
+//! Owned processes: the only way Axiom runs another program.
 //!
 //! ```no_run
 //! use craft_anything_platform::process::Process;
@@ -1213,9 +1213,9 @@ mod launch_tests {
 
     #[test]
     fn paths_for_explorer_use_backslashes_and_no_verbatim_prefix() {
-        // Project folders are kept as `D:/Projects/Craft Anything\name`; Explorer opened
+        // Project folders are kept as `D:/Projects/Axiom\name`; Explorer opened
         // Documents for those instead of the folder.
-        assert_eq!(windows_form(r"D:/Projects/Craft Anything\notepad"), r"D:\Projects\Craft Anything\notepad");
+        assert_eq!(windows_form(r"D:/Projects/Axiom\notepad"), r"D:\Projects\Axiom\notepad");
         assert_eq!(windows_form(r"\\?\D:\Projects\x"), r"D:\Projects\x");
         assert_eq!(windows_form(r"\\?\UNC\server\share\x"), r"\\server\share\x");
         assert_eq!(windows_form(r"\\server/share"), r"\\server\share");

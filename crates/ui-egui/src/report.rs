@@ -88,7 +88,7 @@ pub fn markdown(chat: &[ChatItem], target: Option<&TargetInfo>, clean_room: bool
             evidence_md(&mut out, e);
         }
     }
-    let _ = writeln!(out, "\n---\nMade with Craft Anything {}.", env!("CARGO_PKG_VERSION"));
+    let _ = writeln!(out, "\n---\nMade with Axiom {}.", env!("CARGO_PKG_VERSION"));
     out
 }
 

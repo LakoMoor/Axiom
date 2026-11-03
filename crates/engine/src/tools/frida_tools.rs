@@ -1,7 +1,7 @@
 //! Frida instrumentation, driven through the Frida command-line tools (`frida`, `frida-ps`,
 //! `frida-ls-devices`) located via [`craft_anything_engines::locate`] — never a native binding.
 //!
-//! A "session" here is Craft Anything's own managed record of an attach/spawn intent, held in the
+//! A "session" here is Axiom's own managed record of an attach/spawn intent, held in the
 //! session's process memory (not the binary session) and keyed by a generated id. Scripts are
 //! executed by invoking the Frida CLI for a bounded window with closed stdin, capped output and a
 //! deadline, so an instrumentation run can never hang the app. Running a script executes foreign

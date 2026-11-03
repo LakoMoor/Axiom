@@ -114,7 +114,7 @@ pub fn describe_value(v: &Value) -> String {
 pub fn suggestions(kind: Option<TargetKind>) -> Vec<&'static str> {
     use TargetKind::*;
     match kind {
-        None => vec!["What can Craft Anything do?", "How do I open an app?", "Is it safe to look inside programs?"],
+        None => vec!["What can Axiom do?", "How do I open an app?", "Is it safe to look inside programs?"],
         Some(Elf | Pe | MachO | MachOFat | DosCom | RawBinary) => {
             vec!["What does this program do?", "What does it send over the internet?", "Is it safe to run?", "Which files does it read or write?"]
         }
@@ -321,6 +321,7 @@ fn composer(app: &mut CraftApp, ui: &mut Ui, width: f32, dense: bool) {
     let hint = if dense { tr("Ask the agent…") } else { tr("Ask anything, e.g. \"What does this program do?\"") };
     ui.allocate_ui(Vec2::new(width, 0.0), |ui| {
         let history = || app.state.chat.iter().filter_map(|i| if let ChatItem::User(text) = i { Some(text.clone()) } else { None }).collect();
+        let names: Vec<String> = app.backends.iter().filter(|b| b.enabled).map(|b| b.name.clone()).collect();
         let out = crate::prompt_box::show(
             ui,
             &mut app.state.input,
@@ -335,8 +336,19 @@ fn composer(app: &mut CraftApp, ui: &mut Ui, width: f32, dense: bool) {
                 recall: false,
                 history: Some(&history),
                 font_size: if dense { 14.0 } else { 16.0 },
+                choices: Some((&names, app.state.backend.as_deref())),
+                deep: Some(app.settings.deep_mode),
             },
         );
+        if out.flip_mode {
+            app.set_deep(!app.settings.deep_mode);
+        }
+        if let Some(n) = out.choose.clone() {
+            app.choose_backend(Some(n));
+        }
+        if out.open_models {
+            app.state.screen = crate::state::Screen::Models;
+        }
         if out.stop {
             app.stop();
         }

@@ -175,7 +175,7 @@ pub fn modals(app: &mut CraftApp, ctx: &egui::Context) {
                 Modal::PinRename(root, id) => crate::pins::rename_modal(app, ui, root, *id, &mut close),
                 Modal::PinDelete(root, id) => crate::pins::delete_modal(app, ui, root, *id, &mut close),
                 Modal::About => {
-                    ui.label(theme::heading("Craft Anything", theme::SECTION));
+                    ui.label(theme::heading("Axiom", theme::SECTION));
                     ui.label(RichText::new(format!("{} {}", tr("Version"), env!("CARGO_PKG_VERSION"))).color(t.text_dim));
                     ui.add_space(12.0);
                     if widgets::primary(ui, "Close").clicked() {
