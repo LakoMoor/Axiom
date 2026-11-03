@@ -2,6 +2,7 @@
 pub mod agent_mode;
 pub mod chat;
 pub mod chats;
+pub mod file_browser;
 pub mod first_run;
 pub mod home;
 pub mod just_ask;

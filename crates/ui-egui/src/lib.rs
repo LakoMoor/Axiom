@@ -14,7 +14,7 @@ pub mod screens;
 // The modules keep their short paths (`crate::project`, `axiom_ui_egui::home`…).
 pub use chrome::{folders, palette, phone, pins, prompt_box, sidebar, slash, titlebar, usage};
 pub use kit::{icons, schema_form, theme, widgets};
-pub use screens::{agent_mode, chat, chats, first_run, home, just_ask, make, manage, models_ui, project, report, settings_ui, workbench};
+pub use screens::{agent_mode, chat, chats, file_browser, first_run, home, just_ask, make, manage, models_ui, project, report, settings_ui, workbench};
 pub mod builders;
 pub mod changes_ui;
 pub mod demo;
@@ -953,11 +953,9 @@ impl CraftApp {
             (Pick::OpenFile | Pick::TargetFile, Some(ctx)) => web::pick_file(pick, ctx),
             _ => self.toast(tr("A web page can't choose a folder or other places. Pick or drop a file instead."), true),
         }
+        // A phone has no dialog the app can open: its own file browser takes the place.
         #[cfg(target_os = "android")]
-        {
-            let _ = pick;
-            self.toast(tr("This phone can't choose files here yet. Ask a question or open a project instead."), true);
-        }
+        file_browser::open(self, pick);
         #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
         self.jobs.spawn("Choose a file", false, move |_| {
             let d = rfd::AsyncFileDialog::new();
@@ -1631,6 +1629,7 @@ impl CraftApp {
         }
         palette::show(self, &ctx);
         settings_ui::show(self, &ctx);
+        file_browser::show(self, &ctx);
         home::modals(self, &ctx);
         self.toasts(&ctx);
         self.drop_overlay(&ctx);

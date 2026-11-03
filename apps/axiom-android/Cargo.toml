@@ -40,10 +40,15 @@ target_sdk_version = 34
 label = "Axiom"
 # No action bar: it would add its own height to the window's content rectangle.
 theme = "@android:style/Theme.DeviceDefault.NoActionBar"
-# `INTERNET` is for the models hub and AI services; nothing else is asked for.
+# `INTERNET` is for the models hub and AI services.
 
 [[package.metadata.android.uses_permission]]
 name = "android.permission.INTERNET"
+
+# Android has no file dialog the app can open without Java, so the app browses the phone's storage
+# itself, and for that the person allows "All files access" for it in the system Settings.
+[[package.metadata.android.uses_permission]]
+name = "android.permission.MANAGE_EXTERNAL_STORAGE"
 
 [package.metadata.android.application.activity]
 config_changes = "orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|density|keyboard|uiMode"
