@@ -239,10 +239,10 @@ fn tokens_id() -> egui::Id {
 
 // ---- fonts -------------------------------------------------------------------------------------
 
-pub static DM_SANS_REGULAR: &[u8] = include_bytes!("../../../assets/fonts/DMSans-Regular.ttf");
-pub static DM_SANS_MEDIUM: &[u8] = include_bytes!("../../../assets/fonts/DMSans-Medium.ttf");
-pub static DM_SANS_BOLD: &[u8] = include_bytes!("../../../assets/fonts/DMSans-Bold.ttf");
-pub static JETBRAINS_MONO: &[u8] = include_bytes!("../../../assets/fonts/JetBrainsMono-Regular.ttf");
+pub static DM_SANS_REGULAR: &[u8] = include_bytes!("../../../../assets/fonts/DMSans-Regular.ttf");
+pub static DM_SANS_MEDIUM: &[u8] = include_bytes!("../../../../assets/fonts/DMSans-Medium.ttf");
+pub static DM_SANS_BOLD: &[u8] = include_bytes!("../../../../assets/fonts/DMSans-Bold.ttf");
+pub static JETBRAINS_MONO: &[u8] = include_bytes!("../../../../assets/fonts/JetBrainsMono-Regular.ttf");
 
 /// A font from the optional axiom-fonts build input (empty unless built with `AXIOM_FONTS_DIR`).
 pub struct AxiomFont {

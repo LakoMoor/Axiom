@@ -67,13 +67,13 @@ impl<'ast> Visit<'ast> for Lookups {
 pub fn check(root: &Path) -> bool {
     let mut lookups = Lookups::default();
     let source = root.join("crates/ui-egui/src");
-    let Ok(paths) = std::fs::read_dir(&source) else {
+    let paths = crate::rust_files(&source);
+    if paths.is_empty() {
         eprintln!("i18n: can't read {}", source.display());
         return false;
-    };
+    }
     for path in paths {
-        let Ok(path) = path.map(|p| p.path()) else { return false };
-        if path.extension().is_none_or(|e| e != "rs") || path.file_stem().is_some_and(|n| n == "demo" || n == "i18n" || n == "icon_data") {
+        if path.file_stem().is_some_and(|n| n == "demo" || n == "i18n" || n == "icon_data") {
             continue;
         }
         let Ok(text) = std::fs::read_to_string(&path) else { return false };

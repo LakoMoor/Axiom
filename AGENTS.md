@@ -54,6 +54,11 @@ Agents and contributors keep to this layout and do not invent new top-level fold
 Inside a crate: `src/lib.rs` is the entry point, one module per file named for what it owns, tests
 beside the code (`#[cfg(test)]`) and integration tests in `tests/`. Data that ships with a crate
 (locale tables, catalogues) sits in the crate, in a folder named for what it is (`i18n/`).
+Group modules into folders as a crate grows: once a file passes about 600 lines, or three files belong
+together, they become a folder with a `mod.rs` that says in one line what it holds (`ui-egui/src` has
+`screens/`, `chrome/` and `kit/`). Re-export a moved module from the crate root so its short path
+(`crate::project`) keeps working. Tools that scan sources (`cargo xtask layers`, the i18n check) must
+walk folders, not only the top level.
 Every change that the person can notice gets a line in `CHANGELOG.md`.
 
 ## Golden rules

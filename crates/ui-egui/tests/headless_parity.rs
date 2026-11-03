@@ -156,7 +156,14 @@ fn crate_dir() -> PathBuf {
 }
 
 fn rust_files(dir: &Path) -> Vec<PathBuf> {
-    let mut out: Vec<PathBuf> = std::fs::read_dir(dir).unwrap().flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "rs")).collect();
+    let mut out = Vec::new();
+    for p in std::fs::read_dir(dir).unwrap().flatten().map(|e| e.path()) {
+        if p.is_dir() {
+            out.extend(rust_files(&p));
+        } else if p.extension().is_some_and(|x| x == "rs") {
+            out.push(p);
+        }
+    }
     out.sort();
     out
 }
