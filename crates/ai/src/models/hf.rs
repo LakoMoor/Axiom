@@ -132,7 +132,7 @@ pub fn parse_tree(v: &Value) -> Vec<GgufFile> {
     files
 }
 
-fn agent() -> ureq::Agent {
+fn agent() -> axiom_net::Agent {
     quick_agent(Duration::from_secs(20))
 }
 

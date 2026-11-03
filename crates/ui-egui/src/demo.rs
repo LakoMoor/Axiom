@@ -121,7 +121,7 @@ pub fn app(engine: Arc<Engine>) -> CraftApp {
     // AI changes made in a demo or a test (adding, turning off, removing one) go to a folder of
     // its own, never the person's settings or system keychain.
     static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
+    let now = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
     let store = std::env::temp_dir().join(format!("axiom-demo-{now}-{}", N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
     let keys = axiom_ai::KeyStore::file_only(store.join("keys.toml"));
     let hub = Arc::new(AiHub::with_stores(engine.clone(), store.join("config.toml"), keys));

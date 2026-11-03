@@ -5,7 +5,7 @@ use axiom_ui_egui::state::{ChatItem, FirstRunStep, RailKind, Screen};
 use axiom_ui_egui::{CraftApp, demo};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 fn harness(make: impl FnOnce() -> CraftApp + 'static) -> Harness<'static, CraftApp> {
     harness_sized(egui::vec2(1280.0, 820.0), make)

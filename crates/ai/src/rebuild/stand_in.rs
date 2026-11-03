@@ -64,7 +64,7 @@ impl StandIns {
                 notes: Arc::default(),
                 feed,
                 root: ws.root.clone(),
-                started: std::time::Instant::now(),
+                started: web_time::Instant::now(),
             })
         })
     }

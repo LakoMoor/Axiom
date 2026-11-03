@@ -14,7 +14,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::ChildStdin;
 use std::sync::{Arc, PoisonError};
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// Unread lines kept per session; older ones are dropped.
 const MAX_PENDING: usize = 200_000;

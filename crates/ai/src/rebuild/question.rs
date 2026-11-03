@@ -16,7 +16,8 @@ use crate::agent::{EngineHost, LoopConfig, ReadOnlyHost};
 use crate::cli_agents::{CliConversation, CliSpec};
 use axiom_engine::Toolset;
 use serde::Serialize;
-use std::time::{Duration, Instant, SystemTime};
+use std::time::SystemTime;
+use web_time::{Duration, Instant};
 
 /// Longest a question may take.
 pub const WAIT: Duration = Duration::from_secs(10 * 60);

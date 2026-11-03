@@ -416,10 +416,10 @@ const TAKEOVER_WAIT: std::time::Duration = std::time::Duration::from_secs(2);
 /// Listen on `port`, trying a busy one again for up to `wait`: the port a replaced stand-in just
 /// gave up can stay busy a moment, or be lent out briefly as another connection's local port.
 fn serve_on(port: u16, answerer: Arc<dyn Answerer>, wait: std::time::Duration) -> std::io::Result<LoopbackServer> {
-    let until = std::time::Instant::now() + wait;
+    let until = web_time::Instant::now() + wait;
     loop {
         match standin_server::serve(port, Limits::default(), answerer.clone()) {
-            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse && std::time::Instant::now() < until => {
+            Err(e) if e.kind() == std::io::ErrorKind::AddrInUse && web_time::Instant::now() < until => {
                 std::thread::sleep(std::time::Duration::from_millis(50));
             }
             r => return r,

@@ -72,7 +72,7 @@ impl KeyStore {
     }
 
     fn read_file(&self) -> toml::Table {
-        std::fs::read_to_string(&self.file).ok().and_then(|t| toml::from_str(&t).ok()).unwrap_or_default()
+        axiom_platform::fs::read_to_string(&self.file).ok().and_then(|t| toml::from_str(&t).ok()).unwrap_or_default()
     }
 
     /// The file's keys before changing them: none when it doesn't exist, an error when it can't be

@@ -5,7 +5,7 @@ use super::protocol::{GhidraError, Request, Response};
 use serde_json::Value;
 use std::io::{BufRead, BufReader, Write};
 use std::net::{SocketAddr, TcpStream};
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// How long one socket read blocks before we re-check the deadline and the cancel flag.
 const READ_TICK: Duration = Duration::from_millis(200);

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::io::{ErrorKind, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, TcpStream};
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// Biggest HTTP response we accept.
 const MAX_RESPONSE: usize = 16 << 20;

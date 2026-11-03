@@ -214,10 +214,10 @@ fn project_pin_create(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
         return Ok(ToolOutput::Value(json!({"estimate": size})));
     }
     let cancel = ctx.cancel.clone();
-    let mut last = std::time::Instant::now();
+    let mut last = web_time::Instant::now();
     let mut progress = |done: u64, total: u64| {
         if last.elapsed().as_millis() >= 250 || done == total {
-            last = std::time::Instant::now();
+            last = web_time::Instant::now();
             let fraction = if total == 0 { 1.0 } else { done as f32 / total as f32 };
             ctx.report(Some(fraction), format!("Copying the build: {} of {} MB", done / 1_000_000, total / 1_000_000));
         }

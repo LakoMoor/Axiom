@@ -104,7 +104,7 @@ pub fn plan_from(input: &Value) -> Option<Vec<PlanStep>> {
 pub(super) struct FeedLog {
     root: PathBuf,
     feed: Vec<FeedItem>,
-    saved_at: Option<std::time::Instant>,
+    saved_at: Option<web_time::Instant>,
     activity: Arc<Activity>,
     log: ActivityFile,
 }
@@ -156,7 +156,7 @@ impl FeedLog {
         if let Err(e) = save(&self.root, &self.feed) {
             log::warn!("couldn't save the project's feed: {}", e.message);
         }
-        self.saved_at = Some(std::time::Instant::now());
+        self.saved_at = Some(web_time::Instant::now());
     }
 }
 

@@ -5,7 +5,7 @@ use axiom_engine::{CancelToken, Progress};
 use axiom_platform::sync::Mutex;
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, PoisonError};
-use std::time::Instant;
+use web_time::Instant;
 
 /// What a worker hands back. `T` is the app's result type.
 pub struct Finished<T> {
@@ -107,7 +107,7 @@ impl<T: Send + 'static> Jobs<T> {
         let tx = self.tx.clone();
         let repaint = self.repaint.clone();
         let jctx = JobCtx { cancel, progress, repaint: repaint.clone() };
-        let spawned = std::thread::Builder::new().name(format!("job-{id}")).spawn(move || {
+        let work = move || {
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(&jctx))).unwrap_or_else(|p| {
                 let what = p.downcast_ref::<&str>().map(|s| s.to_string()).or_else(|| p.downcast_ref::<String>().cloned()).unwrap_or_default();
                 log::error!("job {title} panicked: {what}");
@@ -117,8 +117,13 @@ impl<T: Send + 'static> Jobs<T> {
             if let Some(c) = repaint {
                 c.request_repaint();
             }
-        });
-        if let Err(e) = spawned {
+        };
+        // A browser page has no threads to start: the job runs here, to its end, before the next
+        // frame (fine for the quick tools that work there; a long one holds the page for its time).
+        #[cfg(target_arch = "wasm32")]
+        work();
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Err(e) = std::thread::Builder::new().name(format!("job-{id}")).spawn(work) {
             let _ = self.tx.send(Finished { job: id, result: Err(format!("Couldn't start a worker thread: {e}")) });
         }
         id

@@ -13,6 +13,11 @@ workspace = true
 name = "axiom-web"
 path = "src/main.rs"
 
+# The whole app (the same `CraftApp` as the desktop window) in the browser.
+[[bin]]
+name = "axiom-app"
+path = "src/app_main.rs"
+
 [dependencies]
 # Only the wasm-safe crates (`cargo xtask wasm`): no engine, platform, AI or desktop UI.
 axiom-evidence = { workspace = true }
@@ -23,8 +28,12 @@ serde_json = { workspace = true }
 log = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+axiom-engine = { workspace = true }
+axiom-ai = { workspace = true }
+axiom-setup = { workspace = true }
+axiom-ui-egui = { workspace = true }
 # `wgpu` pulls egui-wgpu's defaults: WebGPU plus the WebGL2 fallback.
-eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit"] }
+eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit", "persistence"] }
 # Open button: the browser's file picker (an <input type="file">, read in memory).
 rfd = { workspace = true }
 wasm-bindgen = "0.2"

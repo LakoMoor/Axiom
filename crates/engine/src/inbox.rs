@@ -11,7 +11,7 @@ use axiom_evidence::ToolError;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use web_time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 /// The session's inbox folder (kept in `Session::ext`). Set by `mcp --inbox <dir>` or by the
 /// workflow that runs the in-process agent.

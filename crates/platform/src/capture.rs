@@ -36,7 +36,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 #[cfg(unix)]
 use std::sync::{Arc, PoisonError};
 #[cfg(unix)]
-use std::time::{Instant, SystemTime};
+use web_time::{Instant, SystemTime};
 
 /// Reserved environment variable that carries the per-run ownership token.
 pub const RUN_ID_ENV: &str = "AXIOM_RUN_ID";
@@ -368,7 +368,7 @@ pub fn console_text(program: &std::path::Path, args: &[OsString], timeout: Durat
         })
         .map_err(|e| failed(&e))?;
 
-    let start = std::time::Instant::now();
+    let start = web_time::Instant::now();
     let stopped = loop {
         match child.try_wait() {
             Ok(Some(status)) => break Ok(status.exit_code()),
@@ -389,9 +389,9 @@ pub fn console_text(program: &std::path::Path, args: &[OsString], timeout: Durat
         // The console sends what the program drew a moment after it exits, and closing it first
         // can lose that on a busy computer: wait until output has come and stopped coming (2 s
         // at most).
-        let until = std::time::Instant::now() + Duration::from_secs(2);
+        let until = web_time::Instant::now() + Duration::from_secs(2);
         let mut seen = usize::MAX;
-        while std::time::Instant::now() < until {
+        while web_time::Instant::now() < until {
             let now = received.load(std::sync::atomic::Ordering::Relaxed);
             if now > 0 && now == seen {
                 break;
@@ -468,10 +468,7 @@ mod piped {
             .with_remediation("Leave out events and watched_paths, or run the capture on Linux or macOS."));
         }
         let now = || {
-            std::time::SystemTime::now()
-                .duration_since(std::time::SystemTime::UNIX_EPOCH)
-                .map(|d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX))
-                .unwrap_or(0)
+            web_time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).map(|d| u64::try_from(d.as_millis()).unwrap_or(u64::MAX)).unwrap_or(0)
         };
         let started = now();
         let mut p = Process::new(&spec.executable)

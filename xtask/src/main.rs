@@ -18,6 +18,7 @@ const LAYERS: &[(&str, u8)] = &[
     ("axiom-js", 1),
     ("axiom-analysis", 2),
     ("axiom-platform", 2),
+    ("axiom-net", 2),
     ("axiom-engines", 3),
     ("axiom-engine", 4),
     ("axiom-ai", 5),

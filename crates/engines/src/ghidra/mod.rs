@@ -33,7 +33,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 use std::path::{Path, PathBuf};
 use std::sync::PoisonError;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{Duration, Instant, SystemTime};
+use web_time::{Duration, Instant, SystemTime};
 
 /// The Java post-script we ship and run inside Ghidra (our own code).
 pub const BRIDGE_SCRIPT_NAME: &str = "AxiomBridge.java";

@@ -10,7 +10,7 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::path::PathBuf;
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// Largest picture kept inline in the evidence (bigger ones are only written to `output`).
 const MAX_INLINE: usize = 8 * 1024 * 1024;

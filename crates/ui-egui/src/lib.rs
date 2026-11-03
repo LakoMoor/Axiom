@@ -33,8 +33,8 @@ use serde_json::{Value, json};
 use state::{CenterTab, ChatItem, ConsentAnswer, Fill, RailKind, Screen, UiState};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 use theme::ThemeKind;
+use web_time::{Duration, Instant};
 
 pub use i18n::tr;
 

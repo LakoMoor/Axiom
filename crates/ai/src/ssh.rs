@@ -247,9 +247,9 @@ pub fn open_tunnel(ssh_host: &str, remote_host: &str, remote_port: u16) -> Resul
         .label("ssh")
         .remediation("Install OpenSSH and make sure `ssh <host>` works without a password prompt (use a key or agent).")
         .spawn()?;
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(12);
+    let deadline = web_time::Instant::now() + std::time::Duration::from_secs(12);
     let url = format!("http://127.0.0.1:{port}");
-    while std::time::Instant::now() < deadline {
+    while web_time::Instant::now() < deadline {
         if crate::detect::port_open(&url, std::time::Duration::from_millis(200)) {
             return Ok(Tunnel { _proc: proc, local_port: port });
         }

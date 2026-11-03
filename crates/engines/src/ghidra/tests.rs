@@ -7,7 +7,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// How the fake server should behave once it has a client.
 #[derive(Clone, Copy)]
@@ -333,7 +333,7 @@ fn a_second_analysis_waits_for_the_running_one_and_a_dead_ones_lock_is_taken_ove
     // A lock left by a process that died goes stale and is taken over (here: an attempt to run).
     std::fs::remove_dir_all(&project).unwrap();
     let lock = std::fs::File::options().write(true).open(lock_path(&project)).unwrap();
-    lock.set_modified(std::time::SystemTime::now() - LOCK_STALE - Duration::from_secs(5)).unwrap();
+    lock.set_modified(web_time::SystemTime::now() - LOCK_STALE - Duration::from_secs(5)).unwrap();
     drop(lock);
     let err = analyse(&cfg, b"x", &sha, &digest, &|| false, &|_, _| {}).unwrap_err();
     assert!(matches!(err, GhidraError::Launch(_)), "took over and tried to run Ghidra: {err:?}");

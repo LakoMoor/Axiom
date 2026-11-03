@@ -8,7 +8,7 @@ use axiom_evidence::ErrorCode;
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::path::PathBuf;
 use std::sync::mpsc;
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// Per-server connect bound.
 pub const PROBE: Duration = Duration::from_millis(300);

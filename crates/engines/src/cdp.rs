@@ -16,7 +16,7 @@ use serde_json::{Value, json};
 use std::collections::VecDeque;
 use std::io::{ErrorKind, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, TcpStream};
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// Largest HTTP discovery response we accept (`/json/version`, `/json/list`).
 const MAX_HTTP_RESPONSE: usize = 8 << 20;
@@ -305,7 +305,7 @@ pub fn ws_target(ws_url: &str, ep: &Endpoint) -> Result<WsTarget, ToolError> {
 fn fill_random(out: &mut [u8]) {
     use std::sync::atomic::{AtomicU64, Ordering};
     static COUNTER: AtomicU64 = AtomicU64::new(0);
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos() as u64).unwrap_or(0);
+    let nanos = web_time::SystemTime::now().duration_since(web_time::UNIX_EPOCH).map(|d| d.as_nanos() as u64).unwrap_or(0);
     let mut state = nanos ^ (std::process::id() as u64).rotate_left(21) ^ COUNTER.fetch_add(0x9E37_79B9_7F4A_7C15, Ordering::Relaxed) ^ (out.as_ptr() as u64);
     for b in out.iter_mut() {
         // SplitMix64 step.

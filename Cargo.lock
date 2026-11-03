@@ -547,6 +547,7 @@ dependencies = [
  "axiom-engines",
  "axiom-evidence",
  "axiom-formats",
+ "axiom-net",
  "axiom-platform",
  "axiom-testkit",
  "dirs",
@@ -557,7 +558,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "toml 0.9.12+spec-1.1.0",
- "ureq",
+ "web-time",
 ]
 
 [[package]]
@@ -635,6 +636,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.21",
  "toml 0.9.12+spec-1.1.0",
+ "web-time",
 ]
 
 [[package]]
@@ -643,6 +645,7 @@ version = "0.3.0"
 dependencies = [
  "axiom-evidence",
  "axiom-formats",
+ "axiom-net",
  "axiom-platform",
  "axiom-testkit",
  "base64 0.22.1",
@@ -655,8 +658,8 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.21",
  "toml 0.9.12+spec-1.1.0",
- "ureq",
  "wasmtime",
+ "web-time",
 ]
 
 [[package]]
@@ -726,6 +729,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "axiom-net"
+version = "0.3.0"
+dependencies = [
+ "ureq",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "axiom-platform"
 version = "0.3.0"
 dependencies = [
@@ -742,6 +754,8 @@ dependencies = [
  "sha2",
  "tempfile",
  "vt100",
+ "web-sys",
+ "web-time",
  "windows",
  "xcap",
 ]
@@ -799,15 +813,20 @@ dependencies = [
  "serde_json",
  "sys-locale",
  "tempfile",
+ "web-time",
 ]
 
 [[package]]
 name = "axiom-web"
 version = "0.3.0"
 dependencies = [
+ "axiom-ai",
  "axiom-analysis",
+ "axiom-engine",
  "axiom-evidence",
  "axiom-formats",
+ "axiom-setup",
+ "axiom-ui-egui",
  "eframe",
  "egui",
  "log",

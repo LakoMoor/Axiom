@@ -14,6 +14,7 @@ axiom-evidence = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }
+web-time = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
 process-wrap = { version = "10", default-features = false, features = ["std", "process-group", "job-object", "kill-on-drop", "creation-flags"] }
@@ -41,5 +42,6 @@ tempfile = "3"
 
 # In the browser the random numbers some libraries ask for come from the page (`crypto.getRandomValues`).
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3", features = ["Window", "Storage"] }
 getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }

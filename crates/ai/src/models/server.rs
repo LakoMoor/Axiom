@@ -13,7 +13,7 @@ use axiom_platform::sync::Mutex;
 use serde::Serialize;
 use std::net::TcpListener;
 use std::path::Path;
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 /// Longest wait for a model to load (big files from a slow disk take a while).
 const LOAD_LIMIT: Duration = Duration::from_secs(300);

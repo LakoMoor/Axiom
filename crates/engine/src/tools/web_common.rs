@@ -217,7 +217,7 @@ impl Browser {
     /// browser last printed, so the cause is in the message.
     fn await_devtools(profile: &std::path::Path, dl: &Deadline, proc: &mut RunningProcess, tail: &StderrTail, name: &str) -> Result<Endpoint, ToolError> {
         let file = profile.join("DevToolsActivePort");
-        let started = std::time::Instant::now();
+        let started = web_time::Instant::now();
         loop {
             if let Ok(text) = std::fs::read_to_string(&file) {
                 let port: Option<u16> = text.lines().next().and_then(|l| l.trim().parse().ok()).filter(|p| *p != 0);

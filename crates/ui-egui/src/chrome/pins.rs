@@ -41,7 +41,7 @@ pub struct PinDraft {
 impl CraftApp {
     /// Read every project's pins (and what's running) on a worker.
     pub fn refresh_pins(&mut self) {
-        self.pins_read_at = Some(std::time::Instant::now());
+        self.pins_read_at = Some(web_time::Instant::now());
         self.act("project_pins_list", json!({}), tr("Read pinned builds"));
     }
 

@@ -206,7 +206,7 @@ impl Engine {
 
     /// Run a tool by id. When a project is open, the call is appended to its journal.
     pub fn call(&self, id: &str, params: Value, opts: CallOptions<'_>) -> Result<ToolOutput, ToolError> {
-        let started = std::time::Instant::now();
+        let started = web_time::Instant::now();
         let logged_params = journal::bounded(&params);
         let caller = opts.caller;
         let result = self.call_inner(id, params, opts);
@@ -235,6 +235,13 @@ impl Engine {
         let spec = *self.registry.get(id).ok_or_else(|| {
             ToolError::invalid(format!("No tool named {id}")).with_remediation("List tools with `axiom-cli commands` or the command palette.")
         })?;
+        // In a browser page there is no program to start and no socket to open: say so, never fail
+        // half-way (a refused call is an error with a plain next step).
+        #[cfg(target_arch = "wasm32")]
+        if let Some(need) = spec.effects.needs_a_computer() {
+            return Err(ToolError::new(ErrorCode::FeatureMissing, format!("{} needs to {need}, which a web page can't do.", spec.title))
+                .with_remediation("Use the desktop app for this; the web version runs the tools that work on files in the page."));
+        }
         // Stop works while waiting for the session, and a holder that looks stuck is an error here,
         // not a wait forever. Tools are long jobs: the label says so (they have their own deadlines).
         let cancel = opts.cancel.clone();

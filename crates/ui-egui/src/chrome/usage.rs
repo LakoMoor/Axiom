@@ -4,7 +4,7 @@
 //! at API prices, which isn't a bill (a subscription may cover it); other agents give tokens only.
 
 use std::path::Path;
-use std::time::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 use axiom_engine::workspace::ProjectUsage;
 

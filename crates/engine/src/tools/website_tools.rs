@@ -1354,7 +1354,7 @@ mod tests {
         s.settings.engines.tools.chromium = Some(stand_in);
         let e = crate::Engine::new(s);
         let opts = crate::CallOptions::new(crate::Caller::Cli).with_consent(crate::Consent::Granted);
-        let started = std::time::Instant::now();
+        let started = web_time::Instant::now();
         let err = e.call("web_site_open", json!({"url": "https://example.com", "timeout_secs": 60}), opts).err().unwrap();
         assert!(started.elapsed() < std::time::Duration::from_secs(20), "waited {:?}", started.elapsed());
         assert!(err.message.starts_with("Couldn't start the private browser") && err.message.contains("closed after"), "{}", err.message);
