@@ -1523,6 +1523,7 @@ impl CraftApp {
         // workbench's panels still fill their rectangles, so it keeps square corners.
         let workbench = self.settings.first_run_done && !(self.beginner() || self.state.screen != Screen::Workbench);
         let corner = if titlebar::maximized(&ctx) || workbench { 0.0 } else { theme::WINDOW_RADIUS };
+        ctx.data_mut(|d| d.insert_temp(egui::Id::new("window-corner"), corner));
         theme::backdrop(&ctx.layer_painter(egui::LayerId::background()), ctx.content_rect(), corner, &t);
         // The title bar is on every screen: it is how the window moves, resizes and closes.
         egui::Panel::top("titlebar").exact_size(titlebar::HEIGHT).show_separator_line(false).frame(egui::Frame::new()).show(ui, |ui| {

@@ -46,9 +46,11 @@ pub fn window_edge(ctx: &egui::Context) {
         return;
     }
     let t = Tokens::get(ctx);
+    // The same corner the backdrop was painted with, so the edge follows the glass round the corners.
+    let corner = ctx.data(|d| d.get_temp::<f32>(egui::Id::new("window-corner"))).unwrap_or(0.0);
     ctx.layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("window-edge"))).rect_stroke(
         ctx.content_rect(),
-        0.0,
+        corner,
         egui::Stroke::new(1.0, t.field_border),
         egui::StrokeKind::Inside,
     );
@@ -94,6 +96,40 @@ fn window_button(ui: &mut Ui, icon: &str, tip: &str, close: bool) -> egui::Respo
     resp.on_hover_text(tr(tip))
 }
 
+/// On a Mac the window buttons are the three coloured lights at the left, as in every Mac app.
+const MAC_BUTTONS: bool = cfg!(target_os = "macos");
+
+/// One light: a 12-point disc, with its glyph while the pointer is over the group.
+fn traffic_light(ui: &mut Ui, colour: egui::Color32, glyph: &str, tip: &str, show_glyph: bool) -> egui::Response {
+    let (rect, resp) = ui.allocate_exact_size(Vec2::splat(14.0), egui::Sense::click());
+    ui.painter().circle_filled(rect.center(), 6.0, colour);
+    ui.painter().circle_stroke(rect.center(), 6.0, egui::Stroke::new(0.5, egui::Color32::from_black_alpha(60)));
+    if show_glyph {
+        icons::paint(ui, egui::Rect::from_center_size(rect.center(), Vec2::splat(9.0)), glyph, 9.0, egui::Color32::from_black_alpha(150));
+    }
+    widgets::focus_ring(ui, &resp, rect.expand(2.0));
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, tr(tip)));
+    resp.on_hover_text(tr(tip))
+}
+
+/// Close, minimise and zoom, in the Mac order.
+fn traffic_lights(ui: &mut Ui, ctx: &egui::Context) {
+    let group = ui.available_rect_before_wrap();
+    let near = ui.input(|i| i.pointer.hover_pos()).is_some_and(|p| egui::Rect::from_min_size(group.min, Vec2::new(70.0, HEIGHT)).contains(p));
+    let max = maximized(ctx);
+    ui.spacing_mut().item_spacing.x = 8.0;
+    if traffic_light(ui, egui::Color32::from_rgb(255, 95, 87), "x", "Close", near).clicked() {
+        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+    }
+    if traffic_light(ui, egui::Color32::from_rgb(254, 188, 46), "minus", "Minimise", near).clicked() {
+        ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(true));
+    }
+    if traffic_light(ui, egui::Color32::from_rgb(40, 200, 64), "plus", if max { "Restore" } else { "Maximise" }, near).clicked() {
+        ctx.send_viewport_cmd(egui::ViewportCommand::Maximized(!max));
+    }
+    ui.spacing_mut().item_spacing.x = 10.0;
+}
+
 pub fn show(app: &mut CraftApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     let ctx = ui.ctx().clone();
@@ -107,7 +143,6 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
     if drag.double_clicked() {
         ctx.send_viewport_cmd(egui::ViewportCommand::Maximized(!maximized(&ctx)));
     }
-    ui.painter().hline(bar.x_range(), bar.bottom() - 0.5, egui::Stroke::new(1.0, t.separator));
     // A download anywhere in the app fills the bottom edge of the bar, on every screen.
     let download = crate::engine_ui::global_download(app);
     if let Some((_, Some(f), _)) = &download {
@@ -117,6 +152,10 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
     ui.horizontal_centered(|ui| {
         ui.spacing_mut().item_spacing.x = 10.0;
         ui.add_space(12.0);
+        if MAC_BUTTONS {
+            traffic_lights(ui, &ctx);
+            ui.add_space(6.0);
+        }
         if ui.add(crate::app_icon(22.0).sense(egui::Sense::click())).on_hover_text(tr("Home")).clicked() {
             app.state.screen = Screen::Home;
         }
@@ -139,17 +178,19 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
         }
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             ui.spacing_mut().item_spacing.x = 0.0;
-            if window_button(ui, "x", "Close", true).clicked() {
-                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            if !MAC_BUTTONS {
+                if window_button(ui, "x", "Close", true).clicked() {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                }
+                let max = maximized(&ctx);
+                if window_button(ui, if max { "layers" } else { "square" }, if max { "Restore" } else { "Maximise" }, false).clicked() {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Maximized(!max));
+                }
+                if window_button(ui, "minus", "Minimise", false).clicked() {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(true));
+                }
+                rule(ui);
             }
-            let max = maximized(&ctx);
-            if window_button(ui, if max { "layers" } else { "square" }, if max { "Restore" } else { "Maximise" }, false).clicked() {
-                ctx.send_viewport_cmd(egui::ViewportCommand::Maximized(!max));
-            }
-            if window_button(ui, "minus", "Minimise", false).clicked() {
-                ctx.send_viewport_cmd(egui::ViewportCommand::Minimized(true));
-            }
-            rule(ui);
             ui.spacing_mut().item_spacing.x = 10.0;
             ui.add_space(4.0);
             if let Some((title, fraction, message)) = download {
