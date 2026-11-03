@@ -37,7 +37,7 @@ jobs:
           test "$(wc -c < dist/web/*.wasm)" -lt 25165824
           mkdir -p site/app
           cp -R dist/web/. site/app/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: deployment
