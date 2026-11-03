@@ -125,7 +125,7 @@ No `deny.toml` exists. The survey found no GPL, AGPL or SSPL crates, and only MP
 `option-ext` (via `dirs`) in the shipped app.
 - [x] Add `deny.toml` (allow MIT, Apache-2.0, BSD-2/3, ISC, Zlib, 0BSD, Unicode-3.0, BSL-1.0,
       CDLA-Permissive-2.0, OFL-1.1, MPL-2.0 as an explicit exception), and `cargo xtask licenses`
-- [x] Generate a third-party licence bundle (`cargo about`) for releases (`about.toml`; first run at M4)
+- [x] Generate a third-party licence bundle (`cargo about`) for releases (`release/about.toml`; first run at M4)
 - [x] NOTICE/ATTRIBUTION: egui's embedded default fonts (OFL-1.1, Ubuntu Font Licence)
 - [x] Policy in this file: external programs we *run* (Ghidra, rizin, tshark, Frida, JADX) may
       have any licence. We never link or bundle copyleft code. (Lives in `docs/licences.md`.)

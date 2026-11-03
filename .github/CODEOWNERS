@@ -1,0 +1,5 @@
+# Maintainers review everything; the packaging and release files need them explicitly.
+*                 @LakoMoor
+/.github/         @LakoMoor
+/packaging/       @LakoMoor
+/release/         @LakoMoor
