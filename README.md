@@ -127,8 +127,8 @@ Switch in the title bar or Settings, with `settings_set deep_mode true`, or for 
 
 ## AI
 
-Building needs a coding agent on your computer. **Claude Code** is supported first: Craft
-Anything runs your own, unmodified `claude` program, which uses your own sign-in; Axiom
+Building needs a coding agent on your computer. **Claude Code** is supported first: Axiom
+runs your own, unmodified `claude` program, which uses your own sign-in; Axiom
 never sees or handles your account. Your use of it falls under your own agreement with
 Anthropic. See [docs/claude-code.md](docs/claude-code.md) for how and why. A Codex adapter
 exists but hasn't been verified on a real install yet. Other agents that speak ACP (Gemini CLI,

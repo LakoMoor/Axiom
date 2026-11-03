@@ -667,8 +667,8 @@ impl Workspace {
     /// Start a project in `folder` itself, a folder the person picked. A missing or empty folder
     /// is used as it is. One that has their files needs `existing` to say what those files are:
     /// the app, edited in place, or material to start from, with the app built in app/ beside
-    /// them. A folder that's already a project, or that has something named like a file Craft
-    /// Anything keeps there, is refused, so nothing of theirs is ever replaced.
+    /// them. A folder that's already a project, or that has something named like a file Axiom
+    /// keeps there, is refused, so nothing of theirs is ever replaced.
     pub fn create_at(folder: &Path, name: &str, request: &str, target: TargetRef, existing: Option<ExistingFiles>) -> Result<Workspace, ToolError> {
         let mut manifest = Manifest::new(name, request, target);
         match folder_state(folder)? {
