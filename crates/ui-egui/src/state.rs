@@ -23,6 +23,8 @@ pub enum Screen {
     Workbench,
     /// The hub of local models.
     Models,
+    /// Agent mode: a coding agent working in a folder the person picks.
+    Agent,
 }
 
 /// What the person is about to make (the Home prompt).

@@ -7,6 +7,7 @@
 //! holding it never freezes a frame; the last snapshot ([`SessionView`]) is shown meanwhile.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
+pub mod agent_mode;
 pub mod builders;
 pub mod changes_ui;
 pub mod chat;
@@ -246,6 +247,7 @@ pub enum Pick {
     ProjectFolder,
     /// Another folder whose projects are listed (Settings).
     ExtraProjectsDir,
+    AgentFolder,
     /// Pictures of the original to match (several at once).
     Pictures,
     /// Pictures for the next message on a project (several at once).
@@ -339,6 +341,8 @@ pub struct CraftApp {
     pub view: SessionView,
     pub jobs: jobs::Jobs<Done>,
     pub conversation: Option<Box<dyn Conversation>>,
+    /// Agent mode: its own folder, feed and conversation.
+    pub agent: agent_mode::AgentMode,
     pub backends: Vec<BackendConfig>,
     /// Each backend's options (an agent app's program and model), by name (Settings → AI).
     pub backend_options: std::collections::BTreeMap<String, axiom_ai::BackendOptions>,
@@ -439,6 +443,7 @@ impl CraftApp {
             view: SessionView::default(),
             jobs: jobs::Jobs::default(),
             conversation: None,
+            agent: Default::default(),
             backends: Vec::new(),
             backend_options: Default::default(),
             model_picker: None,
@@ -969,6 +974,7 @@ impl CraftApp {
                 Pick::ProjectFolder => pollster::block_on(d.set_title(tr("Pick the folder for this project")).pick_folder()),
                 Pick::ExtraProjectsDir => pollster::block_on(d.set_title(tr("Pick a folder with projects in it")).pick_folder()),
                 Pick::AgentProgram => pollster::block_on(d.set_title(tr("Where is the program?")).pick_file()),
+                Pick::AgentFolder => pollster::block_on(d.set_title(tr("Pick the folder the agent works in")).pick_folder()),
                 Pick::Pictures | Pick::Attach => None,
             };
             Ok(Done::Picked { pick, path: handle.map(|h| h.path().to_path_buf()) })
@@ -1350,6 +1356,7 @@ impl CraftApp {
                         }
                         Pick::ProjectFolder => folders::picked(self, path),
                         Pick::ExtraProjectsDir => self.add_project_folder(path),
+                        Pick::AgentFolder => self.agent.set_folder(path),
                         Pick::AgentProgram => {
                             if let Some(name) = self.picking_program_for.take() {
                                 self.set_agent_program(&name, Some(path.display().to_string()));
@@ -1462,6 +1469,7 @@ impl CraftApp {
             ctx.open_url(egui::OpenUrl::new_tab(url));
         }
         guard("conversation", || self.poll_conversation());
+        guard("agent mode", || self.agent.poll());
         guard("rebuild", || self.poll_run());
         guard("pins", || self.poll_pins(ctx));
         // Back from another window: projects may have been added, moved or removed meanwhile.
@@ -1535,6 +1543,7 @@ impl CraftApp {
                     Screen::Ask => chat::ask_screen(self, ui),
                     Screen::Project => project::show(self, ui),
                     Screen::Models => models_ui::show(self, ui),
+                    Screen::Agent => agent_mode::show(self, ui),
                 })
             });
         } else {
