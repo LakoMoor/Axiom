@@ -45,9 +45,11 @@ Agents and contributors keep to this layout and do not invent new top-level fold
 | `docs/` | Written guides, one topic per file in `kebab-case.md`; generated files say so at the top. |
 | `packaging/<system>/` | Installers, bundles, manifests and their scripts, one folder per system. |
 | `assets/` | Small shared pictures and icons only. Files over 1 MB are refused; screenshots go in the PR. |
+| `release/` | What a release needs besides packages: the licence-bundle config (`about.toml`, `about.hbs`). |
+| `.github/` | Workflows, `CODEOWNERS`, `dependabot.yml`, issue and PR templates. Reusable workflows live in `LakoMoor/axiom-actions`. |
 | `site/` | The public website. |
 | `examples/` | Small runnable examples. |
-| top level | `README*.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, `LICENSE-*`, `NOTICE`, `Cargo.toml`, `Cargo.lock`, tool configs (`rustfmt.toml`, `clippy.toml`, `deny.toml`). |
+| top level | `README*.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `GOVERNANCE.md`, `TRADEMARKS.md`, `SECURITY.md`, `AGENTS.md`, `LICENSE-*`, `NOTICE`, `Cargo.toml`, `Cargo.lock`, tool configs (`rustfmt.toml`, `clippy.toml`, `deny.toml`). |
 
 Inside a crate: `src/lib.rs` is the entry point, one module per file named for what it owns, tests
 beside the code (`#[cfg(test)]`) and integration tests in `tests/`. Data that ships with a crate
