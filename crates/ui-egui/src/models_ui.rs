@@ -32,6 +32,8 @@ pub struct View {
     pub repo: Option<(String, Vec<Value>)>,
     /// Files being started (loading takes a while).
     pub starting: BTreeSet<String>,
+    /// What `models_strata_status` last said.
+    pub strata: Option<Value>,
 }
 
 impl View {
@@ -54,6 +56,8 @@ impl View {
                 let repo = v["repo"].as_str().unwrap_or_default().to_string();
                 self.repo = Some((repo, v["files"].as_array().cloned().unwrap_or_default()));
             }
+            "models_strata_status" => self.strata = Some(v.clone()),
+            "models_strata_install" | "models_strata_start" => return true,
             "models_file_download" | "models_file_remove" | "models_server_start" | "models_server_stop" => return true,
             _ => {}
         }
@@ -69,6 +73,7 @@ fn gb(bytes: u64) -> String {
 pub fn refresh(app: &mut CraftApp) {
     app.act("models_recommended_list", json!({}), "Looking at the models".into());
     app.act("models_installed_list", json!({}), "Looking at your models".into());
+    app.act("models_strata_status", json!({}), "Looking at Strata".into());
 }
 
 pub fn show(app: &mut CraftApp, ui: &mut Ui) {
@@ -143,6 +148,8 @@ fn recommended(app: &mut CraftApp, ui: &mut Ui, w: f32) {
         ui.label(RichText::new(tr("Looking…")).color(t.text_faint));
         return;
     }
+    strata_card(app, ui, w);
+    ui.add_space(12.0);
     let cols = if w > 700.0 { 2 } else { 1 };
     let cw = (w - 12.0 * (cols as f32 - 1.0)) / cols as f32;
     let list = app.models.recommended.clone();
@@ -154,6 +161,53 @@ fn recommended(app: &mut CraftApp, ui: &mut Ui, w: f32) {
         });
         ui.add_space(12.0);
     }
+}
+
+/// The easiest way in: Strata installs and starts a ready-made model, nothing to choose.
+fn strata_card(app: &mut CraftApp, ui: &mut Ui, w: f32) {
+    let t = Tokens::get(ui.ctx());
+    let Some(st) = app.models.strata.clone() else { return };
+    if st["supported"] != true {
+        return;
+    }
+    let installing = app.jobs.running().any(|j| j.title == "Installing Strata");
+    let starting = app.jobs.running().any(|j| j.title == "Starting a model with Strata");
+    widgets::card(&t).show(ui, |ui| {
+        ui.set_width(w - 34.0);
+        ui.horizontal(|ui| {
+            icons::show(ui, "sparkles", 18.0, t.accent);
+            ui.label(RichText::new(tr("Easiest start")).font(theme::semibold(theme::CARD)).color(t.text));
+            if st["running"] == true {
+                widgets::pill(ui, "Running", t.success, t.success.gamma_multiply(0.16));
+            }
+        });
+        ui.add_space(4.0);
+        ui.label(
+            RichText::new(tr("Strata sets up a big model for you: it downloads it and starts it. The first time takes a while and needs free disk space."))
+                .color(t.text_dim)
+                .size(theme::SMALL),
+        );
+        ui.add_space(10.0);
+        if installing || starting {
+            ui.label(RichText::new(tr("Working… the progress is in the activity list.")).color(t.text_faint).size(theme::SMALL));
+        } else if st["running"] == true {
+            ui.label(RichText::new(tr("It is added to your AIs as Local: Strata.")).color(t.text_faint).size(theme::SMALL));
+        } else if st["installed"] != true {
+            if widgets::primary_icon(ui, Some("download"), "Install Strata", true).clicked() {
+                app.act("models_strata_install", json!({}), "Installing Strata".into());
+            }
+        } else {
+            let packs = st["packs"].as_array().cloned().unwrap_or_default();
+            ui.horizontal(|ui| {
+                for pack in packs {
+                    let label = tr(pack["title"].as_str().unwrap_or_default());
+                    if widgets::primary_icon(ui, Some("play"), &label, true).clicked() {
+                        app.act("models_strata_start", json!({"pack": pack["id"]}), "Starting a model with Strata".into());
+                    }
+                }
+            });
+        }
+    });
 }
 
 fn model_card(app: &mut CraftApp, ui: &mut Ui, m: &Value, w: f32) {

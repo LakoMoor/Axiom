@@ -1404,3 +1404,10 @@ Pick the folder the agent works in	选择智能体工作的文件夹
 What should the agent do?	智能体要做什么？
 Give the agent a task	给智能体一个任务
 Recents	最近
+Easiest start	最简单的开始
+Strata sets up a big model for you: it downloads it and starts it. The first time takes a while and needs free disk space.	Strata 会为你下载并启动一个大模型。第一次需要一些时间和可用磁盘空间。
+Working… the progress is in the activity list.	处理中……进度见活动列表。
+It is added to your AIs as Local: Strata.	已作为 Local: Strata 加入你的 AI 列表。
+Install Strata	安装 Strata
+Everyday assistant	日常助手
+Coding helper	编程助手
