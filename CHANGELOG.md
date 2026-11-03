@@ -4,6 +4,7 @@ All notable changes, newest first. Each line says what the person notices.
 
 ## Unreleased
 
+- Builder: when a project is ported to Rust the agent lays it out as a Cargo workspace (`crates/`, `apps/`, `docs/`, `scripts/`), the way a well-kept Rust application repository does.
 - Repository: the licence-bundle config moved to `release/`; added `GOVERNANCE.md`, `TRADEMARKS.md`, `CODEOWNERS` and `dependabot.yml`.
 - Interface: a Build / Agent switch on top of the sidebar, a profile card at its foot, and an "Update available" pill in the title bar when a newer release is out (one anonymous check per start).
 - Clean room: the Strata tools and the update check work in Clean room mode (they touch no target).

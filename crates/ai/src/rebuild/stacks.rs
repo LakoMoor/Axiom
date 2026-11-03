@@ -108,8 +108,25 @@ pub fn steps(stack: &str) -> String {
     let Some(text) = get(stack).and_then(|s| s.steps.as_deref()) else {
         return format!("Use {stack}. Create the project in app/ and make sure it builds or runs without errors.");
     };
+    if is_rust(stack) {
+        return format!("{text} {RUST_LAYOUT}");
+    }
     text.to_string()
 }
+
+/// Whether `stack` builds a Rust project (every stack named "Rust …").
+pub fn is_rust(stack: &str) -> bool {
+    stack.starts_with("Rust")
+}
+
+/// How a Rust project is laid out, whatever its size: the shape of a well-kept Rust application
+/// repository, so a port is easy to read, extend and hand to the next person or agent.
+pub const RUST_LAYOUT: &str = "Lay the Rust project out like a well-kept application repository: a Cargo workspace. \
+Root: Cargo.toml (a [workspace] with members crates/* and apps/*, shared [workspace.package] version and [workspace.lints]), README.md, CHANGELOG.md, LICENSE, .gitignore. \
+crates/<project>-<domain>/: libraries only, one per domain (for example rules, formats, render, audio, ui), each with src/lib.rs, one module per file named for what it owns, unit tests beside the code and integration tests in tests/; once a module passes about 600 lines or has three related files, make it a folder. \
+apps/<project>/: the programs a person starts, kept thin (no logic a crate could own); set default-run when there are several. \
+assets/: small shared files only. docs/: one topic per file (ARCHITECTURE.md, BUILDING.md). scripts/: build and packaging helpers. \
+A very small program may be one crate, but keep the same shape inside it: a thin src/main.rs and modules in src/. Keep this layout when later changes add features.";
 
 /// The stack a Rust game is built with, and what games default to.
 pub const GAME_STACK: &str = "Rust + macroquad";
@@ -117,6 +134,15 @@ pub const GAME_STACK: &str = "Rust + macroquad";
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn every_rust_stack_is_told_the_workspace_layout_and_no_other_stack_is() {
+        for name in ["Rust (console)", "Rust + egui (eframe)", "Rust + macroquad"] {
+            let steps = steps(name);
+            assert!(is_rust(name) && steps.contains("crates/<project>-<domain>/") && steps.contains("apps/<project>/"), "{name}");
+        }
+        assert!(!steps("Plain HTML and CSS").contains("Cargo workspace"));
+    }
 
     #[test]
     fn the_table_parses_and_has_the_game_stack() {
