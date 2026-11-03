@@ -952,6 +952,15 @@ An ordinary coding-agent mode beside study-and-rebuild: pick a folder, give task
 - [ ] Our own local models (the Models hub) as the agent's brain through an OpenAI-compatible endpoint
 - [ ] A headless tool (`agent_run`) so the CLI and MCP can use it too (rule 2: everything is a tool)
 
+### R2.12 Strata: big local models in one click
+Owner: open · Status: in progress (branch `feature/strata-launcher`)
+For people who have never set up a local model: Axiom installs Strata (a separate local inference
+program) from its release, starts a ready-made pack and adds it as an AI. Nothing of Strata is copied.
+- [x] Tools `models_strata_status`, `models_strata_install` (checksum-verified, consent) and `models_strata_start`
+- [ ] A "Easiest start" card on the Models screen: one button, progress, disk and memory check first
+- [ ] Release source: Strata's fork has no releases yet; now the upstream release is used
+- [ ] Windows and Linux live runs (only the Mac code path and the tests have been run)
+
 ## M3 Engine depth
 
 ### R3.1 More tools (all 22 built)
