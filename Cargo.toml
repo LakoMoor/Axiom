@@ -44,7 +44,7 @@ rayon = "1"
 proptest = "1"
 # JavaScript (pure Rust, wasm-safe)
 oxc_allocator = "0.153"
-oxc_ast = "0.153"
+oxc_ast = "0.156"
 oxc_ast_visit = "0.153"
 oxc_parser = "0.153"
 oxc_span = "0.153"
