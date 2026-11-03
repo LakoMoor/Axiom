@@ -29,8 +29,8 @@ permissions:
 
 jobs:
   freebsd:
-    # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across all craftapp repos.
-    uses: storytold/craft-common-actions/.github/workflows/freebsd.yml@main
+    # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across every repository that uses them.
+    uses: LakoMoor/axiom-actions/.github/workflows/freebsd.yml@main
     with:
-      craft-fonts-ref: b076417b5880bd4154bd22f00695b1d28c6bea83
+      axiom-fonts-ref: 9eacf2321be035677e01ef783cdda8b4fd7015eb
       run-package-check: true

@@ -86,11 +86,11 @@ copy_docs() {
   copy_font_licences "$dest"
 }
 
-# The app embeds the fonts in assets/fonts (OFL-1.1) and, built with CRAFT_FONTS_DIR (releases),
-# craft-fonts' too: ship their licences next to the binaries (craft-fonts' as OFL-<font>.txt).
+# The app embeds the fonts in assets/fonts (OFL-1.1) and, built with AXIOM_FONTS_DIR (releases),
+# axiom-fonts' too: ship their licences next to the binaries (axiom-fonts' as OFL-<font>.txt).
 copy_font_licences() {
   local dest="$1" lic
-  for lic in "$ROOT"/assets/fonts/OFL-*.txt "${CRAFT_FONTS_DIR:-/nonexistent}"/fonts/*/OFL.txt; do
+  for lic in "$ROOT"/assets/fonts/OFL-*.txt "${AXIOM_FONTS_DIR:-/nonexistent}"/fonts/*/OFL.txt; do
     [ -f "$lic" ] || continue
     case "$lic" in
       */fonts/*/OFL.txt) cp "$lic" "$dest/OFL-$(basename "$(dirname "$lic")").txt" ;;

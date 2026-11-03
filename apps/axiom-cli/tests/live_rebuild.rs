@@ -1,9 +1,9 @@
 //! Live end-to-end rebuild with a real coding agent. Opt-in: it needs network access, a
 //! signed-in Claude Code (`claude auth login`) and spends the person's usage, so it only runs
-//! with `CRAFT_E2E=1`:
+//! with `AXIOM_E2E=1`:
 //!
 //! ```sh
-//! CRAFT_E2E=1 cargo test -p axiom-cli --test live_rebuild -- --nocapture
+//! AXIOM_E2E=1 cargo test -p axiom-cli --test live_rebuild -- --nocapture
 //! ```
 
 use axiom_platform::process::Process;
@@ -11,9 +11,9 @@ use serde_json::Value;
 use std::time::Duration;
 
 fn enabled() -> bool {
-    let on = std::env::var("CRAFT_E2E").is_ok_and(|v| v == "1");
+    let on = std::env::var("AXIOM_E2E").is_ok_and(|v| v == "1");
     if !on {
-        eprintln!("skipped: set CRAFT_E2E=1 to run the live rebuild");
+        eprintln!("skipped: set AXIOM_E2E=1 to run the live rebuild");
     }
     on
 }

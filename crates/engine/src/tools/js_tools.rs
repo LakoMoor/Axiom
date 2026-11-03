@@ -591,11 +591,11 @@ mod tests {
         assert!(call(&e, "js_app_map", json!({"input_path": junk, "format": "asar"})).is_err());
     }
 
-    /// Smoke test against a real app: `CRAFT_SMOKE_PATH=/path/app.asar cargo test -- --ignored smoke --nocapture`.
+    /// Smoke test against a real app: `AXIOM_SMOKE_PATH=/path/app.asar cargo test -- --ignored smoke --nocapture`.
     #[test]
     #[ignore]
     fn smoke_real_app() {
-        let Ok(path) = std::env::var("CRAFT_SMOKE_PATH") else { return };
+        let Ok(path) = std::env::var("AXIOM_SMOKE_PATH") else { return };
         let e = Engine::new(crate::testing::session());
         let t = std::time::Instant::now();
         let a = call(&e, "js_app_map", json!({"input_path": path, "if_tampered": "continue", "limit": 5})).unwrap();

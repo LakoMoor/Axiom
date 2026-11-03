@@ -227,7 +227,7 @@ Owner: maintainers · Status: done (branch `test/r0.7-live-e2e`; runs on 2026-10
 - [x] Game target: Muck → Rust reached Build (game written and compiled, the builder screenshotting
       its own result) and was stopped on purpose before Check; a polished game isn't the goal.
       It first failed at once because "in Rust" was ignored (fixed in #4)
-- [x] Opt-in test (`CRAFT_E2E=1`) that runs the website case
+- [x] Opt-in test (`AXIOM_E2E=1`) that runs the website case
       (`apps/axiom-cli/tests/live_rebuild.rs`)
 
 ---
