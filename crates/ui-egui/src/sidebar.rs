@@ -51,7 +51,9 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
                 }
             });
         }
-        section_gap(ui, fold, 18.0);
+        section_gap(ui, fold, 6.0);
+        mode_switch(app, ui, fold);
+        section_gap(ui, fold, 12.0);
         // Pinned builds, between the screens and the projects, to open in one click.
         crate::pins::section(app, ui, fold);
         chats_section(app, ui, fold);
@@ -72,7 +74,8 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             app.refresh_projects();
         }
         ui.add_space(4.0);
-        egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+        let list_h = if fold { ui.available_height() } else { (ui.available_height() - 76.0).max(60.0) };
+        egui::ScrollArea::vertical().auto_shrink([false, false]).max_height(list_h).show(ui, |ui| {
             if app.projects.is_empty() && !fold {
                 egui::Frame::new().inner_margin(egui::Margin { left: 12, right: 8, top: 2, bottom: 2 }).show(ui, |ui| {
                     ui.label(RichText::new(tr("Nothing made yet. What you make shows up here.")).color(t.text_faint).size(theme::SMALL));
@@ -101,6 +104,14 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
                 app.open_workspace(ws);
             }
         });
+        if !fold {
+            ui.add_space(6.0);
+            ui.horizontal(|ui| {
+                ui.add_space(8.0);
+                profile_card(app, ui);
+            });
+            ui.add_space(10.0);
+        }
     });
 }
 
@@ -266,4 +277,54 @@ fn rail_go(app: &mut CraftApp, ui: &mut Ui, icon: &str, tip: &str, screen: Scree
         app.state.screen = screen;
     }
     clicked
+}
+
+/// Build or Agent, as the two modes of the app (the way ChatGPT and Codex switch). Folded away
+/// with the sidebar; the icon rail still reaches both.
+fn mode_switch(app: &mut CraftApp, ui: &mut Ui, fold: bool) {
+    // Folded, the same height stays empty so nothing below moves when the sidebar folds.
+    if fold {
+        ui.horizontal(|ui| {
+            ui.add_space(8.0);
+            ui.allocate_space(Vec2::new(1.0, 30.0));
+        });
+        return;
+    }
+    let sel = usize::from(app.state.screen == Screen::Agent);
+    ui.horizontal(|ui| {
+        ui.add_space(8.0);
+        if let Some(i) = widgets::segmented(ui, &["Build", "Agent"], sel, 30.0) {
+            app.state.screen = if i == 0 { Screen::Home } else { Screen::Agent };
+        }
+    });
+}
+
+/// The card at the foot of the sidebar: which AI answers and in which mode; opens Settings.
+fn profile_card(app: &mut CraftApp, ui: &mut Ui) {
+    let t = Tokens::get(ui.ctx());
+    let ai = app.state.backend.clone().unwrap_or_else(|| tr("No AI"));
+    let mode = tr(if app.settings.deep_mode { "Deep" } else { "Clean room" });
+    let (rect, resp) = ui.allocate_exact_size(Vec2::new(ui.available_width() - 8.0, 52.0), egui::Sense::click());
+    let h = widgets::hover_t(ui, &resp);
+    ui.painter().rect(
+        rect,
+        theme::ROW_RADIUS,
+        theme::mix(t.raised, t.hover, h),
+        egui::Stroke::new(1.0, theme::mix(t.card_border, t.field_border, h)),
+        egui::StrokeKind::Inside,
+    );
+    let c = egui::pos2(rect.left() + 28.0, rect.center().y);
+    ui.painter().circle_filled(c, 16.0, t.accent_soft);
+    icons::paint(ui, egui::Rect::from_center_size(c, Vec2::splat(16.0)), "user", 16.0, t.accent);
+    let title = widgets::label_galley(ui, &ai, 13.0, t.text);
+    let sub = widgets::label_galley(ui, &mode, 11.0, t.text_dim);
+    let x = rect.left() + 54.0;
+    ui.painter().galley_with_override_text_color(egui::pos2(x, rect.center().y - title.size().y - 1.0), title, t.text);
+    ui.painter().galley_with_override_text_color(egui::pos2(x, rect.center().y + 2.0), sub, t.text_dim);
+    widgets::focus_ring(ui, &resp, rect);
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, tr("Your profile and settings")));
+    let resp = resp.on_hover_text(tr("Your profile and settings"));
+    if resp.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
+        app.state.settings_open = true;
+    }
 }

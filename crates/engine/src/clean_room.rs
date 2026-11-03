@@ -52,6 +52,11 @@ pub const TOOLS: &[&str] = &[
     "models_server_start",
     "models_server_stop",
     "models_servers_list",
+    "models_strata_status",
+    "models_strata_install",
+    "models_strata_start",
+    // Whether a newer Axiom is out: one anonymous request, nothing about any target.
+    "app_update_check",
     // Projects and the rebuild run.
     "project_list",
     "project_show",
@@ -169,7 +174,7 @@ mod tests {
     #[test]
     fn every_engine_tool_in_the_table_exists_and_none_is_listed_twice() {
         let r = crate::Registry::with_all_tools();
-        let higher_layers = ["rebuild_", "assets_key_", "setup_", "models_"];
+        let higher_layers = ["rebuild_", "assets_key_", "setup_", "models_", "app_update_"];
         for id in TOOLS {
             assert!(r.get(id).is_some() || higher_layers.iter().any(|p| id.starts_with(p)), "{id} isn't a tool");
             assert_eq!(TOOLS.iter().filter(|t| *t == id).count(), 1, "{id} is listed twice");

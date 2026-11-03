@@ -960,6 +960,8 @@ program) from its release, starts a ready-made pack and adds it as an AI. Nothin
 - [ ] A "Easiest start" card on the Models screen: one button, progress, disk and memory check first
 - [ ] Release source: Strata's fork has no releases yet; now the upstream release is used
 - [ ] Windows and Linux live runs (only the Mac code path and the tests have been run)
+- [ ] Setting to turn the update check off (it asks GitHub once per start, with the generic user agent)
+- [ ] Profile card: a real name and picture, when there is somewhere they are kept
 
 ## M3 Engine depth
 

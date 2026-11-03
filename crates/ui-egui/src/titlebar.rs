@@ -207,6 +207,7 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             // switch and AI picker are in Settings, and the Clean room switch stays in view.
             if app.beginner() {
                 deep_toggle(app, ui);
+                update_pill(app, ui);
                 usage_pill(app, ui);
                 return;
             }
@@ -221,6 +222,7 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             rule(ui);
             backend_picker(app, ui);
             deep_toggle(app, ui);
+            update_pill(app, ui);
             usage_pill(app, ui);
             if app.jobs.busy() {
                 let n = app.jobs.running().filter(|j| j.visible).count();
@@ -228,6 +230,32 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             }
         });
     });
+}
+
+/// "Update available": a newer release is out; a click opens its page.
+fn update_pill(app: &mut CraftApp, ui: &mut Ui) {
+    let Some(version) = app.update_available.clone() else { return };
+    let t = Tokens::get(ui.ctx());
+    let text = tr("Update available");
+    let g = widgets::label_galley(ui, &text, 12.0, t.accent);
+    let size = Vec2::new(g.size().x + 34.0, 26.0);
+    let (rect, resp) = ui.allocate_exact_size(size, egui::Sense::click());
+    let h = widgets::hover_t(ui, &resp);
+    ui.painter().rect(
+        rect,
+        13.0,
+        crate::theme::mix(t.accent_soft, t.hover, h * 0.4),
+        egui::Stroke::new(1.0, crate::theme::mix(t.card_border, t.accent, 0.55)),
+        egui::StrokeKind::Inside,
+    );
+    icons::paint(ui, egui::Rect::from_center_size(egui::pos2(rect.left() + 15.0, rect.center().y), Vec2::splat(14.0)), "download", 14.0, t.accent);
+    ui.painter().galley_with_override_text_color(egui::pos2(rect.left() + 26.0, rect.center().y - g.size().y / 2.0), g, t.accent);
+    widgets::focus_ring(ui, &resp, rect);
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, text.clone()));
+    let resp = resp.on_hover_text(crate::i18n::trf("Axiom {v} is out. Click to see what's new and get it.", &[("v", &version)]));
+    if resp.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
+        app.open_url = Some(axiom_ai::update::RELEASES_PAGE.to_string());
+    }
 }
 
 /// What the AI has used since the app opened ("about $3.20", or tokens without a price), once
