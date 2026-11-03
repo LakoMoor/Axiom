@@ -282,18 +282,17 @@ fn ui_has_no_side_effects(root: &Path) -> bool {
     /// Today's offenders: `(file in crates/ui-egui/src, pattern, why it's still there)`. The list
     /// only shrinks: move the work behind a tool, then delete the entry (a stale entry fails).
     const BASELINE: &[(&str, &str, &str)] = &[];
-    let Ok(entries) = std::fs::read_dir(root.join("crates/ui-egui/src")) else {
+    let src = root.join("crates/ui-egui/src");
+    let files = rust_files(&src);
+    if files.is_empty() {
         eprintln!("layers: cannot read crates/ui-egui/src");
         return false;
-    };
+    }
     let mut ok = true;
     let mut seen: Vec<(String, &str)> = Vec::new();
-    for e in entries.flatten() {
-        let name = e.file_name().to_string_lossy().into_owned();
-        if !name.ends_with(".rs") {
-            continue;
-        }
-        let text = std::fs::read_to_string(e.path()).unwrap_or_default();
+    for path in files {
+        let name = path.strip_prefix(&src).unwrap_or(&path).to_string_lossy().replace('\\', "/");
+        let text = std::fs::read_to_string(&path).unwrap_or_default();
         for (i, line) in text.lines().enumerate() {
             let code = line.trim_start();
             if code.starts_with("#[cfg(test)]") || code.starts_with("#[cfg(all(test") {
@@ -319,6 +318,25 @@ fn ui_has_no_side_effects(root: &Path) -> bool {
         }
     }
     ok
+}
+
+/// Every `.rs` file under `dir`, folders included, in a stable order.
+pub fn rust_files(dir: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&d) else { continue };
+        for e in entries.flatten() {
+            let p = e.path();
+            if p.is_dir() {
+                stack.push(p);
+            } else if p.extension().is_some_and(|x| x == "rs") {
+                out.push(p);
+            }
+        }
+    }
+    out.sort();
+    out
 }
 
 fn tools(root: &Path, check: bool) -> bool {

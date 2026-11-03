@@ -7,41 +7,23 @@
 //! holding it never freezes a frame; the last snapshot ([`SessionView`]) is shown meanwhile.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
-pub mod agent_mode;
+pub mod chrome;
+pub mod kit;
+pub mod screens;
+
+// The modules keep their short paths (`crate::project`, `axiom_ui_egui::home`…).
+pub use chrome::{folders, palette, pins, prompt_box, sidebar, slash, titlebar, usage};
+pub use kit::{icons, schema_form, theme, widgets};
+pub use screens::{agent_mode, chat, chats, first_run, home, just_ask, make, manage, models_ui, project, report, settings_ui, workbench};
 pub mod builders;
 pub mod changes_ui;
-pub mod chat;
-pub mod chats;
 pub mod demo;
 pub mod engine_ui;
 pub mod evidence_ui;
-pub mod first_run;
-pub mod folders;
 pub mod glossary;
-pub mod home;
 pub mod i18n;
-mod icon_data;
-pub mod icons;
 pub mod jobs;
-pub mod just_ask;
-pub mod make;
-pub mod manage;
-pub mod models_ui;
-pub mod palette;
-pub mod pins;
-pub mod project;
-pub mod prompt_box;
-pub mod report;
-pub mod schema_form;
-pub mod settings_ui;
-pub mod sidebar;
-pub mod slash;
 pub mod state;
-pub mod theme;
-pub mod titlebar;
-pub mod usage;
-pub mod widgets;
-pub mod workbench;
 
 use axiom_ai::{AgentEvent, AiHub, BackendConfig, Conversation, Detected};
 use axiom_engine::evidence::{ErrorCode, Evidence, ToolError, Unknown};

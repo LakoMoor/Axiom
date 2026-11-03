@@ -6,7 +6,7 @@ use std::sync::{Arc, OnceLock};
 
 use egui::{Color32, Rect, Response, Sense, Vec2};
 
-use crate::icon_data::ICONS;
+use super::icon_data::ICONS;
 use crate::theme::Tokens;
 
 fn white_icons() -> &'static HashMap<&'static str, Arc<[u8]>> {
