@@ -975,7 +975,8 @@ The browser app is the desktop app itself (same screens, same tools), not a smal
 - [ ] Hide what only a computer can offer in the page (the Ghidra offer, folders, "Open folder", agent programs)
 - [ ] Long work off the main thread (a Web Worker), and streamed answers from AI services
 - [ ] Missing symbols in the page's font (arrows show as boxes), and a title bar that fits a browser tab (no window buttons)
-- [ ] Publish it with the release and on the site (`/app/`), and say what is and isn't available there
+- [x] Publish it on the site (`/app/`, built by `pages.yml`) and as the web package (`packaging/web/package.sh` builds the whole app; `--viewer` the old viewer)
+- [ ] Put the web app into the release workflow in `axiom-actions`, and say on the page what is and isn't available there
 
 ## M3 Engine depth
 
