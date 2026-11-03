@@ -976,7 +976,8 @@ The browser app is the desktop app itself (same screens, same tools), not a smal
 - [ ] Long work off the main thread (a Web Worker), and streamed answers from AI services
 - [ ] Missing symbols in the page's font (arrows show as boxes), and a title bar that fits a browser tab (no window buttons)
 - [x] Publish it on the site (`/app/`, built by `pages.yml`) and as the web package (`packaging/web/package.sh` builds the whole app; `--viewer` the old viewer)
-- [ ] Put the web app into the release workflow in `axiom-actions`, and say on the page what is and isn't available there
+- [x] The release workflow's web job already runs `packaging/web/package.sh`, which builds the whole app
+- [ ] Say on the web page what is and isn't available there
 
 ## M3 Engine depth
 
@@ -1320,5 +1321,6 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
       and saving the report (the report button still says it can't)
 - [ ] Android app: the models hub cannot run llama.cpp's server there as built; needs an in-process
       runner or a remote engine. Then check chat against a model on a real phone
-- [ ] Android app: a release key, an `x86_64` build for emulators on Intel, and the APK in the release workflow
+- [x] Android app: the APK is in the release workflow (`has-android` in `axiom-actions`; it builds with `packaging/android/package.sh` and a throwaway key made on the runner). Not yet run in CI.
+- [ ] Android app: a release key (`AXIOM_ANDROID_KEYSTORE`), an `x86_64` build for emulators on Intel, and a run of the release job
 - [ ] Models hub: run and check on Linux and Windows (pins exist, only macOS arm64 was run live)
