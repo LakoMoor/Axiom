@@ -17,14 +17,17 @@ log = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
 process-wrap = { version = "10", default-features = false, features = ["std", "process-group", "job-object", "kill-on-drop", "creation-flags"] }
-# Process capture under a pseudo-terminal (safe public APIs; we write no unsafe).
-portable-pty = "0.9"
-vt100 = "0.16"
 
 # Window screenshots of a running program (safe API). Windows and macOS only for now: on Linux it
 # needs PipeWire, Wayland/GBM, XCB and clang to build (ROADMAP R2.4).
 [target.'cfg(any(windows, target_os = "macos"))'.dependencies]
 xcap = "0.9"
+
+# Process capture under a pseudo-terminal (safe public APIs; we write no unsafe). Not in the browser,
+# where there are no programs to capture (`serial2` under it doesn't build for wasm32).
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+portable-pty = "0.9"
+vt100 = "0.16"
 
 [target.'cfg(unix)'.dependencies]
 nix = { version = "0.31", default-features = false, features = ["signal", "process"] }
@@ -35,3 +38,8 @@ windows = { version = "0.62", default-features = false, features = ["Win32_Syste
 
 [dev-dependencies]
 tempfile = "3"
+
+# In the browser the random numbers some libraries ask for come from the page (`crypto.getRandomValues`).
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }

@@ -20,7 +20,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }
 toml = { workspace = true }
-ureq = "3"
 dirs = "6"
 
 [target.'cfg(target_os = "linux")'.dependencies]
@@ -35,3 +34,11 @@ keyring = { version = "3", default-features = false, features = ["windows-native
 [dev-dependencies]
 tempfile = "3"
 axiom-testkit = { workspace = true }
+
+# HTTPS (rustls) on computers. In the browser there is no socket to open and `ring` doesn't build for
+# it, so the client is kept without TLS there until requests go through `fetch`.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ureq = "3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+ureq = { version = "3", default-features = false }
