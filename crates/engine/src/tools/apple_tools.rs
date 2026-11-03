@@ -10,6 +10,7 @@ use crate::target::TargetKind;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, ErrorCode, Limitation, Location, Subject, ToolError, sha256_hex};
 use axiom_formats::{car, codesign, keyed_archive, macho_deps, nib, plist, swift_demangle, verify};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -1169,7 +1170,7 @@ impl Resolver<'_> {
                             candidates.push(json!({"rpath": rp, "path": null, "status": "relative-run-path"}));
                             continue;
                         };
-                        let cands = if base.is_absolute() && !rp.starts_with('@') {
+                        let cands = if base.is_absolute_path() && !rp.starts_with('@') {
                             self.absolute_candidates(&base.join(rest))
                         } else {
                             vec![normalize(&base.join(rest))]

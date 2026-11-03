@@ -9,6 +9,7 @@ use super::static_input::{builder, partial};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{Authority, Confidence, Coverage, Limitation, Location, Subject, ToolError};
 use axiom_formats::{pe_is_managed, plist};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -707,7 +708,7 @@ fn candidates(root: &Path, w: &Walk, hits: &Hits, main_program: Option<&str>) ->
 fn app_folder_explain(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: SurveyParams = parse_params(params)?;
     let root = PathBuf::from(&p.path);
-    if !root.is_absolute() {
+    if !root.is_absolute_path() {
         return Err(ToolError::invalid(format!("{:?} is not an absolute path", p.path)).with_remediation("Pass the full path of the app's folder."));
     }
     let meta = std::fs::metadata(&root).map_err(|e| ToolError::io(root.display(), e))?;

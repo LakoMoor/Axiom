@@ -16,6 +16,7 @@ use crate::inbox::{Inbox, InboxDir, RequestKind};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use crate::workspace::{Questions, Workspace};
 use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -236,7 +237,7 @@ fn never_exits(part: &str) -> bool {
 /// Lexically resolve `p` against `base` (no filesystem access); `None` if it climbs above the root.
 pub(crate) fn resolve(base: &Path, p: &str) -> Option<PathBuf> {
     let path = Path::new(p);
-    let joined = if path.is_absolute() { path.to_path_buf() } else { base.join(path) };
+    let joined = if path.is_absolute_path() { path.to_path_buf() } else { base.join(path) };
     let mut out = PathBuf::new();
     for c in joined.components() {
         match c {

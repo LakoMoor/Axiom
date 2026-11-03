@@ -6,6 +6,7 @@
 use crate::tool::{CancelToken, Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use crate::tools::native_common::spec;
 use axiom_evidence::{Authority, Confidence, Coverage, Environment, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, host_triple};
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -599,7 +600,7 @@ fn file_sha256(path: &std::path::Path, cancel: &CancelToken) -> Result<String, T
 fn android_jeb_open(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: OpenParams = parse_params(params)?;
     let path = std::path::PathBuf::from(&p.path);
-    if !path.is_absolute() {
+    if !path.is_absolute_path() {
         return Err(ToolError::invalid(format!("path {:?} must be absolute", p.path)));
     }
     if !path.is_file() {

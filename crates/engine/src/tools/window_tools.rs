@@ -5,6 +5,7 @@
 use super::web_common::{Image, encode_png, png_artifact};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use axiom_evidence::{Confidence, Coverage, ErrorCode, EvidenceBuilder, Location, Subject, ToolError};
+use axiom_platform::fs::AbsolutePath;
 use axiom_platform::process::Process;
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -53,12 +54,12 @@ pub struct CaptureParams {
 
 fn native_window_capture(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: CaptureParams = parse_params(params)?;
-    if !p.program.is_absolute() || !p.program.is_file() {
+    if !p.program.is_absolute_path() || !p.program.is_file() {
         return Err(
             ToolError::invalid(format!("{} isn't a program file.", p.program.display())).with_remediation("Pass the full path of the program to start.")
         );
     }
-    if p.ui_tree.as_ref().is_some_and(|t| !t.is_absolute()) {
+    if p.ui_tree.as_ref().is_some_and(|t| !t.is_absolute_path()) {
         return Err(ToolError::invalid("ui_tree must be an absolute path"));
     }
     // Refused before the program starts where no picture can be taken.
@@ -100,7 +101,7 @@ fn native_window_capture(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput,
     let shot = shot?;
     let png = encode_png(&Image { width: shot.width, height: shot.height, rgba: shot.rgba })?;
     if let Some(out) = &p.output {
-        if !out.is_absolute() {
+        if !out.is_absolute_path() {
             return Err(ToolError::invalid("output must be an absolute path"));
         }
         crate::project::write_atomic(out, &png)?;

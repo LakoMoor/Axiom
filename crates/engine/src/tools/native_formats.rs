@@ -8,6 +8,7 @@ use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_p
 use axiom_analysis::native as an;
 use axiom_evidence::{Confidence, Coverage, Environment, ErrorCode, Evidence, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex};
 use axiom_formats::Format;
+use axiom_platform::fs::AbsolutePath;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -225,7 +226,7 @@ fn input(ctx: &Ctx<'_>, path: &Option<String>, max: u64) -> Result<(Arc<[u8]>, S
     match path {
         Some(p) => {
             let pb = PathBuf::from(p);
-            if !pb.is_absolute() {
+            if !pb.is_absolute_path() {
                 return Err(ToolError::invalid(format!("{p} is not an absolute path")));
             }
             let meta = std::fs::metadata(&pb).map_err(|e| ToolError::io(p, e))?;
@@ -538,7 +539,7 @@ fn core_target_triage(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
     let t: Target = match &p.path {
         Some(path) => {
             let pb = PathBuf::from(path);
-            if !pb.is_absolute() {
+            if !pb.is_absolute_path() {
                 return Err(ToolError::invalid(format!("{path} is not an absolute path")));
             }
             Target::load(&pb)?

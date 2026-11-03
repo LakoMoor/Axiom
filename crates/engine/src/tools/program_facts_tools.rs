@@ -13,6 +13,7 @@ use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, ErrorCode,
 use axiom_formats::authenticode::{self, CertTable, HashStatus, SignatureReport};
 use axiom_formats::verify::Verified;
 use axiom_formats::{Binary, Format, ai_model, elf, macho_deps, parse_binary, pe};
+use axiom_platform::fs::AbsolutePath;
 use axiom_platform::fs::write_atomic;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -992,7 +993,7 @@ fn native_source_folder_write(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOu
         return Err(ToolError::invalid("max_seconds can be at most 3600"));
     }
     let folder = PathBuf::from(&p.folder);
-    if !folder.is_absolute() {
+    if !folder.is_absolute_path() {
         return Err(ToolError::invalid(format!("{:?} is not an absolute path", p.folder)).with_remediation("Pass the full path of a folder."));
     }
     // Refuse before the (possibly long) analysis.

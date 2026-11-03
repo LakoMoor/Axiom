@@ -151,9 +151,9 @@ pub struct RawSpec {
 impl Target {
     /// Load a file or directory.
     pub fn load(path: &Path) -> Result<Target, ToolError> {
-        let meta = std::fs::metadata(path).map_err(|e| ToolError::io(path.display(), e))?;
+        let meta = axiom_platform::fs::metadata(path).map_err(|e| ToolError::io(path.display(), e))?;
         let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| path.display().to_string());
-        if meta.is_dir() {
+        if meta.is_dir {
             let digest = sha256_hex(path.to_string_lossy().as_bytes());
             return Ok(Target {
                 id: format!("t_{}", digest.get(..12).unwrap_or(&digest)),
@@ -165,10 +165,10 @@ impl Target {
                 raw: None,
             });
         }
-        if meta.len() > MAX_TARGET_BYTES {
-            return Err(ToolError::new(ErrorCode::OverLimit, format!("{} is {} bytes; the limit is {MAX_TARGET_BYTES}", path.display(), meta.len())));
+        if meta.len > MAX_TARGET_BYTES {
+            return Err(ToolError::new(ErrorCode::OverLimit, format!("{} is {} bytes; the limit is {MAX_TARGET_BYTES}", path.display(), meta.len)));
         }
-        let bytes = std::fs::read(path).map_err(|e| ToolError::io(path.display(), e))?;
+        let bytes = axiom_platform::fs::read(path).map_err(|e| ToolError::io(path.display(), e))?;
         Ok(Target::from_bytes(path.to_path_buf(), name, bytes))
     }
 
@@ -187,7 +187,7 @@ impl Target {
         if self.kind == TargetKind::Directory {
             return Ok(());
         }
-        match std::fs::read(&self.path) {
+        match axiom_platform::fs::read(&self.path) {
             Ok(b) if sha256_hex(&b) == self.sha256 => Ok(()),
             Ok(_) => Err(ToolError::new(ErrorCode::FileChanged, format!("{} changed on disk since it was opened", self.path.display()))
                 .with_remediation("Open it again to analyse the new version.")),

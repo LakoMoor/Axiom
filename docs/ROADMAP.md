@@ -970,7 +970,9 @@ The browser app is the desktop app itself (same screens, same tools), not a smal
 - [x] `CraftApp` runs in the browser from `apps/axiom-web` (`axiom-app`): settings and keys are kept in the page's local storage, quick jobs run on the main thread, and the screens (setup, Home, Models) work. Checked in headless Chrome by clicking through them.
 - [x] HTTP: `axiom-net` is `ureq` on computers and a synchronous XMLHttpRequest in a page (whole answers, no streaming; only servers that allow the page's origin)
 - [x] Tools that start a program or reach a device say "desktop only" instead of failing (`Effects::needs_a_computer`)
-- [ ] Open a target in the page: file picker and drag-and-drop for the target, reading it in memory; run the pure tools (triage, APK/DEX/ELF/PE/JS/WASM analysis) on it
+- [x] Open a target in the page: the browser's file picker and drag-and-drop read the file in memory (`/web/<name>`, `platform::fs::stage_file`); `Target::load` reads through `platform::fs`. Checked in headless Chrome: a dropped Mach-O program opens and gets its first look (`core_target_triage`) from the built-in engine.
+- [ ] Other tools on a page's target: run each pure tool in the page (APK/DEX/ELF/PE/JS/WASM analysis, disassembly) and mark what needs a program as desktop-only; many tools still read files with `std::fs` and need `platform::fs`
+- [ ] Hide what only a computer can offer in the page (the Ghidra offer, folders, "Open folder", agent programs)
 - [ ] Long work off the main thread (a Web Worker), and streamed answers from AI services
 - [ ] Missing symbols in the page's font (arrows show as boxes), and a title bar that fits a browser tab (no window buttons)
 - [ ] Publish it with the release and on the site (`/app/`), and say what is and isn't available there

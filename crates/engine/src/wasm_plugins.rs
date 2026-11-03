@@ -14,6 +14,7 @@
 
 use crate::registry::RuntimeTool;
 use crate::session::Session;
+use axiom_platform::fs::AbsolutePath;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -45,7 +46,7 @@ impl WasmPluginConfig {
         if !RuntimeTool::valid_id(&self.id) || crate::registry::custom_toolset(&self.id).is_none() {
             return Some(format!("Plugin id {:?} must be lower-case letters, digits and _.", self.id));
         }
-        if !self.path.is_absolute() || !self.path.extension().is_some_and(|e| e.eq_ignore_ascii_case("wasm")) {
+        if !self.path.is_absolute_path() || !self.path.extension().is_some_and(|e| e.eq_ignore_ascii_case("wasm")) {
             return Some(format!("The {} plugin needs the full path of its .wasm file.", self.id));
         }
         if !self.path.is_file() {
