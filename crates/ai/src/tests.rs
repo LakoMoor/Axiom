@@ -188,13 +188,9 @@ fn the_person_chooses_who_builds() {
     assert!(h.set_role(Role::Builder, Some("Nobody")).is_err(), "only a configured backend");
     h.set_role(Role::Builder, Some("Kimi K3 (OpenRouter)")).unwrap();
     assert_eq!(h.chosen(Role::Builder).as_deref(), Some("Kimi K3 (OpenRouter)"));
-    // The extractor is chosen the same way, and has no default.
-    assert_eq!(h.chosen(Role::Extractor), None);
-    h.set_role(Role::Extractor, Some("Kimi K3 (OpenRouter)")).unwrap();
-    assert_eq!(h.chosen(Role::Extractor).as_deref(), Some("Kimi K3 (OpenRouter)"));
     // A removed backend can't stay the builder.
     h.remove_backend("Kimi K3 (OpenRouter)").unwrap();
-    assert_eq!((h.chosen(Role::Builder), h.chosen(Role::Extractor)), (None, None));
+    assert_eq!(h.chosen(Role::Builder), None);
     h.set_role(Role::Builder, Some("Claude Code")).unwrap();
     h.set_role(Role::Builder, None).unwrap();
     assert_eq!(h.chosen(Role::Builder), None, "back to automatic");

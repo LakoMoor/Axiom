@@ -3,13 +3,7 @@
 
 use super::*;
 
-/// The folder whose files show how a picked game was made (beside a launcher, above bin/).
-pub fn game_folder(path: &Path) -> Option<PathBuf> {
-    locate(path, true).1
-}
-
-/// The game's own folder when the person picked one of its inner folders (Unreal's Engine/, a
-/// Binaries/Win64, Content/Paks…): up to two levels, never further, so a pick can't widen to a
+/// The game's own folder when the person picked one of its inner folders (a Binaries/Win64, Content/Paks…): up to two levels, never further, so a pick can't widen to a
 /// whole game library.
 pub(super) fn game_root(picked: &Path) -> PathBuf {
     const INNER: [&str; 8] = ["engine", "binaries", "win64", "win32", "content", "paks", "bin", "bin_win32"];

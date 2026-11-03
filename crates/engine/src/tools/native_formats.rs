@@ -561,7 +561,7 @@ fn core_target_triage(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
             builder.result(r.result).summary(r.summary).confidence(r.confidence).limitations(r.limitations).locations(r.locations).build()?
         }
         fallback => {
-            let (mut plain, mut toolsets, mut tools) = non_native_triage(&t);
+            let (mut plain, toolsets, mut tools) = non_native_triage(&t);
             let mut builder = builder;
             if let Err(error) = fallback
                 && native_kind
@@ -576,15 +576,7 @@ fn core_target_triage(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
                 tools = vec![("native_bytes_show", "inspect the unreadable file's raw bytes")];
                 builder = builder.limitation(Limitation::new("native_parse_failed", error.message));
             }
-            // A game's folder: what it's made with, its libraries and its size.
-            let game = (t.kind == TargetKind::Directory).then(|| craft_anything_engines::game::profile(&t.path));
-            let game = game.and_then(|g| g.summary(&t.name).map(|s| (g, s)));
-            if let Some((_, summary)) = &game {
-                plain.clone_from(summary);
-                toolsets = vec!["core", "formats"];
-                tools = vec![("game_archives_list", "find the archives it packs its files in"), ("game_pak_list", "list what's in an Unreal pak")];
-            }
-            let mut result = json!({
+            let result = json!({
                 "plain_english": plain,
                 "kind": t.kind,
                 "description": t.kind.plain(),
@@ -592,9 +584,6 @@ fn core_target_triage(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
                 "recommended_toolsets": toolsets,
                 "next_steps": tools.iter().map(|(tool, why)| json!({"tool": tool, "why": why})).collect::<Vec<_>>(),
             });
-            if let Some((g, _)) = game {
-                result["game"] = json!(g);
-            }
             builder
                 .result(result)
                 .summary(plain)

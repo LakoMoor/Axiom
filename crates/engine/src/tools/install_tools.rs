@@ -3,15 +3,12 @@
 //! look at, and searches the start of a few main programs (Tauri leaves no file of its own). Each
 //! runtime is one row of [`RUNTIMES`]; add one by adding a row.
 //!
-//! Games are recognised by the same code as `core_target_triage`
-//! (`craft_anything_engines::game::detect_in`), over this tool's own no-links walk.
 
 use super::native_common::{params_json, spec};
 use super::static_input::{builder, partial};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_engines::game;
 use craft_anything_evidence::{Authority, Confidence, Coverage, Limitation, Location, Subject, ToolError};
-use craft_anything_formats::{godot_pck, pe_is_managed, plist, unreal_iostore, unreal_pak};
+use craft_anything_formats::{pe_is_managed, plist};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -49,7 +46,7 @@ pub fn specs() -> Vec<ToolSpec> {
     vec![spec(
         "app_folder_explain",
         "Work out what an installed app is built on",
-        "Survey an installed app's folder (absolute path; a macOS .app or its Contents, a Windows or Linux install folder) when you don't know what it is. Walks the folder within max_entries and max_depth, following no links, running nothing and writing nothing, and reads only the first and last 4 KiB of the files that need a look, plus a search of up to 64 MiB of up to 4 main programs for Tauri's own text, to name the runtimes it may be built on: Electron, Tauri, CEF, Qt, Flutter, .NET, Java, Python (with PyInstaller), Node, Unity, Unreal, Godot, other game engines, or plain native code. Each candidate has a strength and the files that support it, and next_steps says which tool to run on which file. These are inferences: a file being there doesn't prove the app runs it.",
+        "Survey an installed app's folder (absolute path; a macOS .app or its Contents, a Windows or Linux install folder) when you don't know what it is. Walks the folder within max_entries and max_depth, following no links, running nothing and writing nothing, and reads only the first and last 4 KiB of the files that need a look, plus a search of up to 64 MiB of up to 4 main programs for Tauri's own text, to name the runtimes it may be built on: Electron, Tauri, CEF, Qt, Flutter, .NET, Java, Python (with PyInstaller), Node, or plain native code. Each candidate has a strength and the files that support it, and next_steps says which tool to run on which file. These are inferences: a file being there doesn't prove the app runs it.",
         "Point at an installed app and find out what it was made with, and what to look at next.",
         Toolset::Formats,
         Effects::EVIDENCE | Effects::CARRIES_TARGET_CONTENT,
@@ -137,8 +134,6 @@ struct Next {
 struct Runtime {
     id: &'static str,
     title: &'static str,
-    /// The game engine `game::detect_in` must report for this runtime to gain a marker from it.
-    engine: Option<game::Made>,
     /// Runtimes this one is normally part of (their ids, or [`ANY_OTHER`]). When one of them is
     /// also found, this one is expected, so it doesn't lead the answer.
     beneath: &'static [&'static str],
@@ -163,10 +158,6 @@ const fn next(tool: &'static str, on: &'static str, why: &'static str) -> Next {
     Next { tool, param: "path", on: Some(on), why }
 }
 
-const fn folder(tool: &'static str, why: &'static str) -> Next {
-    Next { tool, param: "path", on: None, why }
-}
-
 use At::{MainProgram, Name, NameEnds, NameStarts, PathEnds, PathHas, Program};
 use Weight::{Medium, Strong, Weak};
 
@@ -175,7 +166,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "electron",
         title: "Electron (a web app in a desktop shell)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("app_asar", &[PathEnds("/resources/app.asar")], Strong, "the packed web app Electron loads"),
@@ -197,7 +187,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "tauri",
         title: "Tauri (a web app in a small Rust program)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("config", &[Name("tauri.conf.json")], Strong, "Tauri's settings file"),
@@ -211,7 +200,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "cef",
         title: "CEF (Chromium embedded in a native app)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("framework", &[PathEnds("chromium embedded framework.framework")], Strong, "Chromium Embedded on macOS"),
@@ -231,7 +219,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "qt",
         title: "Qt (a native C++ interface toolkit)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("framework", &[PathEnds("qtcore.framework")], Strong, "Qt's core library on macOS"),
@@ -253,7 +240,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "flutter",
         title: "Flutter (a Dart app with its own renderer)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("macos", &[PathEnds("fluttermacos.framework")], Strong, "Flutter's engine on macOS"),
@@ -271,7 +257,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "dotnet",
         title: ".NET (C# and similar languages)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("runtime_config", &[NameEnds(".runtimeconfig.json")], Strong, "settings for starting a .NET program"),
@@ -291,7 +276,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "java",
         title: "Java (or another language on the JVM)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("jar", &[NameEnds(".jar")], Medium, "a Java archive"),
@@ -307,7 +291,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "python",
         title: "Python (bundled with its interpreter)",
-        engine: None,
         beneath: &[],
         markers: &[
             mark("base_library", &[Name("base_library.zip")], Strong, "the standard library PyInstaller packs"),
@@ -327,7 +310,6 @@ static RUNTIMES: &[Runtime] = &[
     Runtime {
         id: "node",
         title: "Node.js (JavaScript run outside a browser)",
-        engine: None,
         beneath: &["electron", "tauri"],
         markers: &[
             mark("modules", &[Name("node_modules")], Medium, "JavaScript packages"),
@@ -342,62 +324,8 @@ static RUNTIMES: &[Runtime] = &[
         ],
     },
     Runtime {
-        id: "unity",
-        title: "Unity (a game engine)",
-        engine: Some(game::Made::Unity),
-        beneath: &[],
-        markers: &[
-            mark("player", &[NameStarts("unityplayer.")], Strong, "Unity's player"),
-            mark("framework", &[PathEnds("unityframework.framework")], Strong, "Unity's player on Apple systems"),
-            mark("managers", &[Name("globalgamemanagers")], Strong, "Unity's settings for a game"),
-            mark("il2cpp_metadata", &[Name("global-metadata.dat")], Strong, "IL2CPP's table of the game's C# names"),
-            mark("il2cpp_code", &[NameStarts("gameassembly.")], Strong, "a game's C# compiled to native code by IL2CPP"),
-            mark("mono_code", &[Name("assembly-csharp.dll")], Strong, "a game's C# code, kept as .NET"),
-            mark("default_resources", &[Name("unity default resources")], Strong, "Unity's built-in assets"),
-        ],
-        next: &[
-            folder("game_archives_list", "find the files it packs its assets in"),
-            next("game_unity_code_names_show", "il2cpp_metadata", "the names of its code"),
-            next("managed_assembly_show", "mono_code", "what its code depends on"),
-            next("game_unity_list", "managers", "the objects it holds"),
-        ],
-    },
-    Runtime {
-        id: "unreal",
-        title: "Unreal Engine (a game engine)",
-        engine: Some(game::Made::Unreal),
-        beneath: &[],
-        markers: &[
-            look("pak", &[PathHas("/content/paks/"), NameEnds(".pak")], is_unreal_pak, Strong, "an Unreal archive, checked by its footer"),
-            look("iostore", &[NameEnds(".utoc")], is_unreal_toc, Strong, "an Unreal IoStore table of contents, checked by its start"),
-            mark("shipping_program", &[NameEnds("-shipping.exe")], Strong, "Unreal's usual name for a released program"),
-            mark("engine_binaries", &[PathHas("/engine/binaries/")], Medium, "where Unreal keeps its programs"),
-        ],
-        next: &[
-            folder("game_archives_list", "find the files it packs its assets in"),
-            next("game_pak_list", "pak", "what's packed in its archive"),
-            next("game_iostore_list", "iostore", "what's packed in its IoStore container"),
-        ],
-    },
-    Runtime {
-        id: "godot",
-        title: "Godot (a game engine)",
-        engine: Some(game::Made::Godot),
-        beneath: &[],
-        markers: &[
-            look("pack", &[NameEnds(".pck")], is_godot_pack, Strong, "a Godot pack, checked by its start"),
-            look("embedded_pack", &[Program], has_godot_trailer, Strong, "a program with a Godot pack at its end"),
-        ],
-        next: &[
-            next("core_packed_files_list", "pack", "list what's packed inside"),
-            next("core_packed_files_list", "embedded_pack", "list what's packed inside the program"),
-            folder("game_archives_list", "find its packs"),
-        ],
-    },
-    Runtime {
         id: NATIVE,
         title: "Native code (no bigger runtime recognised for this)",
-        engine: None,
         beneath: &[ANY_OTHER],
         markers: &[look("program", &[Program], is_native_program, Weak, "a program in a machine's own code")],
         next: &[
@@ -511,28 +439,6 @@ fn is_java_image(p: &mut Probe) -> bool {
 
 fn is_managed_pe(p: &mut Probe) -> bool {
     pe_is_managed(p.head())
-}
-
-fn is_godot_pack(p: &mut Probe) -> bool {
-    p.head().starts_with(godot_pck::MAGIC)
-}
-
-/// A program with a Godot pack at its end: the trailer's pointer must land on a pack's mark.
-fn has_godot_trailer(p: &mut Probe) -> bool {
-    let len = p.len;
-    let Some(start) = godot_pck::trailer_start(p.tail(), len) else { return false };
-    p.read_at(start, godot_pck::MAGIC.len()).is_some_and(|m| m == godot_pck::MAGIC)
-}
-
-fn is_unreal_pak(p: &mut Probe) -> bool {
-    let len = p.len;
-    let tail = p.tail();
-    let cut = tail.len().saturating_sub(unreal_pak::FOOTER_READ);
-    unreal_pak::footer(tail.get(cut..).unwrap_or_default(), len).is_ok()
-}
-
-fn is_unreal_toc(p: &mut Probe) -> bool {
-    p.head().starts_with(unreal_iostore::MAGIC)
 }
 
 /// PyInstaller's cookie sits near the end of the program it packs into.
@@ -744,7 +650,7 @@ fn ordered<'a>(w: &'a Walk, hit: &[usize], main_program: Option<&str>) -> Vec<&'
     seen
 }
 
-fn candidates(root: &Path, w: &Walk, hits: &Hits, found: Option<&game::Found>, main_program: Option<&str>) -> Vec<Candidate> {
+fn candidates(root: &Path, w: &Walk, hits: &Hits, main_program: Option<&str>) -> Vec<Candidate> {
     let mut out = Vec::new();
     for (r, runtime) in RUNTIMES.iter().enumerate() {
         let mut markers = Vec::new();
@@ -772,12 +678,6 @@ fn candidates(root: &Path, w: &Walk, hits: &Hits, found: Option<&game::Found>, m
                 "paths": seen.iter().take(PATHS_SHOWN).map(|e| shown(root, e)).collect::<Vec<_>>(),
             }));
         }
-        if let Some(f) = found.filter(|f| runtime.engine == Some(f.engine)) {
-            strength = Some(Strong);
-            score += 5;
-            nearest = 0;
-            markers.push(json!({"marker": "game_detection", "means": format!("recognised as made with {}", f.label()), "weight": Strong, "count": 1, "paths": [f.clue], "version": f.version, "note": f.note}));
-        }
         let Some(strength) = strength else { continue };
         let next: Vec<Value> = runtime
             .next
@@ -793,19 +693,6 @@ fn candidates(root: &Path, w: &Walk, hits: &Hits, found: Option<&game::Found>, m
         // Weak evidence is only ever supporting, wherever it is, so it doesn't count as carried.
         let deep = strength >= Medium && nearest > LEAD_DEPTH;
         out.push(Candidate { runtime: runtime.id.into(), title: runtime.title.into(), strength, score, secondary: deep, expected: false, markers, next });
-    }
-    // A game engine with no row of its own still counts.
-    if let Some(f) = found.filter(|f| !RUNTIMES.iter().any(|r| r.engine == Some(f.engine))) {
-        out.push(Candidate {
-            runtime: format!("{:?}", f.engine).to_lowercase(),
-            title: format!("{} (a game engine)", f.engine.name()),
-            strength: Strong,
-            score: 5,
-            secondary: false,
-            expected: false,
-            markers: vec![json!({"marker": "game_detection", "means": format!("recognised as made with {}", f.label()), "weight": Strong, "count": 1, "paths": [f.clue], "version": f.version, "note": f.note})],
-            next: vec![json!({"tool": "core_target_triage", "args": {"path": root.display().to_string()}, "why": "what it's made of and how big it is"})],
-        });
     }
     let found_ids: Vec<String> = out.iter().map(|c| c.runtime.clone()).collect();
     for c in &mut out {
@@ -835,10 +722,7 @@ fn app_folder_explain(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
     let (hits, budget) = scan(&w, ctx)?;
     let bundle = bundle_facts(&root);
     let main_program = bundle.as_ref().and_then(|b| b["executable"].as_str());
-    // Games are recognised by the same code as triage, given this walk's regular files.
-    let files: Vec<(String, PathBuf)> = w.seen.iter().filter(|e| e.regular).map(|e| (e.rel.trim_start_matches('/').to_string(), e.path.clone())).collect();
-    let found = game::detect_in(&files);
-    let list = candidates(&root, &w, &hits, found.as_ref(), main_program);
+    let list = candidates(&root, &w, &hits, main_program);
 
     let mut lims = vec![
         Limitation::new(
@@ -909,7 +793,6 @@ fn app_folder_explain(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
         "bundle": bundle,
         "candidates": list,
         "next_steps": next_steps,
-        "game": found,
         "walk": {
             "entries": examined,
             "folders": w.folders,
@@ -940,7 +823,6 @@ mod tests {
     use super::super::native_common::test_support::{call, call_err};
     use super::*;
     use crate::Engine;
-    use craft_anything_testkit::games::{GodotFile, Il2cppSample, godot_embedded, godot_pck, il2cpp_metadata};
     use std::collections::HashSet;
 
     fn engine() -> Engine {
@@ -1147,10 +1029,6 @@ mod tests {
             ("python", vec![("_internal/base_library.zip", b"PK".to_vec()), ("python312.dll", b"MZ".to_vec())]),
             ("python", vec![("app.exe", pyi.clone())]),
             ("node", vec![("bin/node", b"x".to_vec()), ("lib/thing.node", b"x".to_vec())]),
-            ("unity", vec![("UnityPlayer.dll", b"MZ".to_vec()), ("Game_Data/globalgamemanagers", b"x".to_vec())]),
-            ("unity", vec![("Contents/Frameworks/UnityPlayer.dylib", b"x".to_vec()), ("Contents/Resources/Data/globalgamemanagers", b"x".to_vec())]),
-            ("unreal", vec![("Game/Binaries/Win64/Game-Win64-Shipping.exe", b"MZ".to_vec())]),
-            ("godot", vec![("game.pck", godot_pck(2, 2, &[]))]),
             ("native", vec![("bin/tool.exe", b"MZ".to_vec())]),
         ];
         for (want, files) in cases {
@@ -1166,69 +1044,13 @@ mod tests {
 
     #[test]
     fn looks_inside_files_are_really_looked_at() {
-        // A .pck that isn't a pack, a Chromium .pak, a stray .utoc and a plain .dll aren't evidence.
+        // A plain .dll that isn't managed isn't evidence.
         let d = tempfile::tempdir().unwrap();
-        write(d.path(), "other.pck", b"not a godot pack");
-        write(d.path(), "resources/cef.pak", b"a Chromium resource pack, not an Unreal one");
-        write(d.path(), "assets.utoc", b"not a table of contents");
         write(d.path(), "plain.dll", b"MZ not managed");
         let v = survey(d.path());
         assert!(ids(&v).is_empty(), "{:?}", ids(&v));
         assert!(v["summary"].as_str().unwrap().contains("nothing"));
         assert_eq!(v["result"]["next_steps"], json!([]));
-    }
-
-    #[test]
-    fn a_real_unreal_pak_and_a_program_with_a_pack_pass_their_looks() {
-        let d = tempfile::tempdir().unwrap();
-        write(d.path(), "Game/Content/Paks/Game.pak", &craft_anything_testkit::games::unreal_pak(&[("Game/", "a.txt", b"hi", false)]));
-        let v = survey(d.path());
-        assert_eq!(ids(&v)[0], "unreal");
-        assert!(step(&v, "game_pak_list")["args"]["path"].as_str().unwrap().ends_with("Game.pak"));
-
-        let d = tempfile::tempdir().unwrap();
-        let files = [GodotFile { path: "res://a", data: b"x", flags: 0, md5: [1; 16] }];
-        write(d.path(), "game.exe", &godot_embedded(b"MZ program", &godot_pck(2, 2, &files)));
-        let v = survey(d.path());
-        assert_eq!(ids(&v)[0], "godot");
-        assert_eq!(candidate(&v, "godot")["markers"][0]["marker"], "embedded_pack");
-        assert!(step(&v, "core_packed_files_list")["args"]["path"].as_str().unwrap().ends_with("game.exe"));
-
-        // Its trailer's pointer must land on a pack.
-        let d = tempfile::tempdir().unwrap();
-        let mut liar = b"MZ program".to_vec();
-        liar.extend_from_slice(&3u64.to_le_bytes());
-        liar.extend_from_slice(b"GDPC");
-        write(d.path(), "game.exe", &liar);
-        assert_eq!(ids(&survey(d.path())), ["native"]);
-    }
-
-    #[test]
-    fn unity_points_at_its_metadata_and_shares_the_game_detection() {
-        let d = tempfile::tempdir().unwrap();
-        write(d.path(), "GameAssembly.dll", b"MZ");
-        write(d.path(), "UnityPlayer.dll", b"MZ");
-        let metadata = il2cpp_metadata(&Il2cppSample { version: 31, header_size: 256, type_size: 88, method_size: 36 });
-        write(d.path(), "Game_Data/il2cpp_data/Metadata/global-metadata.dat", &metadata);
-        write(d.path(), "Game_Data/globalgamemanagers", b"2022.3.62f1 and more");
-        let v = survey(d.path());
-        assert_eq!(ids(&v)[0], "unity");
-        assert_eq!(v["result"]["game"]["engine"], "unity", "the same detection triage uses");
-        assert!(candidate(&v, "unity")["markers"].as_array().unwrap().iter().any(|m| m["marker"] == "game_detection"));
-        let path = step(&v, "game_unity_code_names_show")["args"]["path"].as_str().unwrap().to_string();
-        assert!(path.ends_with("global-metadata.dat"));
-        // The step it names works.
-        let shown = call(&engine(), "game_unity_code_names_show", json!({"path": path}));
-        assert_eq!(shown["result"]["counts"]["types"], 3);
-    }
-
-    #[test]
-    fn a_game_engine_without_a_row_still_counts() {
-        let d = tempfile::tempdir().unwrap();
-        write(d.path(), "data.win", b"FORM");
-        let v = survey(d.path());
-        assert_eq!(ids(&v)[0], "gamemaker");
-        assert_eq!(candidate(&v, "gamemaker")["strength"], "strong");
     }
 
     #[test]
@@ -1286,15 +1108,6 @@ mod tests {
         assert_eq!(v["result"]["walk"]["links_not_followed"], 3);
         assert_eq!(v["result"]["walk"]["entries"], 3);
         assert!(v["limitations"].as_array().unwrap().iter().any(|l| l["code"] == "links_not_followed"));
-    }
-
-    #[test]
-    #[cfg(unix)]
-    fn a_look_at_a_link_reads_nothing() {
-        let (d, outside) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
-        write(outside.path(), "real.pck", &godot_pck(2, 2, &[]));
-        std::os::unix::fs::symlink(outside.path().join("real.pck"), d.path().join("game.pck")).unwrap();
-        assert!(!ids(&survey(d.path())).contains(&"godot".to_string()));
     }
 
     #[test]

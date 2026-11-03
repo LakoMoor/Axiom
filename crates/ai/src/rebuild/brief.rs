@@ -35,14 +35,14 @@ pub(super) fn steps(deep: bool) -> String {
 }
 
 /// What the builder is told for the stack (from `stacks.toml`).
-pub(super) fn stack_steps(stack: &str, editor: Option<&Path>) -> String {
-    stacks::steps(stack, editor)
+pub(super) fn stack_steps(stack: &str) -> String {
+    stacks::steps(stack)
 }
 
 /// The stack's steps, then those of each library the request asks for that works with it
 /// ("use nextjs and shadcn" adds shadcn/ui's).
-fn stack_and_library_steps(request: &str, stack: &str, editor: Option<&Path>) -> String {
-    let mut s = stack_steps(stack, editor);
+fn stack_and_library_steps(request: &str, stack: &str) -> String {
+    let mut s = stack_steps(stack);
     for l in stacks::libraries_for(request, stack) {
         s.push(' ');
         s.push_str(&l.steps);
@@ -88,7 +88,7 @@ pub(super) fn brief(kind: &dyn TargetKind, cx: &BriefCx, extra: Option<&str>) ->
         m.request,
         ws.root.display(),
         kind.goal(),
-        stack_and_library_steps(&m.request, &m.stack, cx.editor),
+        stack_and_library_steps(&m.request, &m.stack),
         steps(cx.deep),
     );
     for section in kind.brief_sections(cx) {
@@ -129,12 +129,7 @@ pub(super) fn start_files_note(m: &craft_anything_engine::workspace::Manifest) -
 /// for the picture model `image_model` names), the budget, where the engine loads them from, and
 /// that every design is original.
 pub(super) fn assets_note(ws: &Workspace, image_model: Option<&str>) -> String {
-    let folder = match game::Builder::from_stack(&ws.manifest.stack) {
-        Some(game::Builder::Unity) => "Unity loads them from Assets/, e.g. Assets/Generated/",
-        Some(game::Builder::Godot) => "Godot loads them from the project, e.g. assets/generated/",
-        Some(game::Builder::Unreal) => "save them under Content/Generated/ and import them with an editor Python script run through UnrealEditor-Cmd",
-        _ => "e.g. assets/generated/",
-    };
+    let folder = "e.g. assets/generated/";
     let budget = ws.manifest.asset_budget_usd;
     let spent = ws.assets_spent();
     let table = Catalogue::built_in();
@@ -171,38 +166,9 @@ pub(super) fn decompile_note(game: bool, ghidra: bool) -> String {
     s
 }
 
-/// Where the extractor lists what it took out (under app/).
-pub(super) const ORIGINALS_MANIFEST: &str = "Original/MANIFEST.md";
-/// The extractor's own conversation, kept in the project.
-pub(super) const EXTRACT_TRANSCRIPT: &str = "extract-transcript.json";
-
-/// What the extractor is asked: take the game's own files out of `folder` into app/Original/.
-pub(super) fn extract_brief(folder: &Path) -> String {
-    format!(
-        "You are the asset extractor inside Craft Anything. The person owns this game and has its developer's permission to use its files in a private rebuild on this computer. Take the game's own files out of its folder ({}) into app/Original/ so the builder can use them. You don't build the game.\n\
-         - Call enable_toolset with \"formats\". game_archives_list finds the game's archives; game_pak_list, game_iostore_list, game_unity_list and game_unity_bundle_list show what's inside.\n\
-         - game_pak_extract takes files out of an Unreal .pak and makes their folders: a `file` ending in `/` (for example Game/Content/UI/) takes that whole folder in one call into the folder `output`, keeping its layout; when it says files are left, call it again the same way to carry on.\n\
-         - Pictures: game_unreal_texture_export (with permission: true) or game_unity_asset_export, saved as PNG. Sounds and models: take them out with game_pak_extract as they are; convert them only with a converter you set up inside app/Original/tools/.\n\
-         - Read the archives only with these tools; never write your own archive reader or parser. When a tool fails, read its error, fix the call and try again; if a tool can't do something, say so in your summary.\n\
-         - Keep the game's folder layout under app/Original/ (for example app/Original/Content/UI/Logo.png). Take what a rebuild needs first: the player's view (arms and weapons), the main enemies, the level's materials and props, the interface and its fonts, and the sounds and music.\n\
-         - Never decrypt, crack or bypass protection: an encrypted archive stays closed; say so and move on.\n\
-         - When you're done, write app/{ORIGINALS_MANIFEST}: one line per file with its path under app/Original/, its source path in the game and what it is. Then say in 2-3 plain sentences what you took out and what you couldn't.",
-        folder.display()
-    )
-}
-
-/// Told to the builder when the extractor left the original's files in app/Original/.
-pub(super) const ORIGINALS_READY: &str = "\n\nThe original game's own files are already taken out for you in app/Original/ (app/Original/MANIFEST.md lists each one with its source in the game), by the extraction step the person set up, under their permission. Import them into the project and use them, and list the ones you use in app/CREDITS.md. Take nothing more out of the game folder unless something you need is missing.";
-
-/// The line a Deep-mode game that uses the original's files starts app/README.md with
-/// (`CreditsCheck` looks for it as written).
-pub(super) const PRIVATE_USE_NOTE: &str = "This build contains the original game's own files, for the private use of the person who owns the game, on their own computer. It must not be shared or published.";
-
-/// How to rebuild a game faithfully: the real numbers first, and in Deep mode only, decompiling and
-/// the original's own readable files used 1:1 for the person's private copy (never decrypted);
-/// Clean room copies none of its files. `generated`: the person chose generated assets, so new
-/// models and pictures replace the original's art (in Deep mode its sounds, music, fonts,
-/// animations and maps are still used).
+/// How to rebuild a game faithfully: the real numbers first, and in Deep mode decompiling. No
+/// file of the original is copied. `generated`: the person chose generated assets, so the
+/// builder makes the models and pictures with the asset tools.
 pub(super) fn game_steps(deep: bool, ghidra: bool, has_target: bool, generated: bool) -> String {
     let mut s = String::from(
         "Making it play like the original:\n\
@@ -218,30 +184,13 @@ pub(super) fn game_steps(deep: bool, ghidra: bool, has_target: bool, generated: 
             s.push_str("\n- Clean room is on: don't open, read, list or decompile the game's files or code. Work from the person's description, the pictures and any documentation they give, and mark the numbers you estimate. If exact values matter, tell the person they can switch on Deep mode.");
         }
         s.push_str("\n- We can't watch the original running on this computer yet. For how it looks in play, use the pictures in reference/; when something about how it behaves isn't in the evidence, ask the person with core_person_ask.");
-        if !deep {
-            let make = if generated {
-                "Make the models, textures and UI pictures with assets_model_generate and assets_image_generate, and your own sounds, music, fonts and maps"
-            } else {
-                "Make your own simple versions"
-            };
-            s.push_str(&format!(
-                "\n- Art, sounds, models, animations, maps and UI: Clean room is on, so take nothing from the original game's files. {make} in the original's style: the same role, size, palette and feel, from the pictures and how it plays, without reproducing logos or trademarks. If the person wants the original's own art, tell them it needs Deep mode."
-            ));
-            return s;
-        }
-        let (lead, bring) = if generated {
-            (
-                "- Models, textures and UI pictures: the person chose to generate new ones, so make them with assets_model_generate and assets_image_generate in the original's style instead of copying the original's.\n- Sounds, music, fonts, animations and maps: the person wants them 1:1 from the original game's own files",
-                "the sounds, music, fonts, animations and maps",
-            )
+        let make = if generated {
+            "Make the models, textures and UI pictures with assets_model_generate and assets_image_generate, and your own sounds, music, fonts and maps"
         } else {
-            (
-                "- Art, sounds, models, animations, maps and UI: the person wants a 1:1 copy made with the original game's own files",
-                "the models, animations, textures, sounds, music, fonts, UI images and maps",
-            )
+            "Make your own simple versions"
         };
         s.push_str(&format!(
-            "\n{lead}, from their own installed copy. Use the originals wherever they can be read: bring {bring} from the game folder into the project (converting formats as the engine needs), for the person's own use on this computer. Craft Anything's own tools read game archives, so use them first: call enable_toolset with \"formats\", then game_archives_list finds the game's archives, game_pak_list, game_iostore_list, game_unity_list and game_unity_bundle_list show what's inside, game_pak_extract takes files out of an Unreal .pak, and game_unreal_texture_export (with permission: true, since the person asked for the originals) and game_unity_asset_export save pictures as PNG. Set up another converter only for what these can't convert yet (such as models and sounds), and keep it inside the project folder. Never decrypt, crack or bypass encryption or copy protection: files inside encrypted archives (for example encrypted .pak, .utoc or .ucas files) stay closed. Recreate those as closely as you can from the pictures, the game's readable data and how it plays, in the same role, size, palette and feel, without reproducing logos or trademarks. List every original file you used in app/CREDITS.md with its source path, and start app/README.md with this line, as written: \"{PRIVATE_USE_NOTE}\" Craft Anything checks both after each build.",
+            "\n- Art, sounds, models, animations, maps and UI: take nothing from the original game's files. {make} in the original's style: the same role, size, palette and feel, from the pictures and how it plays, without reproducing logos or trademarks."
         ));
     }
     s

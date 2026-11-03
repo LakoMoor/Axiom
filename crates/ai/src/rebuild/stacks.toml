@@ -1,7 +1,5 @@
 # The stacks Craft Anything builds with: what the builder is told for each, and the phrases that
-# ask for one by name. Placeholders in `steps`: {editor} (the game engine's editor), {player} and
-# {ext} (Unity's player target and file extension on this computer). A stack without `steps` gets
-# the generic instruction. Add a stack here; kinds name their default stack by `name`.
+# ask for one by name. A stack without `steps` gets the generic instruction. Add a stack here; kinds name their default stack by `name`.
 # `asked_by` phrases are matched on the request's lower-case words with punctuation turned into
 # spaces and padded with spaces ("Next.js," reads " next js "), first stack in this order wins.
 #
@@ -53,23 +51,7 @@ steps = "Use Rust with eframe/egui for the window and UI. Create a cargo project
 
 [[stack]]
 name = "Rust + macroquad"
-engine = "rust"
 steps = "Use Rust with macroquad (a small game library). Create a cargo project in app/ (Cargo.toml, src/main.rs), keep assets procedural (shapes, colours) unless the person provides some, and run `cargo build` until it succeeds."
-
-[[stack]]
-name = "Unity"
-engine = "unity"
-steps = "Use Unity (the editor is {editor}). Create the project in app/: Assets/, Packages/manifest.json (built-in packages unless you need more) and ProjectSettings/ProjectVersion.txt with the editor's version. Write the game in C# under Assets/Scripts/. Scenes are hard to write by hand, so build them from code: an editor script Assets/Editor/CraftBuild.cs with a static `Build()` method that creates the scene(s) under Assets/Scenes/, adds them to the build settings and builds a {player} player to app/Build/Game.{ext} with BuildPipeline.BuildPlayer, calling EditorApplication.Exit(1) when the build fails. Build with `\"{editor}\" -batchmode -quit -nographics -projectPath app -executeMethod CraftBuild.Build -logFile app/Logs/build.log` and read that log when it fails. The first run imports the project and takes a few minutes."
-
-[[stack]]
-name = "Unreal Engine"
-engine = "unreal"
-steps = "Use Unreal Engine (the editor is {editor}) with C++: Blueprint and level files are binary and can't be written by hand. Create app/Game.uproject (its EngineAssociation set to the installed version, one C++ module) and Source/Game/ with the module, its Build.cs and the Target.cs files. Make levels from code (a GameMode that spawns the geometry, lights and actors at start, with a small empty default map) rather than editing .umap files. Craft Anything packages it with Unreal's BuildCookRun into app/Build after each round; the first package takes a long time, so compile your C++ with the engine's build tool first and fix errors there."
-
-[[stack]]
-name = "Godot"
-engine = "godot"
-steps = "Use Godot (the editor is {editor}) with GDScript. Create the project in app/: project.godot (config_version=5, with run/main_scene set), scenes as .tscn text files and scripts as .gd files; Godot's files are plain text, so write scenes directly. Check it with `\"{editor}\" --headless --path app --import` and then `\"{editor}\" --headless --path app --quit-after 120`, and fix every SCRIPT ERROR or ERROR line."
 
 [[library]]
 name = "shadcn/ui"

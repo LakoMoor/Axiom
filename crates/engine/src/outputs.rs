@@ -136,16 +136,13 @@ fn cargo_programs(app: &Path) -> Vec<String> {
     out
 }
 
-/// What "Play" starts for a finished game or app: (program, arguments), run from app/. A Godot
-/// project opens in the Godot it was built with, an Electron app in the Electron it installed.
-pub fn launch(app: &Path, godot: Option<&Path>) -> Option<(PathBuf, Vec<String>)> {
-    if app.join("project.godot").is_file() {
-        return godot.map(|g| (g.to_path_buf(), vec!["--path".to_string(), app.display().to_string()]));
-    }
+/// What "Play" starts for a finished app: (program, arguments), run from app/. An Electron app
+/// opens in the Electron it installed.
+pub fn launch(app: &Path) -> Option<(PathBuf, Vec<String>)> {
     if uses_electron(app) {
         return electron_program(app).map(|e| (e, vec![app.display().to_string()]));
     }
-    built_program(app).or_else(|| packaged_program(&app.join("Build"))).map(|p| (p, Vec::new()))
+    built_program(app).map(|p| (p, Vec::new()))
 }
 
 /// The packages `app`'s package.json depends on (dev dependencies too); none without a readable one.
@@ -169,53 +166,6 @@ fn electron_program(app: &Path) -> Option<PathBuf> {
         dist.join("electron")
     };
     program.is_file().then_some(program)
-}
-
-/// The game a Unity or Unreal build packaged into `dir` (newest; crash reporters skipped).
-pub fn packaged_program(dir: &Path) -> Option<PathBuf> {
-    let mut best: Option<(std::time::SystemTime, PathBuf)> = None;
-    let mut stack = vec![(dir.to_path_buf(), 0)];
-    while let Some((d, depth)) = stack.pop() {
-        for e in std::fs::read_dir(&d).into_iter().flatten().flatten() {
-            let p = e.path();
-            if p.is_dir() {
-                if depth < 4 {
-                    stack.push((p, depth + 1));
-                }
-                continue;
-            }
-            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or_default().to_ascii_lowercase();
-            let helper = ["crashreport", "crashhandler", "crashpad", "-cmd", "unrealpak", "shadercompile"].iter().any(|s| name.contains(s));
-            let at = e.metadata().and_then(|m| m.modified()).unwrap_or(std::time::UNIX_EPOCH);
-            if is_program(&p) && !helper && best.as_ref().is_none_or(|(b, _)| at > *b) {
-                best = Some((at, p));
-            }
-        }
-    }
-    best.map(|(_, p)| p)
-}
-
-#[cfg(all(test, unix))]
-mod tests {
-    use super::packaged_program;
-    use std::os::unix::fs::PermissionsExt;
-    use std::time::{Duration, UNIX_EPOCH};
-
-    #[test]
-    fn packaged_program_finds_executable_with_crash_in_name() {
-        let build = tempfile::tempdir().unwrap();
-        let reporter = build.path().join("CrashReportClient");
-        let game = build.path().join("CrashSample");
-        std::fs::write(&reporter, b"reporter").unwrap();
-        std::fs::write(&game, b"game").unwrap();
-        for path in [&reporter, &game] {
-            std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o755)).unwrap();
-        }
-        std::fs::File::open(&reporter).unwrap().set_times(std::fs::FileTimes::new().set_modified(UNIX_EPOCH + Duration::from_secs(1))).unwrap();
-        std::fs::File::open(&game).unwrap().set_times(std::fs::FileTimes::new().set_modified(UNIX_EPOCH + Duration::from_secs(2))).unwrap();
-
-        assert_eq!(packaged_program(build.path()), Some(game));
-    }
 }
 
 /// Whether `p` is a program this computer can start.

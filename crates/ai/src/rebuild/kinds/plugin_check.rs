@@ -13,23 +13,8 @@ const MAX_FILES: usize = 20_000;
 const MAX_TEXT: u64 = 256 << 10;
 const MAX_TOTAL_TEXT: u64 = 8 << 20;
 /// Folders of dependencies, caches and build output, left out of the listing.
-const SKIP_DIRS: &[&str] = &[
-    "node_modules",
-    "target",
-    ".git",
-    "dist",
-    "build",
-    "Library",
-    "Temp",
-    "obj",
-    "bin",
-    ".godot",
-    "Intermediate",
-    "Saved",
-    "DerivedDataCache",
-    "__pycache__",
-    ".venv",
-];
+const SKIP_DIRS: &[&str] =
+    &["node_modules", "target", ".git", "dist", "build", "Library", "Temp", "obj", "bin", "Intermediate", "Saved", "DerivedDataCache", "__pycache__", ".venv"];
 
 /// A plugin check for one kind of project.
 pub struct PluginJudge {

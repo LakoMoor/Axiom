@@ -1226,3 +1226,21 @@ Launch checklist (source-only first; signed installers can follow):
 - [ ] Managed tier: account backend, usage metering (Claude API under our own key only)
 - [ ] Before the managed tier or any paid offering: confirm the Claude Code orchestration question
       with Anthropic (claude-code.md)
+
+## Axiom: Rust only, and a new look
+
+Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
+
+- [x] Unity, Unreal and Godot support removed (readers, game archive tools, installers, the Game
+      files screen, engine stacks, the extractor role); Rust (macroquad) is the one game stack
+- [ ] Remove what is left of the old game-engine wording: the `unity` hint in `formats::hints`,
+      the `game_root` folder names in `ai/rebuild/locate.rs`, the Chinese/Japanese/Korean READMEs,
+      and the engine items in earlier milestones of this file
+- [ ] Rename the display name to Axiom in the UI, the CLI, the MCP server and the packages (keep
+      the `craft-anything-*` machine names); release files are named `axiom-<ver>-…`
+- [ ] A chat-first interface in the style of the ChatGPT and Codex apps: icon rail, projects and
+      chats in the sidebar, a centred chat column, a composer with model and mode choices
+- [ ] A hub of local models: search and download from Hugging Face, recommended models for this
+      computer, one-click start of a local server, and a model picker in the composer
+- [ ] Rewrite the website text (English and Russian) to match
+- [ ] Check the mechanics-sheet and self-test checks of Rust games on a real run

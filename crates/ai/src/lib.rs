@@ -141,8 +141,6 @@ pub enum Role {
     Worker,
     Reviewer,
     Builder,
-    /// Takes the original game's files out after the study, in Deep mode (only when chosen).
-    Extractor,
 }
 
 /// Something that was found on this machine and can be added with one click.
@@ -344,7 +342,7 @@ impl AiHub {
     }
 
     /// Choose the backend for `role`; `None` goes back to its default (the builder: an agent app,
-    /// else any AI backend; the extractor: none).
+    /// else any AI backend).
     pub fn set_role(&self, role: Role, name: Option<&str>) -> Result<(), ToolError> {
         let mut cfg = self.config_to_change()?;
         let role = config::role_key(role).to_string();
@@ -629,12 +627,6 @@ impl AiHub {
         let deep = !self.engine.session().clean_room();
         let toolsets = if deep { self.engine.registry().toolsets() } else { vec![Toolset::Core, Toolset::Build] };
         self.start_loop(entry, beginner, transcript, &toolsets)
-    }
-
-    /// Start the asset extractor: our agent loop with the Build tools and the game archive tools.
-    pub fn start_extractor(&self, entry: &BackendEntry, beginner: bool, transcript: Option<PathBuf>) -> Result<ApiConversation, ToolError> {
-        use craft_anything_engine::Toolset;
-        self.start_loop(entry, beginner, transcript, &[Toolset::Core, Toolset::Build, Toolset::Formats])
     }
 
     fn start_loop(

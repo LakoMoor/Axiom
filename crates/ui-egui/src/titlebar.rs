@@ -154,10 +154,7 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
             ui.add_space(4.0);
             if let Some((title, fraction, message)) = download {
                 if download_pill(ui, &title, fraction).on_hover_text(message).clicked() {
-                    app.state.modal = Some(match app.engine_flow.job {
-                        Some((b, _)) => crate::state::Modal::Engine(b),
-                        None => crate::state::Modal::Ghidra,
-                    });
+                    app.state.modal = Some(crate::state::Modal::Ghidra);
                 }
                 rule(ui);
             }

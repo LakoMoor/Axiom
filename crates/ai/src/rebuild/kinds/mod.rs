@@ -13,7 +13,7 @@ pub mod self_test;
 pub mod website;
 
 pub use app::{AppKind, RUNS_BRIEF};
-pub use game::{CreditsCheck, GameKind};
+pub use game::GameKind;
 pub use mechanics::MechanicsCheck;
 pub use runs::RunsCheck;
 pub use screenshot::ScreenshotCheck;
@@ -56,8 +56,6 @@ pub struct BriefCx<'a> {
     pub deep: bool,
     /// Ghidra is installed, so decompiling uses it.
     pub ghidra: bool,
-    /// The game engine's editor for engine stacks.
-    pub editor: Option<&'a Path>,
     /// An asset provider's key is set up; assets are offered only if the project also allows them
     /// (`Manifest::generate_assets`).
     pub assets: bool,
@@ -84,7 +82,7 @@ pub trait TargetKind: Send + Sync {
     fn detect(&self, cx: &DetectCx) -> Option<u32>;
     /// The stack used when the person names none.
     fn default_stack(&self, cx: &DetectCx) -> &'static str;
-    /// A stack the request names that only this kind understands ("in Godot" for a game).
+    /// A stack the request names that only this kind understands ("in Rust" for a game).
     fn named_stack(&self, _cx: &DetectCx) -> Option<&'static str> {
         None
     }
@@ -144,11 +142,6 @@ impl CheckCx<'_> {
         Ok(url)
     }
 
-    /// The game engine's editor for this run (engine stacks).
-    pub fn editor(&self) -> Option<&Path> {
-        self.worker.editor.as_deref()
-    }
-
     /// Cancelled when the person stops the run.
     pub fn stop(&self) -> &CancelToken {
         &self.worker.stop
@@ -162,13 +155,6 @@ impl CheckCx<'_> {
     /// Deep mode is on (Ghidra enabled): the builder had to decompile a program target.
     pub fn deep(&self) -> bool {
         !self.worker.engine.session().clean_room()
-    }
-
-    /// The Godot installed on this computer, which opens a Godot project.
-    pub fn godot(&self) -> Option<PathBuf> {
-        let store = self.worker.engine.session().settings.engine_store_dir();
-        use craft_anything_engines::game as engine_game;
-        engine_game::inventory(&engine_game::Places::here(store)).best(engine_game::Builder::Godot).map(|i| i.program.clone())
     }
 }
 
@@ -234,7 +220,7 @@ impl Check for BuildCheck {
         CheckResult::BUILD
     }
     fn run(&self, cx: &mut CheckCx) -> Result<CheckResult, ToolError> {
-        let (passed, note) = build_check(&cx.ws.app_dir(), cx.ws.app_place(), &cx.ws.manifest.stack, cx.editor(), cx.stop());
+        let (passed, note) = build_check(&cx.ws.app_dir(), cx.ws.app_place(), cx.stop());
         Ok(CheckResult::new(self.id(), cx.round, passed, note))
     }
 }
@@ -300,7 +286,7 @@ impl KindRegistry {
         Some((kind, stack))
     }
 
-    /// The stack the request names, if it names one any kind knows ("in Godot", "use Electron").
+    /// The stack the request names, if it names one any kind knows ("in Python", "use Electron").
     pub fn named(&self, request: &str, target: &TargetRef) -> Option<&'static str> {
         let cx = DetectCx::new(request, target, "");
         self.kinds.iter().find_map(|k| k.named_stack(&cx)).or_else(|| named_stack(&cx))

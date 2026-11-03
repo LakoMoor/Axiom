@@ -160,14 +160,6 @@ fn open_project(project: &Path) -> Result<Workspace, ToolError> {
     })
 }
 
-/// The Godot a Godot project opens in.
-pub(crate) fn godot(ctx: &Ctx<'_>) -> Option<PathBuf> {
-    let store = ctx.session.settings.engine_store_dir();
-    craft_anything_engines::game::inventory(&craft_anything_engines::game::Places::here(store))
-        .best(craft_anything_engines::game::Builder::Godot)
-        .map(|i| i.program.clone())
-}
-
 /// This session's run list (made on first use).
 pub(crate) fn runs(ctx: &mut Ctx<'_>) -> Arc<Runs> {
     match ctx.session.ext.get::<Runs>() {
@@ -183,7 +175,7 @@ pub(crate) fn runs(ctx: &mut Ctx<'_>) -> Arc<Runs> {
 /// Start what `app` holds through the run list, logging to `log`, and describe what happened. A
 /// program that quit straight away with an error is an error carrying its last output.
 pub(crate) fn start(ctx: &mut Ctx<'_>, app: &Path, log: &Path, another: bool, label: &str) -> Result<Value, ToolError> {
-    let Some((program, args)) = crate::outputs::launch(app, godot(ctx).as_deref()) else {
+    let Some((program, args)) = crate::outputs::launch(app) else {
         return Err(ToolError::new(ErrorCode::NotFound, "There's nothing to start: no built program here.")
             .with_remediation("Finish a build first (rebuild), or open the folder to look."));
     };
@@ -217,9 +209,8 @@ pub(crate) fn start(ctx: &mut Ctx<'_>, app: &Path, log: &Path, another: bool, la
 fn project_pin_create(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: CreateParams = parse_params(params)?;
     let ws = open_project(&p.project)?;
-    let godot = godot(ctx);
     if p.estimate {
-        let size = pins::estimate(&ws, godot.as_deref())?;
+        let size = pins::estimate(&ws)?;
         return Ok(ToolOutput::Value(json!({"estimate": size})));
     }
     let cancel = ctx.cancel.clone();
@@ -232,7 +223,7 @@ fn project_pin_create(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
         }
         !cancel.is_cancelled()
     };
-    let pin = pins::create(&ws, p.mode, p.name.as_deref(), godot.as_deref(), &mut progress)?;
+    let pin = pins::create(&ws, p.mode, p.name.as_deref(), &mut progress)?;
     Ok(ToolOutput::Value(json!({"pin": pin, "folder": pin.dir(&ws).display().to_string()})))
 }
 

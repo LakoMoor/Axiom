@@ -14,7 +14,6 @@ pub mod engine_ui;
 pub mod evidence_ui;
 pub mod first_run;
 pub mod folders;
-pub mod game_files;
 pub mod glossary;
 pub mod home;
 pub mod i18n;
@@ -153,7 +152,7 @@ pub enum Done {
     Detected(Vec<Detected>),
     /// The configured backends, the ones chosen to build with and to extract with, and each one's
     /// options.
-    Backends(Vec<BackendConfig>, Option<String>, Option<String>, std::collections::BTreeMap<String, craft_anything_ai::BackendOptions>),
+    Backends(Vec<BackendConfig>, Option<String>, std::collections::BTreeMap<String, craft_anything_ai::BackendOptions>),
     /// The models an AI can be set to (Settings → AI's model picker).
     ModelChoices {
         name: String,
@@ -167,18 +166,6 @@ pub enum Done {
     Pictures(Vec<PathBuf>),
     /// Pictures for the next message were chosen.
     ToAttach(Vec<PathBuf>),
-    /// The game engines on this computer were listed.
-    GameEngines(craft_anything_engines::game::Inventory),
-    /// What engine made the game at `path`.
-    GameFound {
-        path: PathBuf,
-        found: Option<craft_anything_engines::game::Found>,
-    },
-    /// An engine download finished: ready, or its vendor installer was opened.
-    EngineGot {
-        builder: craft_anything_engines::game::Builder,
-        installer: bool,
-    },
     /// Ghidra and its Java were downloaded and set up for Deep mode.
     GhidraGot,
     /// A tool started by a button finished (see `CraftApp::act`).
@@ -254,10 +241,6 @@ pub enum Pick {
     Pictures,
     /// Pictures for the next message on a project (several at once).
     Attach,
-    /// The game folder for Game files.
-    GameFolder,
-    /// Where to save a picture from a game.
-    SavePicture,
     /// The program an agent app runs ([`CraftApp::picking_program_for`] says which).
     AgentProgram,
 }
@@ -354,8 +337,6 @@ pub struct CraftApp {
     pub picking_program_for: Option<String>,
     /// The backend the person chose to build with (Settings → AI), if any.
     pub builder: Option<String>,
-    /// The backend chosen to take a game's files out in Deep mode, if any.
-    pub extractor: Option<String>,
     pub detected: Option<Vec<Detected>>,
     pub detecting: bool,
     pub log: Vec<LogLine>,
@@ -389,8 +370,6 @@ pub struct CraftApp {
     pub thumbs: std::collections::HashMap<PathBuf, project::Thumb>,
     /// The kinds of thing this app can make; a fork registers its own here.
     pub kinds: craft_anything_ai::rebuild::KindRegistry,
-    /// Game engines on this computer (`None` until the first look finishes).
-    pub game_engines: Option<craft_anything_engines::game::Inventory>,
     /// Which asset providers have a key set up, by provider id (`None` until checked; the keys
     /// themselves never come into the app).
     pub asset_keys: Option<std::collections::BTreeMap<String, bool>>,
@@ -398,8 +377,6 @@ pub struct CraftApp {
     /// on a worker.
     pub facts: project::Facts,
     facts_reader: project::FactsReader,
-    /// Getting a game engine: downloads, installers opened, a project waiting to start.
-    pub engine_flow: engine_ui::Flow,
     /// Getting Ghidra for Deep mode.
     pub ghidra: engine_ui::GhidraFlow,
     /// When each toast appeared, in the same order (confirmations hide after a few seconds).
@@ -449,7 +426,6 @@ impl CraftApp {
             model_picker: None,
             picking_program_for: None,
             builder: None,
-            extractor: None,
             detected: None,
             detecting: false,
             log: Vec::new(),
@@ -468,11 +444,9 @@ impl CraftApp {
             open_url: None,
             thumbs: Default::default(),
             kinds: craft_anything_ai::rebuild::KindRegistry::built_in(),
-            game_engines: None,
             asset_keys: None,
             facts: Default::default(),
             facts_reader: Default::default(),
-            engine_flow: Default::default(),
             ghidra: Default::default(),
             toast_at: Vec::new(),
             settings_dirty: false,
@@ -860,18 +834,6 @@ impl CraftApp {
                 }
             }
             ("project_open_folder", Err(e)) => self.toast(format!("{} {}", tr("Couldn't open the folder."), e.message), true),
-            (
-                "game_archives_list"
-                | "game_pak_list"
-                | "game_unity_list"
-                | "game_iostore_list"
-                | "game_unity_bundle_list"
-                | "game_unreal_texture_export"
-                | "game_unity_asset_export",
-                r,
-            ) => game_files::tool_done(self, tool, r),
-            // The Game files screen's look at a picked game.
-            ("core_target_triage", r) => game_files::tool_done(self, tool, r),
             (_, Ok(_)) => {}
             (_, Err(e)) if clean_room::is_refusal(&e) => self.state.modal = Some(state::Modal::DeepMode),
             (_, Err(e)) => self.toast(e.for_people(), true),
@@ -938,8 +900,6 @@ impl CraftApp {
             return;
         }
         #[cfg(not(target_arch = "wasm32"))]
-        let suggested = game_files::suggested_name(self);
-        #[cfg(not(target_arch = "wasm32"))]
         self.jobs.spawn("Choose a file", false, move |_| {
             let d = rfd::AsyncFileDialog::new();
             if matches!(pick, Pick::Pictures | Pick::Attach) {
@@ -957,8 +917,6 @@ impl CraftApp {
                 Pick::ProjectsDir => pollster::block_on(d.set_title(tr("Where should new projects go?")).pick_folder()),
                 Pick::ProjectFolder => pollster::block_on(d.set_title(tr("Pick the folder for this project")).pick_folder()),
                 Pick::ExtraProjectsDir => pollster::block_on(d.set_title(tr("Pick a folder with projects in it")).pick_folder()),
-                Pick::GameFolder => pollster::block_on(d.set_title(tr("Pick the game's folder")).pick_folder()),
-                Pick::SavePicture => pollster::block_on(d.set_title(tr("Save the picture")).add_filter("PNG", &["png"]).set_file_name(&suggested).save_file()),
                 Pick::AgentProgram => pollster::block_on(d.set_title(tr("Where is the program?")).pick_file()),
                 Pick::Pictures | Pick::Attach => None,
             };
@@ -1230,10 +1188,6 @@ impl CraftApp {
             Err(e) => {
                 self.detecting = false;
                 self.facts_read(job, None);
-                // A failed or cancelled engine download frees the button to try again.
-                if self.engine_flow.job.is_some_and(|(_, id)| id == job) {
-                    self.engine_flow.job = None;
-                }
                 if self.ghidra.job == Some(job) {
                     self.ghidra.job = None;
                 }
@@ -1295,13 +1249,12 @@ impl CraftApp {
                 self.log(false, format!("Found {} AI option(s) on this computer", d.len()));
                 self.detected = Some(d);
             }
-            Done::Backends(b, builder, extractor, options) => {
+            Done::Backends(b, builder, options) => {
                 if self.state.backend.as_ref().is_some_and(|n| !b.iter().any(|c| &c.name == n)) {
                     self.state.backend = None;
                 }
                 self.backends = b;
                 self.builder = builder;
-                self.extractor = extractor;
                 self.backend_options = options;
             }
             Done::ModelChoices { name, result } => match result {
@@ -1336,8 +1289,6 @@ impl CraftApp {
                             self.state.make.target = craft_anything_engine::workspace::TargetRef::Local { path: path.clone() };
                             self.state.make.game = pick == Pick::TargetFolder;
                             self.state.make.editing_url = false;
-                            self.state.make.builder = None;
-                            self.detect_game_engine(path);
                         }
                         Pick::ProjectsDir => {
                             self.settings.projects_dir = Some(path);
@@ -1346,8 +1297,6 @@ impl CraftApp {
                         }
                         Pick::ProjectFolder => folders::picked(self, path),
                         Pick::ExtraProjectsDir => self.add_project_folder(path),
-                        Pick::GameFolder => game_files::folder_picked(self, path),
-                        Pick::SavePicture => game_files::save_to(self, path),
                         Pick::AgentProgram => {
                             if let Some(name) = self.picking_program_for.take() {
                                 self.set_agent_program(&name, Some(path.display().to_string()));
@@ -1361,14 +1310,6 @@ impl CraftApp {
             Done::Pictures(files) => self.add_pictures(files),
             Done::ToAttach(files) => self.attach(files),
             Done::Attached { root, text, attachments, files } => self.deliver(root, text, attachments, files),
-            Done::GameEngines(inv) => self.engines_found(inv),
-            Done::GameFound { path, found } => {
-                // Only if that game is still the one picked.
-                if self.state.make.target == (craft_anything_engine::workspace::TargetRef::Local { path }) {
-                    self.state.make.found = found;
-                }
-            }
-            Done::EngineGot { builder, installer } => self.engine_got(builder, installer),
             Done::GhidraGot => self.ghidra_got(),
             Done::AssetKeys(keys) => self.asset_keys = Some(keys),
             Done::Wrote { what, path } => {
@@ -1450,7 +1391,6 @@ impl CraftApp {
             if !self.headless {
                 self.refresh_backends();
                 self.refresh_projects();
-                self.refresh_game_engines();
                 self.check_asset_keys();
                 if !self.settings.first_run_done {
                     self.detect_backends();
@@ -1539,7 +1479,6 @@ impl CraftApp {
                     Screen::Home | Screen::Workbench => home::show(self, ui),
                     Screen::Ask => chat::ask_screen(self, ui),
                     Screen::Project => project::show(self, ui),
-                    Screen::GameFiles => game_files::show(self, ui),
                 })
             });
         } else {
@@ -1665,7 +1604,7 @@ pub fn app_icon(size: f32) -> egui::Image<'static> {
 /// Run an action; a panic is logged and swallowed so one bad action never takes the app down.
 /// The configured backends and the ones chosen to build and to extract (read off the UI thread).
 pub(crate) fn backends(hub: &AiHub) -> Done {
-    Done::Backends(hub.backends(), hub.chosen(craft_anything_ai::Role::Builder), hub.chosen(craft_anything_ai::Role::Extractor), hub.options())
+    Done::Backends(hub.backends(), hub.chosen(craft_anything_ai::Role::Builder), hub.options())
 }
 
 pub fn guard<R>(what: &str, f: impl FnOnce() -> R) -> Option<R> {

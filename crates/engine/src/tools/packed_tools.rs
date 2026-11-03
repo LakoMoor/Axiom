@@ -1,4 +1,4 @@
-//! Files packed inside one program or game file (`formats::packed`): list them and take them out
+//! Files packed inside one program file (`formats::packed`): list them and take them out
 //! into a new folder. Nothing is executed.
 
 use super::artifact_tools::{create_absent_dir, safe_components, write_new_file};
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::path::Path;
 
-/// Largest packed file read (2 GiB: single-file apps and game archives are often large).
+/// Largest packed file read (2 GiB: single-file apps are often large).
 const MAX_INPUT: u64 = 2 << 30;
 const DEFAULT_MAX_OUTPUT: u64 = 2 << 30;
 const DEFAULT_MAX_FILES: usize = 50_000;
@@ -22,8 +22,8 @@ pub fn specs() -> Vec<ToolSpec> {
         spec(
             "core_packed_files_list",
             "Files packed inside a file",
-            "List the files carried inside one program or game file, recognised from its bytes (the reader used is in the result; `format` picks one when a file could be read several ways). Results give each member's path, size, how it's stored and what the file says it is, plus the facts of that kind of file, paged with offset/limit. `contains` keeps paths holding that text. For ordinary archives and app bundles use core_archive_show. Nothing is executed.",
-            "See which files a single-file app or a game's data file carries inside it.",
+            "List the files carried inside one program file, recognised from its bytes (the reader used is in the result; `format` picks one when a file could be read several ways). Results give each member's path, size, how it's stored and what the file says it is, plus the facts of that kind of file, paged with offset/limit. `contains` keeps paths holding that text. For ordinary archives and app bundles use core_archive_show. Nothing is executed.",
+            "See which files a single-file app carries inside it.",
             Toolset::Formats,
             Effects::EVIDENCE.union(Effects::CARRIES_TARGET_CONTENT),
             Requires::Nothing,
@@ -33,8 +33,8 @@ pub fn specs() -> Vec<ToolSpec> {
         spec(
             "core_packed_files_unpack",
             "Take out packed files",
-            "Write files carried inside one program or game file into a new folder (output_directory must not exist yet; it is created). `paths` picks exact members, `contains` those holding some text; with neither, all of them. Never overwrites; a member whose path would leave the folder is skipped and named. Bounded by max_output_bytes and max_output_files. Writes manifest.json with every member's SHA-256 (under another name, given in the result, if a packed file took that one). Nothing is executed.",
-            "Unpack the files a single-file app or a game's data file carries, into a folder you can look through.",
+            "Write files carried inside one program file into a new folder (output_directory must not exist yet; it is created). `paths` picks exact members, `contains` those holding some text; with neither, all of them. Never overwrites; a member whose path would leave the folder is skipped and named. Bounded by max_output_bytes and max_output_files. Writes manifest.json with every member's SHA-256 (under another name, given in the result, if a packed file took that one). Nothing is executed.",
+            "Unpack the files a single-file app carries, into a folder you can look through.",
             Toolset::Formats,
             Effects::MUTATES_SESSION.union(Effects::WRITES_FILESYSTEM).union(Effects::CARRIES_TARGET_CONTENT),
             Requires::Nothing,
@@ -276,85 +276,6 @@ mod tests {
         PackedEntry { path: path.into(), offset, stored_size, size: None, compression: Compression::None, kind: None }
     }
 
-    fn pack_files() -> Vec<craft_anything_testkit::games::GodotFile<'static>> {
-        use craft_anything_testkit::games::GodotFile;
-        vec![
-            GodotFile { path: "res://project.binary", data: b"settings", flags: 0, md5: [7; 16] },
-            GodotFile { path: "res://scenes/main.tscn", data: b"[gd_scene]", flags: 0, md5: [0; 16] },
-            GodotFile { path: "res://locked.res", data: b"secret", flags: 1, md5: [7; 16] },
-            GodotFile { path: "res://../../escape", data: b"evil", flags: 0, md5: [0; 16] },
-        ]
-    }
-
-    #[test]
-    fn a_godot_pack_lists_and_extracts_through_the_tools() {
-        use super::super::native_common::test_support::call;
-        use craft_anything_testkit::games::{godot_embedded, godot_pck, godot_pck_at};
-        let e = crate::Engine::new(crate::testing::session());
-        for (format, embed) in [(1, false), (2, false), (3, false), (1, true), (2, true), (3, true)] {
-            let dir = tempfile::tempdir().unwrap();
-            let bytes = if embed { godot_embedded(&[0x7f; 40], &godot_pck_at(format, 2, 40, &pack_files())) } else { godot_pck(format, 2, &pack_files()) };
-            let path = dir.path().join(if embed { "game.exe" } else { "game.pck" });
-            std::fs::write(&path, &bytes).unwrap();
-            let v = call(&e, "core_packed_files_list", json!({"path": path, "contains": "scenes"}));
-            let r = &v["result"];
-            assert_eq!(r["format"], "godot_pck");
-            assert_eq!(r["total"], 4);
-            assert_eq!(r["facts"]["embedded_in_program"], embed);
-            assert_eq!(r["entries"][0]["path"], "scenes/main.tscn");
-
-            let out = dir.path().join("out");
-            let x = call(&e, "core_packed_files_unpack", json!({"path": path, "output_directory": out}));
-            assert_eq!(std::fs::read(out.join("scenes/main.tscn")).unwrap(), b"[gd_scene]");
-            assert_eq!(std::fs::read(out.join("project.binary")).unwrap(), b"settings");
-            let skipped = x["result"]["skipped"].as_array().unwrap();
-            let why: Vec<&str> = skipped.iter().map(|s| s["path"].as_str().unwrap()).collect();
-            assert!(why.contains(&"../../escape"), "{why:?}");
-            assert!(!dir.path().parent().unwrap().join("escape").exists());
-            if format >= 2 {
-                assert!(why.contains(&"locked.res"), "encrypted files stay closed: {why:?}");
-                assert!(!out.join("locked.res").exists());
-            }
-        }
-    }
-
-    #[test]
-    fn a_pack_whose_table_is_encrypted_says_so_in_its_summary() {
-        use super::super::native_common::test_support::call;
-        use craft_anything_testkit::games::godot_pck;
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("game.pck");
-        std::fs::write(&path, godot_pck(2, 3, &pack_files())).unwrap();
-        let v = call(&crate::Engine::new(crate::testing::session()), "core_packed_files_list", json!({"path": path}));
-        assert!(v["summary"].as_str().unwrap().contains("encrypted"), "{}", v["summary"]);
-        assert_eq!(v["result"]["facts"]["declared_files"], 4);
-        assert_eq!(v["result"]["total"], 0);
-    }
-
-    #[test]
-    fn a_member_called_manifest_json_is_kept() {
-        use super::super::native_common::test_support::call;
-        use craft_anything_testkit::games::{GodotFile, godot_pck};
-        let e = crate::Engine::new(crate::testing::session());
-        let cases: [(&[GodotFile<'static>], &str); 2] = [
-            (&[GodotFile { path: "res://manifest.json", data: b"mine", flags: 0, md5: [0; 16] }], "manifest-1.json"),
-            (&[GodotFile { path: "res://manifest.json/inner", data: b"mine", flags: 0, md5: [0; 16] }], "manifest-1.json"),
-        ];
-        for (files, name) in cases {
-            let dir = tempfile::tempdir().unwrap();
-            let path = dir.path().join("game.pck");
-            std::fs::write(&path, godot_pck(2, 2, files)).unwrap();
-            let out = dir.path().join("out");
-            let v = call(&e, "core_packed_files_unpack", json!({"path": path, "output_directory": out}));
-            assert_eq!(v["result"]["written"], 1);
-            assert!(v["result"]["manifest"].as_str().unwrap().ends_with(name), "{v}");
-            let member = files[0].path.trim_start_matches("res://");
-            assert_eq!(std::fs::read(out.join(member)).unwrap(), b"mine");
-            let manifest: Value = serde_json::from_slice(&std::fs::read(out.join(name)).unwrap()).unwrap();
-            assert_eq!(manifest["files"][0]["sha256"], sha256_hex(b"mine"));
-        }
-    }
-
     #[test]
     fn tools_that_return_a_files_own_text_say_so() {
         let r = crate::Registry::with_all_tools();
@@ -362,7 +283,6 @@ mod tests {
             "core_packed_files_list",
             "core_packed_files_unpack",
             "formats_bytecode_show",
-            "game_unity_code_names_show",
             "formats_ai_weights_show",
             "app_folder_explain",
             "native_library_calls_list",

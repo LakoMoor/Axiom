@@ -1,10 +1,9 @@
 //! Engines and settings as tools, so a computer can be set up without the app: what's installed,
-//! installing Ghidra, Godot or a pinned engine, and reading or changing settings. Ids follow
+//! installing Ghidra or a pinned engine, and reading or changing settings. Ids follow
 //! docs/tool-ids.md.
 
 use crate::settings::Settings;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_engines::game::{self, Builder};
 use craft_anything_evidence::{ErrorCode, ToolError};
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -16,7 +15,7 @@ pub fn specs() -> Vec<ToolSpec> {
         ToolSpec {
             id: "engines_list",
             title: "List engines",
-            summary: "What's on this computer: each external engine (where it was found, what it's for, whether it can be installed for you), Ghidra for Deep mode, and the game engines that can build games (Unity, Unreal, Godot, Rust) with whether each is ready.",
+            summary: "What's on this computer: each external engine (where it was found, what it's for, whether it can be installed for you), Ghidra for Deep mode.",
             beginner: "Shows which helper programs are installed.",
             toolset: Toolset::Setup,
             effects: Effects::READ_ONLY,
@@ -27,7 +26,7 @@ pub fn specs() -> Vec<ToolSpec> {
         ToolSpec {
             id: "engines_install",
             title: "Install an engine",
-            summary: "Download and install an engine into Craft Anything's own folder: `ghidra` (Deep mode, with its Java), `godot`, or any engine with a pinned download (`adb`, `jadx`…). Every download is checked against its published SHA-256. Unity and Unreal need their vendors' installers and accounts: on Windows the installer (Unity Hub, the Epic Games Launcher) is downloaded, its publisher checked, and opened for the person; elsewhere they get the download page.",
+            summary: "Download and install an engine into Craft Anything's own folder: `ghidra` (Deep mode, with its Java), or any engine with a pinned download (`adb`, `jadx`…). Every download is checked against its published SHA-256.",
             beginner: "Installs a helper program for you.",
             toolset: Toolset::Setup,
             effects: Effects::ACCESSES_NETWORK.union(Effects::WRITES_FILESYSTEM).union(Effects::LAUNCHES_PROCESS),
@@ -101,46 +100,7 @@ pub fn specs() -> Vec<ToolSpec> {
             input_schema: schema_of::<RemovePluginParams>,
             run: plugins_remove,
         },
-        ToolSpec {
-            id: "engines_app_open",
-            title: "Open an engine's app",
-            summary: "Open Unity Hub or the Epic Games Launcher (to sign in and install the Unity Editor or Unreal Engine), found on this computer. Only those two; nothing else is started.",
-            beginner: "Opens Unity Hub or the Epic Games Launcher.",
-            toolset: Toolset::Setup,
-            effects: Effects::LAUNCHES_PROCESS,
-            requires: Requires::Nothing,
-            input_schema: schema_of::<AppOpenParams>,
-            run: engines_app_open,
-        },
     ]
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct AppOpenParams {
-    /// `unity_hub` or `epic_launcher`.
-    pub app: String,
-}
-
-fn engines_app_open(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
-    let p: AppOpenParams = parse_params(params)?;
-    let inv = game::inventory(&game::Places::here(ctx.session.settings.engine_store_dir()));
-    let path = match p.app.as_str() {
-        "unity_hub" => inv.unity_hub,
-        "epic_launcher" => inv.epic_launcher,
-        other => return Err(ToolError::invalid(format!("{other:?} isn't an app this can open.")).with_remediation("Use unity_hub or epic_launcher.")),
-    };
-    let Some(path) = path else {
-        return Err(ToolError::new(ErrorCode::NotFound, format!("{} isn't installed on this computer.", p.app))
-            .with_remediation("Install it first (engines_install unity or unreal)."));
-    };
-    let launch = if path.extension().is_some_and(|e| e == "app") {
-        craft_anything_platform::Launch::new("open").arg(&path)
-    } else {
-        craft_anything_platform::Launch::new(&path)
-    };
-    launch.label(p.app.clone()).start()?;
-    Ok(ToolOutput::Value(json!({"opened": path.display().to_string()})))
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -369,7 +329,7 @@ pub struct NoParams {}
 #[derive(Debug, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct InstallParams {
-    /// `ghidra`, `godot`, `unity`, `unreal`, or an engine id from engines_list.
+    /// `ghidra`, or an engine id from engines_list.
     pub engine: String,
 }
 
@@ -397,24 +357,10 @@ fn engines_list(ctx: &mut Ctx<'_>, _params: Value) -> Result<ToolOutput, ToolErr
             })
         })
         .collect();
-    let inv = game::inventory(&game::Places::here(store.clone()));
-    let builders: Vec<Value> = Builder::ALL
-        .into_iter()
-        .map(|b| {
-            json!({
-                "id": format!("{b:?}").to_lowercase(),
-                "name": b.name(),
-                "ready": inv.ready(b),
-                "found": inv.best(b).map(|i| json!({"version": i.version, "program": i.program.display().to_string()})),
-                "needs": b.needs(),
-            })
-        })
-        .collect();
     Ok(ToolOutput::Value(json!({
         "engine_store": store.display().to_string(),
         "engines": engines,
         "deep_mode": {"enabled": s.deep_mode, "ghidra": s.ghidra_launcher().map(|p| p.display().to_string())},
-        "game_engines": builders,
     })))
 }
 
@@ -432,31 +378,6 @@ fn engines_install(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolE
                 ctx.report(fraction, format!("{what}: {} of {} MB", mb(got), total.map_or("?".into(), |t| mb(t).to_string())));
             };
             craft_anything_engines::ghidra::get::install(&store, Some(cancel), &progress)?
-        }
-        "godot" => {
-            let progress = |got: u64, total: Option<u64>| {
-                let fraction = total.filter(|t| *t > 0).map(|t| got as f32 / t as f32);
-                ctx.report(fraction, format!("Godot: {} of {} MB", mb(got), total.map_or("?".into(), |t| mb(t).to_string())));
-            };
-            game::install_godot(&store, Some(cancel), &progress)?
-        }
-        "unity" | "unreal" if game::installer(if id == "unity" { Builder::Unity } else { Builder::Unreal }).is_some() => {
-            let b = if id == "unity" { Builder::Unity } else { Builder::Unreal };
-            let progress = |got: u64, total: Option<u64>| {
-                let fraction = total.filter(|t| *t > 0).map(|t| got as f32 / t as f32);
-                ctx.report(fraction, format!("{} installer: {} of {} MB", b.name(), mb(got), total.map_or("?".into(), |t| mb(t).to_string())));
-            };
-            let file = game::download_installer(b, &store.join("installers"), Some(cancel), &progress)?;
-            game::run_installer(&file)?;
-            return Ok(ToolOutput::Value(json!({"installer_opened": file.display().to_string(), "engine": id})));
-        }
-        "unity" | "unreal" => {
-            let b = if id == "unity" { Builder::Unity } else { Builder::Unreal };
-            return Err(ToolError::new(
-                ErrorCode::NotSupported,
-                format!("{} needs its own installer and account, so it can't be installed for you.", b.name()),
-            )
-            .with_remediation(format!("Get it from {} ({}), then run engines_list.", game::download_page(b), b.needs())));
         }
         other => {
             let report = |m: &str| ctx.report(None, m.to_string());
@@ -602,14 +523,12 @@ mod tests {
     }
 
     #[test]
-    fn engines_are_listed_and_vendor_installs_get_their_page() {
+    fn engines_are_listed() {
         let e = Engine::new(crate::testing::session());
         let out = e.call("engines_list", json!({}), CallOptions::new(Caller::Cli)).unwrap().to_json();
         let ids: Vec<&str> = out["result"]["engines"].as_array().unwrap().iter().filter_map(|v| v["id"].as_str()).collect();
         assert!(ids.contains(&"adb") && ids.contains(&"ghidra"), "{ids:?}");
-        assert_eq!(out["result"]["game_engines"].as_array().map(Vec::len), Some(4));
         // Never a real download in tests: an engine nobody knows is refused before any network use.
-        // (Unity/Unreal would download and open the vendor's installer on Windows.)
         assert!(e.call("engines_install", json!({"engine": "no-such-engine"}), CallOptions::new(Caller::Cli)).is_err());
     }
 

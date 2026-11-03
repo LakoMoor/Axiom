@@ -77,13 +77,6 @@ impl Worker {
                 }
                 if let Some(f) = folder {
                     self.step(ws, Step::Study, Status::Inspecting, "Listing its maps, pictures, models and sounds…")?;
-                    if let Some(found) = game::detect(&f) {
-                        notes.push_str(&format!("\n## Made with {}\n\nThe giveaway: {}.", found.label(), found.clue));
-                        if let Some(n) = &found.note {
-                            notes.push_str(&format!(" {n}"));
-                        }
-                        notes.push('\n');
-                    }
                     notes.push_str(&inventory(&f));
                 }
                 let is_js = path.extension().is_some_and(|e| e == "asar") || path.join("resources/app.asar").exists() || path.join("package.json").exists();

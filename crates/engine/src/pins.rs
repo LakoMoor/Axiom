@@ -219,11 +219,6 @@ impl Plan {
                 _ => {}
             }
         }
-        // A Godot project runs from its imported resources.
-        let imported = app.join(".godot");
-        if app.join("project.godot").is_file() && imported.is_dir() {
-            keep.push(Keep::Whole(imported));
-        }
         Plan { app, keep, program_dir: program.parent().map(Path::to_path_buf) }
     }
 
@@ -323,19 +318,19 @@ fn walk(from: &Path, to: &Path, skip: &dyn Fn(&Path) -> bool, depth: usize, out:
 
 /// What there is to start in `app`: the program and its arguments (see `outputs::launch`). A
 /// website isn't pinned yet.
-fn start_of(app: &Path, godot: Option<&Path>) -> Result<(PathBuf, Vec<String>), ToolError> {
+fn start_of(app: &Path) -> Result<(PathBuf, Vec<String>), ToolError> {
     if crate::outputs::site_dir(app).is_some() {
         return Err(ToolError::unsupported("This project made a website, and websites can't be pinned yet.").with_remediation("Use project_preview to see it."));
     }
-    crate::outputs::launch(app, godot).ok_or_else(|| {
+    crate::outputs::launch(app).ok_or_else(|| {
         ToolError::new(ErrorCode::NotFound, "There's nothing to pin yet: no built program in this project.")
             .with_remediation("Finish a build first (rebuild), then pin it.")
     })
 }
 
 /// What a pin of the project's current build would take on disk.
-pub fn estimate(ws: &Workspace, godot: Option<&Path>) -> Result<Size, ToolError> {
-    let (program, _) = start_of(&ws.app_dir(), godot)?;
+pub fn estimate(ws: &Workspace) -> Result<Size, ToolError> {
+    let (program, _) = start_of(&ws.app_dir())?;
     let files = Plan::new(ws, &program).files(ws, Path::new(""))?;
     let bytes = |only_copied: bool| files.iter().filter(|f| !(only_copied && f.shared)).fold(0u64, |n, f| n.saturating_add(f.len));
     Ok(Size { bytes: bytes(false), files: files.len() as u64, light_bytes: bytes(true) })
@@ -343,12 +338,12 @@ pub fn estimate(ws: &Workspace, godot: Option<&Path>) -> Result<Size, ToolError>
 
 /// Pin the project's current build. `progress(done, total)` hears how far the copy is (bytes) and
 /// stops it by returning false, which removes what was copied.
-pub fn create(ws: &Workspace, mode: PinMode, name: Option<&str>, godot: Option<&Path>, progress: &mut dyn FnMut(u64, u64) -> bool) -> Result<Pin, ToolError> {
+pub fn create(ws: &Workspace, mode: PinMode, name: Option<&str>, progress: &mut dyn FnMut(u64, u64) -> bool) -> Result<Pin, ToolError> {
     if !mode.keeps_copy() {
         return Err(ToolError::invalid("Live pins aren't made any more: one only opened the latest build, as Play does.")
             .with_remediation("Pin it as frozen or light."));
     }
-    let (program, _) = start_of(&ws.app_dir(), godot)?;
+    let (program, _) = start_of(&ws.app_dir())?;
     let parent = ws.root.join(PINNED);
     std::fs::create_dir_all(&parent).map_err(|e| ToolError::io(parent.display(), e))?;
     let mut id = list(ws).iter().map(|p| p.id).max().unwrap_or(0).saturating_add(1);
@@ -371,7 +366,7 @@ pub fn create(ws: &Workspace, mode: PinMode, name: Option<&str>, godot: Option<&
     let mut pin = Pin { version: PIN_VERSION, id, name, mode, created_ms: now_ms(), round, bytes: 0, shared_bytes: 0 };
     let made = (|| {
         (pin.bytes, pin.shared_bytes) = copy(ws, &program, &pin.app_dir(ws), mode, progress)?;
-        if crate::outputs::launch(&pin.app_dir(ws), godot).is_none() {
+        if crate::outputs::launch(&pin.app_dir(ws)).is_none() {
             return Err(ToolError::internal("The copy was made, but there's nothing to start in it."));
         }
         save(ws, &pin)
@@ -556,8 +551,8 @@ mod tests {
     fn a_frozen_pin_copies_the_app_and_its_program_but_not_what_a_build_makes() {
         let d = tempfile::tempdir().unwrap();
         let ws = built(d.path());
-        let size = estimate(&ws, None).unwrap();
-        let pin = create(&ws, PinMode::Frozen, None, None, &mut |_, _| true).unwrap();
+        let size = estimate(&ws).unwrap();
+        let pin = create(&ws, PinMode::Frozen, None, &mut |_, _| true).unwrap();
         assert_eq!(pin.name, "Snake · round 3");
         assert_eq!(pin.bytes, size.bytes);
         let copy = pin.app_dir(&ws);
@@ -585,7 +580,7 @@ mod tests {
         let d = tempfile::tempdir().unwrap();
         let ws = built(d.path());
         let release = ws.app_dir().join("target/release");
-        let before = estimate(&ws, None).unwrap();
+        let before = estimate(&ws).unwrap();
         let program = |name: &str, body: &[u8]| {
             let p = release.join(exe(name));
             std::fs::write(&p, body).unwrap();
@@ -596,10 +591,10 @@ mod tests {
         program("snake.running-144900", &[0u8; 4096]);
         program("snake-tool.running-1", b"helper");
         program("ghost.running-7", b"gone");
-        let after = estimate(&ws, None).unwrap();
+        let after = estimate(&ws).unwrap();
         assert_eq!(after.files, before.files + 2, "the old copy isn't counted, the two others are");
         assert_eq!(after.bytes, before.bytes + 6 + 4, "and its size isn't either");
-        let pin = create(&ws, PinMode::Frozen, None, None, &mut |_, _| true).unwrap();
+        let pin = create(&ws, PinMode::Frozen, None, &mut |_, _| true).unwrap();
         assert_eq!(pin.bytes, after.bytes);
         let copy = pin.app_dir(&ws).join("target/release");
         assert!(copy.join(exe("snake")).is_file());
@@ -617,9 +612,9 @@ mod tests {
         std::fs::write(app.join("assets/song.ogg"), "old song").unwrap();
         std::fs::write(app.join("assets/save.db"), "a save").unwrap();
         std::fs::write(app.join("target/release/icon.png"), "beside the program").unwrap();
-        let size = estimate(&ws, None).unwrap();
+        let size = estimate(&ws).unwrap();
         assert_eq!(size.bytes - size.light_bytes, 15, "the two media files, not the save or what's beside the program");
-        let pin = create(&ws, PinMode::Light, Some("  Playable  "), None, &mut |_, _| true).unwrap();
+        let pin = create(&ws, PinMode::Light, Some("  Playable  "), &mut |_, _| true).unwrap();
         assert_eq!((pin.name.as_str(), pin.bytes, pin.shared_bytes), ("Playable", size.light_bytes, 15));
         let copy = pin.app_dir(&ws);
         assert_eq!(crate::outputs::built_program(&copy), Some(copy.join("target/release").join(exe("snake"))));
@@ -646,18 +641,8 @@ mod tests {
     }
 
     #[test]
-    fn a_light_pin_shares_an_engines_imports_and_electrons_packages_but_copies_its_program() {
+    fn a_light_pin_shares_electrons_packages_but_copies_its_program() {
         let d = tempfile::tempdir().unwrap();
-        let ws = Workspace::create(d.path(), "Hop", "a game", TargetRef::None).unwrap();
-        let app = ws.app_dir();
-        std::fs::create_dir_all(&app).unwrap();
-        std::fs::write(app.join("project.godot"), "config").unwrap();
-        std::fs::create_dir_all(app.join(".godot/imported")).unwrap();
-        std::fs::write(app.join(".godot/imported/sky.ctex"), "imported").unwrap();
-        let godot = d.path().join("godot.exe");
-        let pin = create(&ws, PinMode::Light, None, Some(&godot), &mut |_, _| true).unwrap();
-        assert_eq!((pin.bytes, pin.shared_bytes), (6, 8), "project.godot copied, the import shared");
-
         let ws = Workspace::create(d.path(), "Notes", "an app", TargetRef::None).unwrap();
         let app = ws.app_dir();
         std::fs::create_dir_all(&app).unwrap();
@@ -671,7 +656,7 @@ mod tests {
         std::fs::create_dir_all(program.parent().unwrap()).unwrap();
         std::fs::write(&program, b"electron").unwrap();
         mark_program(&program);
-        let pin = create(&ws, PinMode::Light, None, None, &mut |_, _| true).unwrap();
+        let pin = create(&ws, PinMode::Light, None, &mut |_, _| true).unwrap();
         assert_eq!(pin.shared_bytes, 8, "the packages, not the program");
         assert!(pin.bytes >= 8);
     }
@@ -680,7 +665,7 @@ mod tests {
     fn a_live_pin_is_no_longer_made_and_an_old_one_still_opens_the_projects_app() {
         let d = tempfile::tempdir().unwrap();
         let ws = built(d.path());
-        assert_eq!(create(&ws, PinMode::Live, None, None, &mut |_, _| true).unwrap_err().code, ErrorCode::BadInput);
+        assert_eq!(create(&ws, PinMode::Live, None, &mut |_, _| true).unwrap_err().code, ErrorCode::BadInput);
         let old = read_pin(br#"{"id":2,"name":"A","mode":"live","created_ms":5}"#).unwrap();
         assert_eq!(old.app_dir(&ws), ws.app_dir());
     }
@@ -698,8 +683,8 @@ mod tests {
         std::fs::create_dir_all(folder.join("target/debug")).unwrap();
         std::fs::write(folder.join("target/debug").join(exe("mine")), b"program").unwrap();
         mark_program(&folder.join("target/debug").join(exe("mine")));
-        let first = create(&ws, PinMode::Frozen, None, None, &mut |_, _| true).unwrap();
-        let second = create(&ws, PinMode::Frozen, None, None, &mut |_, _| true).unwrap();
+        let first = create(&ws, PinMode::Frozen, None, &mut |_, _| true).unwrap();
+        let second = create(&ws, PinMode::Frozen, None, &mut |_, _| true).unwrap();
         assert_eq!((first.id, second.id), (1, 2));
         let copy = second.app_dir(&ws);
         assert!(copy.join("notes.txt").is_file());
@@ -711,20 +696,20 @@ mod tests {
     fn a_stopped_copy_leaves_nothing_behind_and_nothing_to_pin_is_refused() {
         let d = tempfile::tempdir().unwrap();
         let ws = built(d.path());
-        let e = create(&ws, PinMode::Frozen, None, None, &mut |_, _| false).unwrap_err();
+        let e = create(&ws, PinMode::Frozen, None, &mut |_, _| false).unwrap_err();
         assert_eq!(e.code, ErrorCode::Cancelled);
         assert!(list(&ws).is_empty());
         assert_eq!(std::fs::read_dir(ws.root.join(PINNED)).unwrap().count(), 0, "the half-made copy is gone");
 
         let empty = Workspace::create(d.path(), "Empty", "nothing yet", TargetRef::None).unwrap();
-        assert_eq!(create(&empty, PinMode::Frozen, None, None, &mut |_, _| true).unwrap_err().code, ErrorCode::NotFound);
+        assert_eq!(create(&empty, PinMode::Frozen, None, &mut |_, _| true).unwrap_err().code, ErrorCode::NotFound);
     }
 
     #[test]
     fn pins_are_renamed_and_removed_and_unreadable_ones_skipped() {
         let d = tempfile::tempdir().unwrap();
         let ws = built(d.path());
-        let pin = create(&ws, PinMode::Frozen, None, None, &mut |_, _| true).unwrap();
+        let pin = create(&ws, PinMode::Frozen, None, &mut |_, _| true).unwrap();
         assert_eq!(rename(&ws, pin.id, "Best one").unwrap().name, "Best one");
         assert!(rename(&ws, pin.id, " ").is_err());
         std::fs::create_dir_all(ws.root.join(PINNED).join("7")).unwrap();

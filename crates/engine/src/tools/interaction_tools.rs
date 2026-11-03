@@ -262,22 +262,6 @@ fn program_of(part: &str) -> (&str, &str) {
     }
 }
 
-/// A game engine's own build or check: Unity in batch mode, Godot headless or on a project,
-/// Unreal's build scripts and command-line editor.
-fn engine_build(part: &str) -> bool {
-    let (prog, rest) = program_of(part);
-    let norm = prog.replace('\\', "/").to_ascii_lowercase();
-    let name = norm.rsplit('/').next().unwrap_or_default();
-    let rest = rest.to_ascii_lowercase();
-    match name {
-        "unity.exe" | "unity" => rest.contains("-batchmode"),
-        n if n.starts_with("godot") => rest.contains("--headless") || rest.contains("--path"),
-        "runuat.bat" | "runuat.sh" | "build.bat" | "build.sh" => norm.contains("engine/build/batchfiles/"),
-        "unrealeditor-cmd.exe" | "unrealeditor-cmd" => true,
-        _ => false,
-    }
-}
-
 /// A program the builder made inside app/ (to try its build, e.g. `--screenshot`). It must exist
 /// there: a bare name such as `rm` would otherwise look like `app/rm`.
 fn own_program(part: &str, app: &Path) -> bool {
@@ -287,8 +271,7 @@ fn own_program(part: &str, app: &Path) -> bool {
     !prog.is_empty() && bases.iter().any(|b| resolve(b, prog).is_some_and(|p| inside(app, &p) && p != app && p.is_file()))
 }
 
-/// Decide a Bash command: every `&&`-joined part must be a safe build command, the game engine's
-/// own build, the builder's own program in app/, or a `cd` that stays inside the project, with
+/// Decide a Bash command: every `&&`-joined part must be a safe build command, the builder's own program in app/, or a `cd` that stays inside the project, with
 /// no other shell control characters.
 fn decide_command(cmd: &str, app: &Path) -> Decision {
     let c = cmd.trim();
@@ -313,7 +296,7 @@ fn decide_command(cmd: &str, app: &Path) -> Decision {
                 _ => return ask(),
             }
         }
-        if !(safe_command(part) || engine_build(part) || own_program(part, app)) {
+        if !(safe_command(part) || own_program(part, app)) {
             return ask();
         }
     }
@@ -696,7 +679,7 @@ mod tests {
     }
 
     #[test]
-    fn engine_builds_and_its_own_program_go_ahead() {
+    fn its_own_program_goes_ahead() {
         let (_d, w) = ws();
         let app = w.app_dir();
         for built in ["target/debug/game.exe", "Build/Game.exe"] {
@@ -707,9 +690,6 @@ mod tests {
         assert!(matches!(decide_command("rm -rf /", &app), Decision::Ask { .. }));
         assert!(matches!(decide_command("app/target/debug/missing.exe", &app), Decision::Ask { .. }));
         for ok in [
-            "\"C:\\Program Files\\Unity\\Hub\\Editor\\6000.0.23f1\\Editor\\Unity.exe\" -batchmode -quit -nographics -projectPath app -executeMethod CraftBuild.Build -logFile app/Logs/build.log",
-            "\"D:/Engines/Godot_v4.4.1-stable_win64.exe\" --headless --path app --quit-after 120",
-            "\"C:/Program Files/Epic Games/UE_5.4/Engine/Build/BatchFiles/RunUAT.bat\" BuildCookRun -project=app/Game.uproject",
             "cargo run -- --screenshot shots/now.png",
             "app/target/debug/game.exe --screenshot app/shots/now.png",
             "cd app && ./Build/Game.exe --screenshot shots/now.png",
@@ -717,7 +697,6 @@ mod tests {
             assert_eq!(decide_command(ok, &app), Decision::Allow, "{ok}");
         }
         for ask in [
-            "\"C:/Unity/Editor/Unity.exe\" -projectPath app",
             "\"D:/Games/Arena/bin_win32/arena_client.exe\"",
             "C:/Program Files/Tool/tool.exe",
             "../elsewhere/tool.exe",
@@ -731,8 +710,8 @@ mod tests {
     #[test]
     fn web_reads_and_notes_go_ahead_the_inbox_never_does() {
         let (_d, w) = ws();
-        assert_eq!(decide(Some(&w), "WebFetch", &json!({"url": "https://docs.godotengine.org"})), Decision::Allow);
-        assert_eq!(decide(Some(&w), "WebSearch", &json!({"query": "unity batchmode build"})), Decision::Allow);
+        assert_eq!(decide(Some(&w), "WebFetch", &json!({"url": "https://doc.rust-lang.org"})), Decision::Allow);
+        assert_eq!(decide(Some(&w), "WebSearch", &json!({"query": "cargo build release"})), Decision::Allow);
         let note = w.checks_dir().join("round-1/notes.md");
         assert_eq!(decide(Some(&w), "Write", &json!({"file_path": note.display().to_string()})), Decision::Allow);
         for off in [w.inbox_dir().join("1.answer.json"), w.root.join("craft.json"), w.root.join("reference/picture-1.png")] {

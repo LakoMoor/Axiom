@@ -18,7 +18,6 @@ pub mod electron;
 pub mod firmware;
 pub mod flutter;
 pub mod formats;
-pub mod games;
 pub mod java;
 pub mod managed;
 pub mod packed;

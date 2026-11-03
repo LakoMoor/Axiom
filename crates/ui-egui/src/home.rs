@@ -164,10 +164,8 @@ pub fn modals(app: &mut CraftApp, ctx: &egui::Context) {
                         });
                     }
                 }
-                Modal::Engine(b) => crate::engine_ui::modal(app, ui, *b, &mut close),
                 Modal::Assets => crate::engine_ui::assets_modal(app, ui, &mut close),
                 Modal::Ghidra => crate::engine_ui::ghidra_modal(app, ui, &mut close),
-                Modal::GamePermission => crate::game_files::permission_modal(app, ui, &mut close),
                 Modal::DeepMode => crate::engine_ui::deep_modal(app, ui, &mut close),
                 Modal::ExistingFiles => crate::folders::existing_modal(app, ui, &mut close),
                 Modal::NeedBuilder { start } => crate::builders::need_builder_modal(app, ui, *start, &mut close),
@@ -198,9 +196,6 @@ pub fn modals(app: &mut CraftApp, ctx: &egui::Context) {
 pub fn dismiss(app: &mut CraftApp) {
     if app.ghidra.job.is_none() {
         app.ghidra.start_after = None;
-    }
-    if app.engine_flow.job.is_none() {
-        app.engine_flow.start_after = false;
     }
     app.state.modal = None;
 }

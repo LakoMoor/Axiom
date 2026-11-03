@@ -29,7 +29,7 @@ use std::path::{Path, PathBuf};
 pub const MANIFEST: &str = "craft.json";
 
 /// Folders a copy of a project leaves out: what a build makes again, which can be gigabytes.
-const REBUILT: &[&str] = &["node_modules", "target", ".godot", "Library", "Temp", "obj", ".venv", "__pycache__", ".next", ".turbo"];
+const REBUILT: &[&str] = &["node_modules", "target", "obj", ".venv", "__pycache__", ".next", ".turbo"];
 /// How deep a copy of a project's folders goes.
 const COPY_DEPTH: usize = 64;
 
