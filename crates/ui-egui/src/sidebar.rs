@@ -189,7 +189,7 @@ fn chats_section(app: &mut CraftApp, ui: &mut Ui, fold: bool) {
     }
     ui.horizontal(|ui| {
         ui.add_space(12.0);
-        widgets::caption(ui, "Chats");
+        widgets::caption(ui, "Recents");
     });
     ui.add_space(2.0);
     let mut open = None;
