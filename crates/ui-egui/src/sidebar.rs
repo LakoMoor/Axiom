@@ -116,9 +116,21 @@ pub fn show(app: &mut CraftApp, ui: &mut Ui) {
     });
     ui.painter().hline(ui.max_rect().x_range(), ui.cursor().top() + 1.0, egui::Stroke::new(1.0, t.separator));
     ui.add_space(10.0);
-    if row(ui, "settings", "Settings", None, app.state.settings_open).clicked() {
+    let settings = row(ui, "settings", "Settings", None, app.state.settings_open);
+    if settings.clicked() {
         app.state.settings_open = !app.state.settings_open;
     }
+    // Right-click for the profile-style menu: the places a person goes from here.
+    settings.context_menu(|ui| {
+        if ui.button(tr("Settings")).clicked() {
+            app.state.settings_open = true;
+            ui.close();
+        }
+        if ui.button(tr("Models")).clicked() {
+            app.state.screen = Screen::Models;
+            ui.close();
+        }
+    });
 }
 
 /// A folded section's heading: a row as tall as the open one, with something `width` wide centred.
