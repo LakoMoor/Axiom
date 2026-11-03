@@ -3,11 +3,11 @@
 
 use crate::state::{CenterTab, ChatItem, Fill, RailKind, RightTab, Screen};
 use crate::{CraftApp, TargetInfo};
-use craft_anything_ai::{AiHub, BackendConfig, BackendKind, Detected};
-use craft_anything_engine::evidence::{Confidence, Coverage, Environment, Evidence, EvidenceBuilder, Limitation, Location, Severity, Unknown};
-use craft_anything_engine::target::Target;
-use craft_anything_engine::workspace::{CheckResult, Claim, Manifest, Status, TargetRef, Workspace};
-use craft_anything_engine::{Engine, Mode, Session, Settings};
+use axiom_ai::{AiHub, BackendConfig, BackendKind, Detected};
+use axiom_engine::evidence::{Confidence, Coverage, Environment, Evidence, EvidenceBuilder, Limitation, Location, Severity, Unknown};
+use axiom_engine::target::Target;
+use axiom_engine::workspace::{CheckResult, Claim, Manifest, Status, TargetRef, Workspace};
+use axiom_engine::{Engine, Mode, Session, Settings};
 use serde_json::json;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -122,8 +122,8 @@ pub fn app(engine: Arc<Engine>) -> CraftApp {
     // its own, never the person's settings or system keychain.
     static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
-    let store = std::env::temp_dir().join(format!("craft-anything-demo-{now}-{}", N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
-    let keys = craft_anything_ai::KeyStore::file_only(store.join("keys.toml"));
+    let store = std::env::temp_dir().join(format!("axiom-demo-{now}-{}", N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
+    let keys = axiom_ai::KeyStore::file_only(store.join("keys.toml"));
     let hub = Arc::new(AiHub::with_stores(engine.clone(), store.join("config.toml"), keys));
     let mut app = CraftApp::new(engine, hub);
     app.persist = false;
@@ -271,11 +271,11 @@ pub fn detected() -> Vec<Detected> {
 }
 
 fn workspace(slug: &str, name: &str, request: &str, target: TargetRef, status: Status, age_min: u64) -> Workspace {
-    let at = craft_anything_engine::inbox::now_ms().saturating_sub(age_min * 60_000);
+    let at = axiom_engine::inbox::now_ms().saturating_sub(age_min * 60_000);
     Workspace {
         root: PathBuf::from(format!("/demo/Axiom/{slug}")),
         manifest: Manifest {
-            version: craft_anything_engine::workspace::MANIFEST_VERSION,
+            version: axiom_engine::workspace::MANIFEST_VERSION,
             name: name.into(),
             request: request.into(),
             target,
@@ -288,7 +288,7 @@ fn workspace(slug: &str, name: &str, request: &str, target: TargetRef, status: S
             agent_session: None,
             allowed_actions: Vec::new(),
             last_reply: String::new(),
-            asset_budget_usd: craft_anything_engine::workspace::ASSET_BUDGET_USD,
+            asset_budget_usd: axiom_engine::workspace::ASSET_BUDGET_USD,
             generate_assets: false,
             app_in_root: false,
             start_files: Vec::new(),
@@ -321,10 +321,10 @@ pub fn fill_projects(app: &mut CraftApp) {
 /// A project mid-build: steps, the agent's words, collapsed tool work, a question and a check.
 pub fn fill_project(app: &mut CraftApp) {
     use crate::state::FeedItem;
-    use craft_anything_ai::rebuild::Step;
-    use craft_anything_engine::inbox::{Request, RequestKind};
+    use axiom_ai::rebuild::Step;
+    use axiom_engine::inbox::{Request, RequestKind};
     let mut ws = workspace("example-com", "example.com", "Recreate this website", TargetRef::Website { url: "https://example.com".into() }, Status::Ready, 2);
-    let page = |name: &str, dir: &str, similarity| craft_anything_engine::workspace::PageLikeness { name: name.into(), dir: dir.into(), similarity };
+    let page = |name: &str, dir: &str, similarity| axiom_engine::workspace::PageLikeness { name: name.into(), dir: dir.into(), similarity };
     let check = CheckResult {
         similarity: Some(93.4),
         at_ms: 0,
@@ -371,7 +371,7 @@ pub fn fill_project(app: &mut CraftApp) {
     };
     // What the latest run changed, so the Changes card has something to show.
     {
-        use craft_anything_engine::changes::{Change, DiffLine, Kind, Report};
+        use axiom_engine::changes::{Change, DiffLine, Kind, Report};
         let l = |op: char, text: &str| DiffLine { op, text: text.into() };
         app.facts.root = ws.root.clone();
         app.changes.root = ws.root.clone();

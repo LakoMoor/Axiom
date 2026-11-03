@@ -17,10 +17,10 @@ pub use adapters::{AgentAdapter, AgentAdapters, ArgsCx};
 use crate::config::BackendOptions;
 use crate::model::Stop;
 use crate::{AgentEvent, BackendConfig, Conversation};
-use craft_anything_engine::CancelToken;
-use craft_anything_evidence::{ErrorCode, ToolError};
-use craft_anything_platform::process::Process;
-use craft_anything_platform::sync::Mutex;
+use axiom_engine::CancelToken;
+use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::process::Process;
+use axiom_platform::sync::Mutex;
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::ffi::OsStr;
@@ -31,7 +31,7 @@ use std::sync::{Arc, PoisonError};
 use std::time::Duration;
 
 /// Name our MCP server is registered under.
-pub const MCP_NAME: &str = "craft-anything";
+pub const MCP_NAME: &str = "axiom";
 
 /// Known agent CLIs: (agent id, program, display name).
 pub const KNOWN: &[(&str, &str, &str)] = &[
@@ -71,13 +71,13 @@ pub struct McpCommand {
 }
 
 impl McpCommand {
-    /// Our installed CLI (`craft-anything-cli mcp [--project <dir>] [--inbox <dir>]`). Remote runs
+    /// Our installed CLI (`axiom-cli mcp [--project <dir>] [--inbox <dir>]`). Remote runs
     /// use the name on the remote PATH and have no local project or inbox.
     pub fn local_or_remote(remote: bool, project: Option<PathBuf>, inbox: Option<PathBuf>) -> McpCommand {
         let command = if remote {
-            "craft-anything-cli".to_string()
+            "axiom-cli".to_string()
         } else {
-            craft_anything_platform::self_cli_path().map(|p| p.display().to_string()).unwrap_or_else(|| "craft-anything-cli".to_string())
+            axiom_platform::self_cli_path().map(|p| p.display().to_string()).unwrap_or_else(|| "axiom-cli".to_string())
         };
         let mut args = vec!["mcp".to_string()];
         if let Some(p) = project.filter(|_| !remote) {
@@ -93,16 +93,17 @@ impl McpCommand {
     }
 }
 
-/// Whether the `craft-anything-cli` a builder's tool server runs from (None: there isn't one) can
+/// Whether the `axiom-cli` a builder's tool server runs from (None: there isn't one) can
 /// start. Without it Claude Code stops at its first approval with a stack trace (#91). A check
 /// that ran out of time says nothing about the program, so the build goes ahead. Stopping the
 /// build ends the check, as `ErrorCode::Cancelled`.
 pub fn cli_can_start(cli: Option<&Path>, stop: &CancelToken) -> Result<(), ToolError> {
     const REINSTALL: &str =
-        "Install the latest Axiom again: it keeps this helper next to the app. If you built the app yourself, run `cargo build -p craft-anything-cli` too.";
+        "Install the latest Axiom again: it keeps this helper next to the app. If you built the app yourself, run `cargo build -p axiom-cli` too.";
     let Some(cli) = cli else {
-        return Err(ToolError::new(ErrorCode::EngineMissing, "Axiom's helper program (craft-anything-cli) is missing, so the builder can't start.")
-            .with_remediation(REINSTALL));
+        return Err(
+            ToolError::new(ErrorCode::EngineMissing, "Axiom's helper program (axiom-cli) is missing, so the builder can't start.").with_remediation(REINSTALL)
+        );
     };
     let failed = |why: String| {
         ToolError::new(ErrorCode::EngineMissing, format!("Axiom's helper program at {} wouldn't start: {why}", cli.display())).with_remediation(REINSTALL)
@@ -121,7 +122,7 @@ pub fn cli_can_start(cli: Option<&Path>, stop: &CancelToken) -> Result<(), ToolE
 /// else its adapter says.
 pub fn check_builder_tools(adapter: &dyn AgentAdapter, agent: &str, options: &BackendOptions, stop: &CancelToken) -> Result<(), ToolError> {
     if options.acp == Some(true) && acp::acp_args(agent).is_some() {
-        return cli_can_start(craft_anything_platform::self_cli_path().as_deref(), stop);
+        return cli_can_start(axiom_platform::self_cli_path().as_deref(), stop);
     }
     adapter.check_tool_server(stop)
 }
@@ -131,7 +132,7 @@ fn toml_string(s: &str) -> String {
 }
 
 /// The permission-prompt tool a builder run routes its approvals through.
-pub const APPROVAL_TOOL: &str = craft_anything_engine::tools::interaction_tools::APPROVE_TOOL;
+pub const APPROVAL_TOOL: &str = axiom_engine::tools::interaction_tools::APPROVE_TOOL;
 
 /// What an agent run may do with files.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -254,7 +255,7 @@ fn find_evidence_id(text: &str) -> Option<String> {
     let mut rest = text;
     while let Some(pos) = rest.find("ev_") {
         let cand = rest.get(pos..pos + 67).unwrap_or_default();
-        if craft_anything_evidence::is_evidence_id(cand) {
+        if axiom_evidence::is_evidence_id(cand) {
             return Some(cand.to_string());
         }
         rest = rest.get(pos + 3..).unwrap_or_default();
@@ -570,7 +571,7 @@ fn run_cli(spec: &CliSpec, text: &str, tx: &Sender<AgentEvent>, stop: &Stop, ses
             }
         }
         Ok(_) => {}
-        Err(e) if e.code == craft_anything_evidence::ErrorCode::Cancelled => {
+        Err(e) if e.code == axiom_evidence::ErrorCode::Cancelled => {
             let _ = tx.send(AgentEvent::Status { text: "Stopped.".into() });
         }
         Err(e) => {
@@ -600,7 +601,7 @@ struct FailureContext {
 
 impl FailureContext {
     fn new(program: &str, args: &[String], message: &str, host: Option<&str>, spec: &CliSpec) -> Self {
-        use craft_anything_platform::process::printable_command;
+        use axiom_platform::process::printable_command;
         let message = message.trim();
         let args: Vec<String> = args
             .iter()
@@ -626,23 +627,17 @@ impl FailureContext {
     }
 
     /// Why this run failed, when it was ssh (or the remote computer) that says so.
-    fn ssh_failure(&self, out: &craft_anything_platform::Output) -> Option<crate::ssh::SshFailure> {
+    fn ssh_failure(&self, out: &axiom_platform::Output) -> Option<crate::ssh::SshFailure> {
         let host = self.host.as_deref()?;
         crate::ssh::diagnose(host, &self.program, crate::ssh::is_git_server(host), out.code, &out.stderr_text())
     }
 
     /// Write the log. Returns its path, or what to tell the person when it couldn't be written.
-    fn save(&self, agent: &str, out: Option<&craft_anything_platform::Output>, diagnosis: Option<&str>) -> (Option<PathBuf>, Option<String>) {
+    fn save(&self, agent: &str, out: Option<&axiom_platform::Output>, diagnosis: Option<&str>) -> (Option<PathBuf>, Option<String>) {
         self.save_with(agent, out, diagnosis, None)
     }
 
-    fn save_with(
-        &self,
-        agent: &str,
-        out: Option<&craft_anything_platform::Output>,
-        diagnosis: Option<&str>,
-        error: Option<&str>,
-    ) -> (Option<PathBuf>, Option<String>) {
+    fn save_with(&self, agent: &str, out: Option<&axiom_platform::Output>, diagnosis: Option<&str>, error: Option<&str>) -> (Option<PathBuf>, Option<String>) {
         let Some(dir) = &self.logs else { return (None, None) };
         let report = crate::failure_log::Report {
             what: format!("{} ({})", display_for(agent), self.backend),
@@ -668,10 +663,10 @@ impl FailureContext {
         }
     }
 
-    fn exit_event(&self, agent: &str, out: &craft_anything_platform::Output) -> AgentEvent {
+    fn exit_event(&self, agent: &str, out: &axiom_platform::Output) -> AgentEvent {
         let name = display_for(agent);
-        let plain = craft_anything_platform::process::nonzero_error_with(&name, out, Some(&self.command));
-        let excerpt = craft_anything_platform::process::output_excerpt(&String::from_utf8_lossy(if out.stderr.is_empty() { &out.stdout } else { &out.stderr }));
+        let plain = axiom_platform::process::nonzero_error_with(&name, out, Some(&self.command));
+        let excerpt = axiom_platform::process::output_excerpt(&String::from_utf8_lossy(if out.stderr.is_empty() { &out.stdout } else { &out.stderr }));
         let (message, mut remediation) = match self.ssh_failure(out) {
             Some(f) => {
                 let host = self.host.as_deref().unwrap_or_default();
@@ -785,7 +780,7 @@ mod tests {
     use crate::BackendKind;
 
     fn mcp() -> McpCommand {
-        McpCommand { command: "/opt/ca/craft-anything-cli".into(), args: vec!["mcp".into(), "--project".into(), "/p/x.cany".into()], notes: None }
+        McpCommand { command: "/opt/ca/axiom-cli".into(), args: vec!["mcp".into(), "--project".into(), "/p/x.cany".into()], notes: None }
     }
 
     #[test]
@@ -798,13 +793,13 @@ mod tests {
         assert_eq!(a[pos("--output-format") + 1], "stream-json");
         assert!(a.contains(&"--verbose".to_string()));
         assert_eq!(a[pos("--resume") + 1], "sess-1");
-        assert_eq!(a[pos("--allowedTools") + 1], "mcp__craft-anything__*");
+        assert_eq!(a[pos("--allowedTools") + 1], "mcp__axiom__*");
         assert_eq!(a[pos("--model") + 1], "claude-opus-5-5", "Opus 5.5 unless configured otherwise");
         let o = BackendOptions { cli_model: Some("opus".into()), ..Default::default() };
         let b = build_args(adapter_for("claude-code").as_ref(), &o, "q", "PRE", &mcp(), None, Access::Analyse);
         assert_eq!(b[b.iter().position(|x| x == "--model").unwrap() + 1], "opus");
         let cfg: Value = serde_json::from_str(&a[pos("--mcp-config") + 1]).unwrap();
-        assert_eq!(cfg["mcpServers"]["craft-anything"]["args"][0], "mcp");
+        assert_eq!(cfg["mcpServers"]["axiom"]["args"][0], "mcp");
         // variadic flags come last: nothing after them is read as one of their values
         assert!(pos("--mcp-config") > pos("--resume"));
     }
@@ -819,8 +814,8 @@ mod tests {
         assert_eq!(skip(&a), 1);
         let o = BackendOptions { args: vec!["--skip-git-repo-check".into()], ..Default::default() };
         assert_eq!(skip(&build_args(adapter_for("codex").as_ref(), &o, "q", "P:", &mcp(), None, Access::Build)), 1);
-        assert!(a.contains(&"mcp_servers.craft-anything.command=\"/opt/ca/craft-anything-cli\"".to_string()));
-        assert!(a.contains(&"mcp_servers.craft-anything.args=[\"mcp\", \"--project\", \"/p/x.cany\"]".to_string()));
+        assert!(a.contains(&"mcp_servers.axiom.command=\"/opt/ca/axiom-cli\"".to_string()));
+        assert!(a.contains(&"mcp_servers.axiom.args=[\"mcp\", \"--project\", \"/p/x.cany\"]".to_string()));
         assert_eq!(a.last().unwrap(), "P:q");
         let g = build_args(adapter_for("gemini-cli").as_ref(), &BackendOptions::default(), "q", "", &mcp(), None, Access::Analyse);
         assert!(g.windows(2).any(|w| w[0] == "--output-format" && w[1] == "stream-json"));
@@ -846,8 +841,8 @@ mod tests {
         assert_eq!(dropped, ["CLAUDECODE", "CLAUDE_AGENT_SDK_VERSION", "CLAUDE_CODE_SDK_HAS_HOST_AUTH_REFRESH", "CLAUDE_CODE_SESSION_ID"]);
     }
 
-    fn failed(code: i32, stderr: &str) -> craft_anything_platform::Output {
-        craft_anything_platform::Output {
+    fn failed(code: i32, stderr: &str) -> axiom_platform::Output {
+        axiom_platform::Output {
             code: Some(code),
             success: false,
             stdout: Vec::new(),
@@ -937,7 +932,7 @@ mod tests {
     fn builder_args_route_permissions_and_questions_to_us() {
         let a = build_args(adapter_for("claude-code").as_ref(), &BackendOptions::default(), "build it", "PRE", &mcp(), None, Access::Build);
         let pos = |f: &str| a.iter().position(|x| x == f).unwrap();
-        assert_eq!(a[pos("--permission-prompt-tool") + 1], "mcp__craft-anything__core_action_approve");
+        assert_eq!(a[pos("--permission-prompt-tool") + 1], "mcp__axiom__core_action_approve");
         assert_eq!(a[pos("--disallowedTools") + 1], "AskUserQuestion");
         assert!(a[pos("--allowedTools")..].contains(&"Read".to_string()));
         assert!(!a.iter().any(|x| x == "Write" || x == "Bash"), "writes and commands always go through the approval tool");
@@ -950,7 +945,7 @@ mod tests {
         let settings: serde_json::Value = serde_json::from_str(&b[b.iter().position(|x| x == "--settings").unwrap() + 1]).unwrap();
         let hook = &settings["hooks"]["PostToolUse"][0];
         assert_eq!(hook["matcher"], "*");
-        assert_eq!(hook["hooks"][0]["command"], "\"/opt/ca/craft-anything-cli\" builder-notes \"C:/p/inbox/notes\"");
+        assert_eq!(hook["hooks"][0]["command"], "\"/opt/ca/axiom-cli\" builder-notes \"C:/p/inbox/notes\"");
         let no_hook = build_args(adapter_for("claude-code").as_ref(), &BackendOptions::default(), "q", "PRE", &local, None, Access::Analyse);
         assert!(!no_hook.contains(&"--settings".to_string()));
         assert!(McpCommand::local_or_remote(true, None, Some(PathBuf::from("/p/inbox"))).notes.is_none(), "a remote builder can't reach this computer's files");
@@ -1016,7 +1011,7 @@ mod tests {
         let ev = format!("ev_{}", "a".repeat(64));
         let lines = [
             json!({"type":"system","subtype":"init","session_id":"s1"}).to_string(),
-            json!({"type":"assistant","message":{"content":[{"type":"text","text":"Looking"},{"type":"tool_use","id":"t1","name":"mcp__craft-anything__core_session_show","input":{}}]}}).to_string(),
+            json!({"type":"assistant","message":{"content":[{"type":"text","text":"Looking"},{"type":"tool_use","id":"t1","name":"mcp__axiom__core_session_show","input":{}}]}}).to_string(),
             json!({"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":[{"type":"text","text":format!("{{\"evidence_id\":\"{ev}\"}}")}]}]}}).to_string(),
             json!({"type":"result","subtype":"success","is_error":false,"total_cost_usd":0.12,"usage":{"input_tokens":5,"cache_read_input_tokens":5,"output_tokens":7}}).to_string(),
             "not json warning".to_string(),
@@ -1037,7 +1032,7 @@ mod tests {
         let mut ev = Vec::new();
         for l in [
             json!({"type":"thread.started","thread_id":"th"}),
-            json!({"type":"item.started","item":{"id":"i1","type":"mcp_tool_call","server":"craft-anything","tool":"core_target_open","arguments":{"path":"/bin/ls"}}}),
+            json!({"type":"item.started","item":{"id":"i1","type":"mcp_tool_call","server":"axiom","tool":"core_target_open","arguments":{"path":"/bin/ls"}}}),
             json!({"type":"item.completed","item":{"id":"i1","type":"mcp_tool_call","tool":"core_target_open","status":"completed","result":{"ok":true}}}),
             json!({"type":"item.completed","item":{"id":"i2","type":"agent_message","text":"It lists files."}}),
             json!({"type":"turn.completed","usage":{"input_tokens":3,"output_tokens":4}}),
@@ -1051,7 +1046,7 @@ mod tests {
         let mut g = StreamParser::new(adapter_for("gemini-cli"));
         let ev: Vec<_> = [
             json!({"type":"message","role":"assistant","content":"Hi","delta":true}),
-            json!({"type":"tool_use","tool_name":"craft-anything__core_targets_list","tool_id":"x","parameters":{}}),
+            json!({"type":"tool_use","tool_name":"axiom__core_targets_list","tool_id":"x","parameters":{}}),
             json!({"type":"tool_result","tool_id":"x","status":"error","output":"boom"}),
         ]
         .iter()
@@ -1115,11 +1110,11 @@ mod tests {
     fn a_missing_or_broken_helper_is_said_plainly() {
         let stop = CancelToken::default();
         let none = cli_can_start(None, &stop).unwrap_err();
-        assert!(none.message.contains("craft-anything-cli") && none.message.contains("missing"), "{none:?}");
+        assert!(none.message.contains("axiom-cli") && none.message.contains("missing"), "{none:?}");
         assert!(none.remediation.as_deref().is_some_and(|r| r.contains("Install the latest")), "{none:?}");
 
         let dir = tempfile::tempdir().unwrap();
-        let gone = cli_can_start(Some(&dir.path().join("craft-anything-cli")), &stop).unwrap_err();
+        let gone = cli_can_start(Some(&dir.path().join("axiom-cli")), &stop).unwrap_err();
         assert!(gone.message.contains("wouldn't start"), "{gone:?}");
         assert!(gone.remediation.is_some());
     }

@@ -24,9 +24,9 @@
 use crate::registry::{RuntimeTool, custom_toolset};
 use crate::session::Session;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput};
-use craft_anything_engines::mcp_client::{McpClient, RemoteTool, Server, ServerCommand, ServerUrl, content_text, url_allowed};
-use craft_anything_evidence::{Authority, Confidence, Environment, ErrorCode, EvidenceBuilder, Subject, ToolError};
-use craft_anything_platform::sync::Mutex;
+use axiom_engines::mcp_client::{McpClient, RemoteTool, Server, ServerCommand, ServerUrl, content_text, url_allowed};
+use axiom_evidence::{Authority, Confidence, Environment, ErrorCode, EvidenceBuilder, Subject, ToolError};
+use axiom_platform::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, HashMap};
@@ -271,7 +271,7 @@ fn call_plugin(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError
         clean_room: ctx.session.clean_room(),
         engine: format!("plugin:{}", plugin.id),
         engine_version: None,
-        host: craft_anything_evidence::host_triple(),
+        host: axiom_evidence::host_triple(),
         language_id: None,
     };
     let e = EvidenceBuilder::new(ctx.tool, Subject { kind: "plugin".into(), sha256: None, name: Some(plugin.display_name().to_string()) }, env)

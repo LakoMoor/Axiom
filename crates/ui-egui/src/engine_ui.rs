@@ -7,9 +7,9 @@ use crate::i18n::{tr, trf};
 use crate::state::{Modal, Screen};
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, Done, icons, widgets};
-use craft_anything_engine::{CallOptions, Caller};
-use craft_anything_engines::assets::{AssetProvider, AssetProviders, fal};
-use craft_anything_engines::ghidra::{self, get};
+use axiom_engine::{CallOptions, Caller};
+use axiom_engines::assets::{AssetProvider, AssetProviders, fal};
+use axiom_engines::ghidra::{self, get};
 use egui::{RichText, Ui, Vec2};
 use std::collections::BTreeMap;
 use std::time::Duration;
@@ -276,7 +276,7 @@ pub fn ghidra_status(app: &mut CraftApp, ui: &mut Ui) {
 }
 
 /// Which asset providers have a key stored, by id.
-fn stored_keys(hub: &craft_anything_ai::AiHub) -> BTreeMap<String, bool> {
+fn stored_keys(hub: &axiom_ai::AiHub) -> BTreeMap<String, bool> {
     let all = AssetProviders::built_in();
     all.ids().into_iter().map(|id| (id.to_string(), hub.has_asset_key(&all, id))).collect()
 }
@@ -434,7 +434,7 @@ struct AssetPrices {
 impl AssetPrices {
     fn of(app: &CraftApp) -> AssetPrices {
         use crate::usage::asset_cost_words;
-        use craft_anything_engines::assets::{Catalogue, Shape, usd};
+        use axiom_engines::assets::{Catalogue, Shape, usd};
         let table = Catalogue::built_in();
         let picture =
             table.image_model(app.settings.assets.image_model.as_deref()).or_else(|_| table.image_model(None)).map(|m| m.cost(Shape::Square)).unwrap_or(0.0);

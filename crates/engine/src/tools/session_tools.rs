@@ -3,7 +3,7 @@
 use crate::project::write_atomic;
 use crate::target::{RawSpec, Target, TargetKind};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, empty_schema, parse_params, schema_of};
-use craft_anything_evidence::{ErrorCode, Evidence, Severity, ToolError, Unknown, UnknownStatus};
+use axiom_evidence::{ErrorCode, Evidence, Severity, ToolError, Unknown, UnknownStatus};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -272,8 +272,8 @@ fn core_session_show(ctx: &mut Ctx<'_>, _params: Value) -> Result<ToolOutput, To
         "evidence_not_loaded": s.unloaded_evidence(),
         "unknowns": s.unknowns().count(),
         "project": s.project.as_ref().map(|p| json!({"name": p.meta.name, "path": p.root, "purpose": p.meta.purpose})),
-        "server": {"name": "craft-anything", "version": env!("CARGO_PKG_VERSION")},
-        "host": craft_anything_evidence::host_triple(),
+        "server": {"name": "axiom", "version": env!("CARGO_PKG_VERSION")},
+        "host": axiom_evidence::host_triple(),
     })))
 }
 
@@ -354,7 +354,7 @@ fn core_evidence_show(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
     })))
 }
 
-pub const BUNDLE_FORMAT: &str = "craft-anything-evidence-bundle";
+pub const BUNDLE_FORMAT: &str = "axiom-evidence-bundle";
 
 #[derive(Debug, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -684,7 +684,7 @@ mod tests {
             .to_json();
         assert_eq!(up["result"]["revision"], 2);
         let stale = e.call("core_unknown_edit", json!({"unknown_id": id, "based_on_revision": 1}), CallOptions::new(Caller::Agent)).unwrap_err();
-        assert_eq!(stale.code, craft_anything_evidence::ErrorCode::StaleRevision);
+        assert_eq!(stale.code, axiom_evidence::ErrorCode::StaleRevision);
         let v = e.call("core_unknown_verify", json!({"unknown_id": id}), CallOptions::new(Caller::Agent)).unwrap().to_json();
         assert_eq!(v["result"]["valid"], false, "cites no evidence");
     }
@@ -696,7 +696,7 @@ mod tests {
         let root = dir.path().join("p.cany");
         let project = Project::create(&root, "p", Purpose::Education).unwrap();
         let ev = |n: i64| {
-            craft_anything_evidence::EvidenceBuilder::new("x", craft_anything_evidence::Subject::default(), craft_anything_evidence::Environment::builtin(true))
+            axiom_evidence::EvidenceBuilder::new("x", axiom_evidence::Subject::default(), axiom_evidence::Environment::builtin(true))
                 .result(json!(n))
                 .build()
                 .unwrap()

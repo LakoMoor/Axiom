@@ -10,8 +10,8 @@ use crate::journal;
 use crate::project::write_atomic;
 use crate::session::Session;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, empty_schema, parse_params, schema_of};
-use craft_anything_evidence::{Confidence, ErrorCode, ToolError};
-use craft_anything_platform::sync::Mutex;
+use axiom_evidence::{Confidence, ErrorCode, ToolError};
+use axiom_platform::sync::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -586,7 +586,7 @@ mod tests {
     use crate::{CallOptions, Caller, Engine};
     use serde_json::json;
 
-    fn call(e: &Engine, id: &str, p: serde_json::Value) -> Result<serde_json::Value, craft_anything_evidence::ToolError> {
+    fn call(e: &Engine, id: &str, p: serde_json::Value) -> Result<serde_json::Value, axiom_evidence::ToolError> {
         e.call(id, p, CallOptions::new(Caller::Agent)).map(|o| o.to_json())
     }
 
@@ -608,7 +608,7 @@ mod tests {
         assert_eq!(inv["result"]["handoff"], "next: check the loader");
         let rev = inv["result"]["revision"].as_u64().unwrap();
         let err = call(&e, "core_plan_update", json!({"steps": [], "based_on_revision": rev + 7})).unwrap_err();
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::StaleRevision);
+        assert_eq!(err.code, axiom_evidence::ErrorCode::StaleRevision);
         assert!(call(&e, "core_journal_read", json!({})).is_err());
     }
 

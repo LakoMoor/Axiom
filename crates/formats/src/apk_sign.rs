@@ -260,7 +260,7 @@ pub fn parse(data: &[u8]) -> Option<SigningBlock> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::android as fx;
+    use axiom_testkit::android as fx;
 
     #[test]
     fn reads_v2_and_v3_signers() {
@@ -279,20 +279,20 @@ mod tests {
         assert_eq!(v2.digests[0].digest, "aa".repeat(32));
         let v3 = &b.signers[1];
         assert_eq!((v3.min_sdk, v3.max_sdk), (Some(24), Some(0x7fff_ffff)));
-        assert!(parse(&craft_anything_testkit::electron::zip_stored(&[("a", b"b")])).is_none());
+        assert!(parse(&axiom_testkit::electron::zip_stored(&[("a", b"b")])).is_none());
     }
 
     #[test]
     fn hostile() {
         let apk = fx::notes_apk();
-        for m in craft_anything_testkit::mutations(&apk) {
+        for m in axiom_testkit::mutations(&apk) {
             let _ = parse(&m);
         }
         for len in 0..apk.len() {
             let _ = parse(&apk[..len]);
         }
         for seed in 0..32 {
-            let mut n = craft_anything_testkit::noise(seed, 400);
+            let mut n = axiom_testkit::noise(seed, 400);
             n.extend_from_slice(b"APK Sig Block 42PK\x05\x06");
             n.extend_from_slice(&[0; 18]);
             let _ = parse(&n);

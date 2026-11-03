@@ -214,7 +214,7 @@ fn host_blocks(text: &str) -> Vec<(Vec<String>, bool)> {
 
 /// A local port forwarded to a server on a remote host (`ssh -N -L`), owned and killed on drop.
 pub struct Tunnel {
-    _proc: craft_anything_platform::RunningProcess,
+    _proc: axiom_platform::RunningProcess,
     pub local_port: u16,
 }
 
@@ -226,8 +226,8 @@ impl std::fmt::Debug for Tunnel {
 
 /// Forward a free local port to `remote_host:remote_port` as seen from `ssh_host`. Waits (at most
 /// 12 s) until the forward accepts connections.
-pub fn open_tunnel(ssh_host: &str, remote_host: &str, remote_port: u16) -> Result<Tunnel, craft_anything_evidence::ToolError> {
-    use craft_anything_evidence::{ErrorCode, ToolError};
+pub fn open_tunnel(ssh_host: &str, remote_host: &str, remote_port: u16) -> Result<Tunnel, axiom_evidence::ToolError> {
+    use axiom_evidence::{ErrorCode, ToolError};
     let port = std::net::TcpListener::bind("127.0.0.1:0")
         .and_then(|l| l.local_addr())
         .map(|a| a.port())
@@ -241,7 +241,7 @@ pub fn open_tunnel(ssh_host: &str, remote_host: &str, remote_port: u16) -> Resul
         format!("127.0.0.1:{port}:{remote_host}:{remote_port}"),
         ssh_host.to_string(),
     ]);
-    let mut proc = craft_anything_platform::Process::new("ssh")
+    let mut proc = axiom_platform::Process::new("ssh")
         .args(&args)
         .timeout(std::time::Duration::from_secs(24 * 3600))
         .label("ssh")

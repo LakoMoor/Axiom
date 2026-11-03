@@ -4,7 +4,7 @@
 //! Which models and what they cost come from the asset table (`assets.toml`).
 
 use super::{AssetProvider, AssetRequest, Generated, Shape, SizeBy};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use serde_json::{Value, json};
 use std::io::Read;
 use std::time::Duration;
@@ -109,7 +109,7 @@ impl Fal {
 fn agent(timeout: Duration) -> ureq::Agent {
     ureq::Agent::config_builder()
         .http_status_as_error(false)
-        .user_agent("CraftAnything")
+        .user_agent("Axiom")
         .timeout_connect(Some(Duration::from_secs(20)))
         .timeout_recv_response(Some(timeout))
         .timeout_recv_body(Some(Duration::from_secs(10 * 60)))
@@ -179,7 +179,7 @@ fn base64_decode(s: &str) -> Result<Vec<u8>, ToolError> {
 mod tests {
     use super::*;
     use crate::assets::Catalogue;
-    use craft_anything_platform::sync::Mutex;
+    use axiom_platform::sync::Mutex;
     use std::io::{BufRead, BufReader, Write};
     use std::net::TcpListener;
     use std::sync::Arc;

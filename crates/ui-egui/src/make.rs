@@ -6,7 +6,7 @@ use crate::i18n::tr;
 use crate::state::MakeDraft;
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, Pick, icons, widgets};
-use craft_anything_engine::workspace::{Status, TargetRef};
+use axiom_engine::workspace::{Status, TargetRef};
 use egui::{Margin, RichText, Ui, Vec2};
 
 const SUGGESTIONS_WEB: &[&str] = &["Recreate this website", "Recreate it with darker colours"];
@@ -55,8 +55,8 @@ pub fn resolve_target(d: &MakeDraft) -> TargetRef {
 }
 
 /// A game is being copied or made (built in Rust, with the option of generated art).
-pub fn is_game(kinds: &craft_anything_ai::rebuild::KindRegistry, d: &MakeDraft) -> bool {
-    use craft_anything_ai::rebuild::GameKind;
+pub fn is_game(kinds: &axiom_ai::rebuild::KindRegistry, d: &MakeDraft) -> bool {
+    use axiom_ai::rebuild::GameKind;
     (d.game && matches!(d.target, TargetRef::Local { .. })) || kinds.choose(&d.request, &resolve_target(d), false).is_some_and(|(k, _)| k.id() == GameKind::ID)
 }
 
@@ -343,7 +343,7 @@ fn suggestions(app: &mut CraftApp, ui: &mut Ui) {
 
 /// Time since `ms` in plain words.
 pub fn ago(ms: u64) -> String {
-    let now = craft_anything_engine::inbox::now_ms();
+    let now = axiom_engine::inbox::now_ms();
     let s = now.saturating_sub(ms) / 1000;
     match s {
         0..=59 => tr("just now"),
@@ -356,7 +356,7 @@ pub fn ago(ms: u64) -> String {
 
 /// A project's status as the app shows it: waiting its turn, interrupted (its run stopped
 /// part-way: the app or the computer closed), or the one it saved. (label, text, fill).
-pub fn status_shown(app: &CraftApp, ws: &craft_anything_engine::workspace::Workspace, t: &Tokens) -> (&'static str, egui::Color32, egui::Color32) {
+pub fn status_shown(app: &CraftApp, ws: &axiom_engine::workspace::Workspace, t: &Tokens) -> (&'static str, egui::Color32, egui::Color32) {
     let s = ws.manifest.status;
     let (label, look) = if app.asking.contains(&ws.root) {
         ("Needs you", Status::NeedsYou)
@@ -381,8 +381,8 @@ pub fn status_colors(t: &Tokens, s: Status) -> (egui::Color32, egui::Color32) {
 }
 
 /// A project's icon: a game (built with the game stack), a website, an app, or something new.
-pub fn project_icon(m: &craft_anything_engine::workspace::Manifest) -> &'static str {
-    if m.stack == craft_anything_ai::rebuild::stacks::GAME_STACK {
+pub fn project_icon(m: &axiom_engine::workspace::Manifest) -> &'static str {
+    if m.stack == axiom_ai::rebuild::stacks::GAME_STACK {
         return "puzzle";
     }
     match m.target {

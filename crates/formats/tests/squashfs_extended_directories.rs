@@ -1,5 +1,5 @@
-use craft_anything_formats::fsread::{self, Limits};
-use craft_anything_testkit::firmware::{squashfs_image, squashfs_image_with_extended_directories};
+use axiom_formats::fsread::{self, Limits};
+use axiom_testkit::firmware::{squashfs_image, squashfs_image_with_extended_directories};
 
 fn check_directories(root: bool, nested: bool) {
     let limits = Limits::default();

@@ -89,7 +89,7 @@ pub fn asked_for(words: &str) -> Option<&'static Stack> {
 /// The stack a build in `app` uses, from its package.json dependencies (the first stack in table
 /// order whose `uses` it lists); None when it has none or names no stack in the table.
 pub fn used_in(app: &std::path::Path) -> Option<&'static Stack> {
-    let deps = craft_anything_engine::outputs::npm_dependencies(app);
+    let deps = axiom_engine::outputs::npm_dependencies(app);
     catalogue().iter().find(|s| s.uses.iter().any(|d| deps.contains(d)))
 }
 

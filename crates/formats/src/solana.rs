@@ -577,16 +577,16 @@ mod tests {
 
     #[test]
     fn parses_the_fixture() {
-        let elf = craft_anything_testkit::sbpf::program();
+        let elf = axiom_testkit::sbpf::program();
         let p = inspect(&elf).unwrap();
         assert!(p.is_sbpf);
         assert_eq!(p.e_machine, EM_BPF);
         assert_eq!(p.sbpf_version, "sbpf_v1");
-        assert_eq!(p.entry, craft_anything_testkit::sbpf::TEXT_VADDR);
+        assert_eq!(p.entry, axiom_testkit::sbpf::TEXT_VADDR);
         assert_eq!(p.entry_symbol.as_deref(), Some("entrypoint"));
         // .text section is present and executable.
         let text = p.text.expect("text range");
-        assert_eq!(text.addr, craft_anything_testkit::sbpf::TEXT_VADDR);
+        assert_eq!(text.addr, axiom_testkit::sbpf::TEXT_VADDR);
         assert_eq!(text.size, 24);
         assert!(p.sections.iter().any(|s| s.name == ".text" && s.exec));
         // The sol_log_ relocation resolves to a syscall.
@@ -596,7 +596,7 @@ mod tests {
         let sc = p.syscalls.iter().find(|s| s.name == "sol_log_").expect("sol_log_ syscall");
         assert!(sc.known);
         assert_eq!(sc.hash, murmur3_32(b"sol_log_", 0));
-        assert_eq!(sc.call_sites, vec![craft_anything_testkit::sbpf::TEXT_VADDR + 8]);
+        assert_eq!(sc.call_sites, vec![axiom_testkit::sbpf::TEXT_VADDR + 8]);
     }
 
     #[test]

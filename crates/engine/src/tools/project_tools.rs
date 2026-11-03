@@ -6,8 +6,8 @@ use crate::feed;
 use crate::inbox::{Answer, Inbox};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
 use crate::workspace::Workspace;
-use craft_anything_evidence::{ErrorCode, ToolError};
-use craft_anything_platform::sync::Mutex;
+use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::sync::Mutex;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -315,7 +315,7 @@ pub struct FolderParams {
 
 /// Websites being previewed in this session, by project folder (kept serving until it ends).
 #[derive(Default)]
-struct Previews(Mutex<HashMap<PathBuf, craft_anything_platform::serve::StaticServer>>);
+struct Previews(Mutex<HashMap<PathBuf, axiom_platform::serve::StaticServer>>);
 
 /// What a project's questions should get.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, JsonSchema)]
@@ -553,7 +553,7 @@ fn project_preview(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolE
         if let Some(server) = map.get(&ws.root) {
             server.url()
         } else {
-            let server = craft_anything_platform::serve::serve_dir(&site).map_err(|e| ToolError::io(site.display(), e))?;
+            let server = axiom_platform::serve::serve_dir(&site).map_err(|e| ToolError::io(site.display(), e))?;
             let url = server.url();
             map.insert(ws.root.clone(), server);
             url
@@ -573,7 +573,7 @@ fn project_open_folder(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, 
     let p: FolderParams = parse_params(params)?;
     let ws = open(&p.project)?;
     let dir = folder_to_open(&ws, p.app, p.pin)?;
-    craft_anything_platform::open_path(&dir)?;
+    axiom_platform::open_path(&dir)?;
     Ok(ToolOutput::Value(json!({"opened": dir.display().to_string()})))
 }
 

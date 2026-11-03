@@ -1,7 +1,7 @@
 //! Keep locale-changing UI checks in one integration-test executable: i18n is process-wide.
 
-use craft_anything_engine::{Mode, Session, Settings};
-use craft_anything_ui_egui::{CraftApp, demo, i18n};
+use axiom_engine::{Mode, Session, Settings};
+use axiom_ui_egui::{CraftApp, demo, i18n};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use std::path::Path;
@@ -51,12 +51,12 @@ fn chinese_startup_language_menu_and_saved_selection() {
         assert_eq!(i18n::trf("Opened {name}", &[("name", "sample.exe")]), translated_open);
         assert_eq!(i18n::tr("A deliberately uncatalogued message"), "A deliberately uncatalogued message");
         assert_eq!(i18n::trf("Uncatalogued {name}", &[("name", "sample.exe")]), "Uncatalogued sample.exe");
-        assert_eq!(craft_anything_ui_egui::usage::asset_cost_words(0.0031), if initial == "zh-hans" { "低于 $0.01" } else { "低於 $0.01" });
-        let kinds = craft_anything_ai::rebuild::KindRegistry::built_in();
+        assert_eq!(axiom_ui_egui::usage::asset_cost_words(0.0031), if initial == "zh-hans" { "低于 $0.01" } else { "低於 $0.01" });
+        let kinds = axiom_ai::rebuild::KindRegistry::built_in();
         for (suggestion, expected) in [("A website for my bakery", "website"), ("A simple snake game", "game")] {
             let translated = i18n::tr(suggestion);
             assert_ne!(translated, suggestion);
-            let (kind, _) = kinds.choose(&translated, &craft_anything_engine::workspace::TargetRef::None, false).unwrap();
+            let (kind, _) = kinds.choose(&translated, &axiom_engine::workspace::TargetRef::None, false).unwrap();
             assert_eq!(kind.id(), expected, "{initial}: {translated}");
         }
         let title = h.state().engine.registry().get("native_functions_list").unwrap().title;

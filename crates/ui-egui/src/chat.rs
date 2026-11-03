@@ -5,8 +5,8 @@ use crate::i18n::tr;
 use crate::state::{ChatItem, ConsentAnswer};
 use crate::theme::{self, Tokens};
 use crate::{CraftApp, evidence_ui, glossary, icons, widgets};
-use craft_anything_ai::AgentEvent;
-use craft_anything_engine::TargetKind;
+use axiom_ai::AgentEvent;
+use axiom_engine::TargetKind;
 use egui::{Margin, RichText, Ui, Vec2};
 use serde_json::Value;
 

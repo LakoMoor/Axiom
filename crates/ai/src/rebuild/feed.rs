@@ -1,7 +1,7 @@
 //! A run's side of the project conversation: folding workflow events into the feed and keeping
 //! it saved as the run goes. The feed itself (its items and file) is `engine::feed`.
 
-pub use craft_anything_engine::feed::*;
+pub use axiom_engine::feed::*;
 
 use super::activity::{Activity, ActivityFile};
 use super::*;
@@ -214,7 +214,7 @@ mod tests {
             if a == "Clone it" && b == "Make it blue" && text == "Done."));
         // An answer written to the file by someone else while it runs survives the run's saves.
         let inbox = Inbox::new(ws.inbox_dir());
-        let id = inbox.post(craft_anything_engine::inbox::RequestKind::Question, "Blue?", "", vec![], true, None).unwrap();
+        let id = inbox.post(axiom_engine::inbox::RequestKind::Question, "Blue?", "", vec![], true, None).unwrap();
         let q = inbox.pending().into_iter().find(|r| r.id == id).unwrap();
         log.record(&RunEvent::Ask(q.clone()));
         record_answer(&ws, &q, "Yes").unwrap();

@@ -1,6 +1,6 @@
 [package]
-name = "craft-anything-engines"
-description = "Adapters for optional external engines (Ghidra, adb, Chromium, Frida, JADX…) used by Craft Anything"
+name = "axiom-engines"
+description = "Adapters for optional external engines (Ghidra, adb, Chromium, Frida, JADX…) used by Axiom"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,9 +10,9 @@ publish = false
 workspace = true
 
 [dependencies]
-craft-anything-evidence = { workspace = true }
-craft-anything-platform = { workspace = true }
-craft-anything-formats = { workspace = true }
+axiom-evidence = { workspace = true }
+axiom-platform = { workspace = true }
+axiom-formats = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }
@@ -34,4 +34,4 @@ wasm-plugins = ["dep:wasmtime"]
 
 [dev-dependencies]
 tempfile = "3"
-craft-anything-testkit = { workspace = true }
+axiom-testkit = { workspace = true }

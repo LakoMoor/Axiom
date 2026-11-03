@@ -457,7 +457,7 @@ impl Table {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::android as fx;
+    use axiom_testkit::android as fx;
 
     #[test]
     fn decodes_table() {
@@ -498,14 +498,14 @@ mod tests {
     #[test]
     fn hostile() {
         let s = fx::resources_arsc();
-        for m in craft_anything_testkit::mutations(&s) {
+        for m in axiom_testkit::mutations(&s) {
             let _ = parse(&m, Limits { max_entries: 1000 });
         }
         for len in 0..s.len() {
             let _ = parse(&s[..len], Limits::default());
         }
         for seed in 0..64 {
-            let mut n = craft_anything_testkit::noise(seed, 1024);
+            let mut n = axiom_testkit::noise(seed, 1024);
             n[0] = 2;
             n[1] = 0;
             n[2] = 12;

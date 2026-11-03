@@ -12,22 +12,22 @@ mod secrets;
 /// Workspace crates and their layer. A crate may depend only on strictly lower layers
 /// (L0 format crates depend on nothing in the workspace).
 const LAYERS: &[(&str, u8)] = &[
-    ("craft-anything-evidence", 0),
-    ("craft-anything-formats", 0),
-    ("craft-anything-disasm", 1),
-    ("craft-anything-js", 1),
-    ("craft-anything-analysis", 2),
-    ("craft-anything-platform", 2),
-    ("craft-anything-engines", 3),
-    ("craft-anything-engine", 4),
-    ("craft-anything-ai", 5),
-    ("craft-anything-mcp", 5),
-    ("craft-anything-setup", 5),
-    ("craft-anything-ui-egui", 6),
+    ("axiom-evidence", 0),
+    ("axiom-formats", 0),
+    ("axiom-disasm", 1),
+    ("axiom-js", 1),
+    ("axiom-analysis", 2),
+    ("axiom-platform", 2),
+    ("axiom-engines", 3),
+    ("axiom-engine", 4),
+    ("axiom-ai", 5),
+    ("axiom-mcp", 5),
+    ("axiom-setup", 5),
+    ("axiom-ui-egui", 6),
 ];
 
 /// Crates that must build for wasm32-unknown-unknown (static analysis in the browser).
-const WASM_CRATES: &[&str] = &["craft-anything-evidence", "craft-anything-formats", "craft-anything-disasm", "craft-anything-js", "craft-anything-analysis"];
+const WASM_CRATES: &[&str] = &["axiom-evidence", "axiom-formats", "axiom-disasm", "axiom-js", "axiom-analysis"];
 
 /// UI toolkits only the UI layer may use.
 const UI_ONLY: &[&str] = &["egui", "eframe", "winit", "rfd", "egui_extras", "egui_kittest"];
@@ -59,8 +59,8 @@ fn main() -> ExitCode {
                 && run("cargo", &["clippy", "--workspace", "--all-targets", "--", "-D", "warnings"])
                 && run("cargo", &["test", "--workspace"])
                 // The off-by-default WASM plugin host, built and tested on its own.
-                && run("cargo", &["clippy", "-p", "craft-anything-engine", "--features", "wasm-plugins", "--all-targets", "--", "-D", "warnings"])
-                && run("cargo", &["test", "-p", "craft-anything-engine", "--features", "wasm-plugins"])
+                && run("cargo", &["clippy", "-p", "axiom-engine", "--features", "wasm-plugins", "--all-targets", "--", "-D", "warnings"])
+                && run("cargo", &["test", "-p", "axiom-engine", "--features", "wasm-plugins"])
                 && tools(&root, true)
                 && schemas(&root, true)
                 && wasm()
@@ -172,8 +172,8 @@ const APP_LAYER: u8 = 7;
 /// Apps that are user interfaces of their own. The browser viewer can't build on the UI crate
 /// (it pulls in native-only crates), so it draws with egui directly and may use only the
 /// wasm-safe crates.
-const UI_APPS: &[&str] = &["craft-anything", "craft-anything-web"];
-const WASM_APPS: &[&str] = &["craft-anything-web"];
+const UI_APPS: &[&str] = &["axiom", "axiom-web"];
+const WASM_APPS: &[&str] = &["axiom-web"];
 
 fn layers(root: &Path) -> bool {
     let layer: BTreeMap<&str, u8> = LAYERS.iter().copied().collect();
@@ -188,7 +188,7 @@ fn layers(root: &Path) -> bool {
     }
     for (is_app, manifest) in manifests {
         let (name, deps) = manifest_deps(&manifest);
-        if name == "craft-anything-testkit" {
+        if name == "axiom-testkit" {
             continue;
         }
         let mine = if is_app {
@@ -200,7 +200,7 @@ fn layers(root: &Path) -> bool {
             ok = false;
             continue;
         };
-        let ui_allowed = mine == 6 || (is_app && (UI_APPS.contains(&name.as_str()) || deps.iter().any(|d| d == "craft-anything-ui-egui")));
+        let ui_allowed = mine == 6 || (is_app && (UI_APPS.contains(&name.as_str()) || deps.iter().any(|d| d == "axiom-ui-egui")));
         for d in &deps {
             if let Some(&theirs) = layer.get(d.as_str())
                 && theirs >= mine
@@ -216,8 +216,8 @@ fn layers(root: &Path) -> bool {
                 eprintln!("layers: browser app {name} depends on {d}, which doesn't build for wasm");
                 ok = false;
             }
-            if is_app && d == "craft-anything-testkit" {
-                eprintln!("layers: app {name} depends on craft-anything-testkit; use it as a dev-dependency only");
+            if is_app && d == "axiom-testkit" {
+                eprintln!("layers: app {name} depends on axiom-testkit; use it as a dev-dependency only");
                 ok = false;
             }
         }
@@ -231,7 +231,7 @@ fn layers(root: &Path) -> bool {
     ok
 }
 
-/// Golden rule 10: every external program goes through `craft_anything_platform::process`, so
+/// Golden rule 10: every external program goes through `axiom_platform::process`, so
 /// `std::process::Command` may appear only in crates/platform, xtask and test code (`tests/`
 /// folders, and everything after a file's first `#[cfg(test)]` / `#[cfg(all(test, …))]`).
 fn process_calls_only_in_platform(root: &Path) -> bool {
@@ -264,7 +264,7 @@ fn process_calls_only_in_platform(root: &Path) -> bool {
             let direct = code.split("std::process::").skip(1).any(|rest| rest.split(|c: char| !c.is_alphanumeric() && c != '_').any(|w| w == "Command"));
             if !code.starts_with("//") && (direct || code.contains("process::Command::new")) {
                 let rel = f.strip_prefix(root).unwrap_or(&f).display().to_string();
-                eprintln!("layers: {rel}:{}: runs a program with std::process::Command; use craft_anything_platform::process (golden rule 10)", i + 1);
+                eprintln!("layers: {rel}:{}: runs a program with std::process::Command; use axiom_platform::process (golden rule 10)", i + 1);
                 ok = false;
             }
         }
@@ -322,8 +322,8 @@ fn ui_has_no_side_effects(root: &Path) -> bool {
 }
 
 fn tools(root: &Path, check: bool) -> bool {
-    let registry = craft_anything_engine::Registry::with_all_tools();
-    let report = craft_anything_engine::tool_list::report(&registry);
+    let registry = axiom_engine::Registry::with_all_tools();
+    let report = axiom_engine::tool_list::report(&registry);
     let n = registry.all().len();
     let path = root.join("docs").join("tools.md");
     if check {
@@ -353,9 +353,9 @@ fn tools(root: &Path, check: bool) -> bool {
 fn schemas(root: &Path, check: bool) -> bool {
     let dir = root.join("docs").join("schemas");
     let files = [
-        ("craft.schema.json", craft_anything_engine::workspace::manifest_schema()),
-        ("mechanics.schema.json", craft_anything_engine::mechanics::mechanics_schema()),
-        ("self-test.schema.json", craft_anything_engine::self_test::self_test_schema()),
+        ("craft.schema.json", axiom_engine::workspace::manifest_schema()),
+        ("mechanics.schema.json", axiom_engine::mechanics::mechanics_schema()),
+        ("self-test.schema.json", axiom_engine::self_test::self_test_schema()),
     ];
     let mut ok = true;
     for (name, schema) in files {

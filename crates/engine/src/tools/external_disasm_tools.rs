@@ -7,8 +7,8 @@
 use super::native_common::{params_json, spec};
 use super::static_input::{self, builder};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{Authority, Confidence, Coverage, Limitation, Subject, ToolError};
-use craft_anything_platform::{Output, Process};
+use axiom_evidence::{Authority, Confidence, Coverage, Limitation, Subject, ToolError};
+use axiom_platform::{Output, Process};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -154,9 +154,9 @@ pub(super) fn input_file(ctx: &Ctx<'_>, path: Option<&str>) -> Result<(PathBuf, 
 
 pub(super) fn locate(ctx: &Ctx<'_>, id: &str) -> Result<PathBuf, ToolError> {
     let s = &ctx.session.settings;
-    craft_anything_engines::locate(id, &s.engines.tools, &s.engine_store_dir()).ok_or_else(|| {
-        ToolError::unavailable(format!("{} is not installed.", craft_anything_engines::display_name(id)))
-            .with_remediation(format!("Install {} and set its path in Settings → Engines.", craft_anything_engines::display_name(id)))
+    axiom_engines::locate(id, &s.engines.tools, &s.engine_store_dir()).ok_or_else(|| {
+        ToolError::unavailable(format!("{} is not installed.", axiom_engines::display_name(id)))
+            .with_remediation(format!("Install {} and set its path in Settings → Engines.", axiom_engines::display_name(id)))
     })
 }
 
@@ -287,7 +287,7 @@ fn native_objdump_run(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, To
     let out = run(ctx, &exe, &args, "objdump")?;
     ctx.cancel.check()?;
     if !out.success && out.stdout.is_empty() {
-        return Err(craft_anything_platform::process::nonzero_error("objdump", &out));
+        return Err(axiom_platform::process::nonzero_error("objdump", &out));
     }
     let headline = format!("objdump {}", serde_json::to_value(p.operation).ok().and_then(|v| v.as_str().map(str::to_string)).unwrap_or_default());
     text_evidence(ctx, "native_objdump_run", subject, params_json(&p), &exe, &args, &out, p.offset, p.limit, headline)
@@ -346,7 +346,7 @@ fn native_rizin_command_run(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutp
     let out = run(ctx, &exe, &args, "rizin")?;
     ctx.cancel.check()?;
     if !out.success && out.stdout.is_empty() {
-        return Err(craft_anything_platform::process::nonzero_error("rizin", &out));
+        return Err(axiom_platform::process::nonzero_error("rizin", &out));
     }
     text_evidence(ctx, "native_rizin_command_run", subject, params_json(&p), &exe, &args, &out, p.offset, p.limit, format!("rizin `{cmd}`"))
 }
@@ -379,7 +379,7 @@ fn ilspy_args(op: IlspyOperation, type_name: Option<&str>, file: &Path) -> Resul
 fn managed_ilspy_decompile(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: IlspyParams = parse_params(params)?;
     let input = static_input::load(ctx, p.path.as_deref(), static_input::DEFAULT_MAX_BYTES)?;
-    if !craft_anything_formats::pe_is_managed(&input.bytes) {
+    if !axiom_formats::pe_is_managed(&input.bytes) {
         return Err(ToolError::unsupported(format!("{} is not a .NET assembly", input.name))
             .with_remediation("ILSpy reads .NET programs and libraries (.exe or .dll with .NET metadata)."));
     }
@@ -389,7 +389,7 @@ fn managed_ilspy_decompile(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutpu
     let out = run(ctx, &exe, &args, "ilspycmd")?;
     ctx.cancel.check()?;
     if !out.success && out.stdout.is_empty() {
-        let err = craft_anything_platform::process::nonzero_error("ilspycmd", &out);
+        let err = axiom_platform::process::nonzero_error("ilspycmd", &out);
         // ilspycmd prints `Exception: message` first, then the stack trace.
         return Err(match out.stderr_text().lines().next().and_then(|l| l.split_once(": ")) {
             Some((_, why)) => ToolError { message: format!("ILSpy couldn't do it: {}", why.trim()), ..err },
@@ -424,7 +424,7 @@ mod tests {
 
     #[test]
     fn ilspy_refuses_native_files_before_running() {
-        let p = craft_anything_testkit::temp_file("prog.bin", &craft_anything_testkit::elf64(craft_anything_testkit::ElfArch::X86_64, true).0);
+        let p = axiom_testkit::temp_file("prog.bin", &axiom_testkit::elf64(axiom_testkit::ElfArch::X86_64, true).0);
         // A stand-in for ilspycmd, so the test doesn't depend on what this machine has installed;
         // the file is refused before any program would run.
         let mut s = crate::testing::session();
@@ -485,7 +485,7 @@ mod tests {
     fn missing_engine_is_a_clear_error_or_a_run() {
         // Whether rizin is installed varies by machine; either way the call must not panic.
         let e = crate::Engine::new(crate::testing::session());
-        let p = craft_anything_testkit::temp_file("prog.bin", &craft_anything_testkit::elf64(craft_anything_testkit::ElfArch::X86_64, true).0);
+        let p = axiom_testkit::temp_file("prog.bin", &axiom_testkit::elf64(axiom_testkit::ElfArch::X86_64, true).0);
         match e.call("native_rizin_command_run", serde_json::json!({"path": p, "command": "iI"}), crate::CallOptions::new(crate::Caller::Mcp)) {
             Ok(_) => {}
             Err(err) => assert!(err.remediation.is_some(), "{err:?}"),

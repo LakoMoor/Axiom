@@ -3,7 +3,7 @@
 use crate::project::Project;
 use crate::settings::Settings;
 use crate::target::{Target, TargetId};
-use craft_anything_evidence::{ErrorCode, Evidence, ToolError, Unknown};
+use axiom_evidence::{ErrorCode, Evidence, ToolError, Unknown};
 use std::any::{Any, TypeId};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
@@ -107,7 +107,7 @@ impl Session {
 
     /// Keep a project started in a folder the person picked in the project list
     /// ([`Settings::remember_project`]), saving settings when that changed them.
-    pub fn remember_project(&mut self, root: &std::path::Path) -> Result<(), craft_anything_evidence::ToolError> {
+    pub fn remember_project(&mut self, root: &std::path::Path) -> Result<(), axiom_evidence::ToolError> {
         let mut next = self.settings.clone();
         if next.remember_project(root) {
             next.save_to(&self.config_dir().join("config.toml"))?;

@@ -19,14 +19,14 @@
 
 use crate::cli_agents::{Builder, CliSpec};
 use crate::{AgentEvent, AiHub, BackendKind, Conversation, Role};
-use craft_anything_engine::inbox::{Answer, Inbox, InboxDir, Request};
-use craft_anything_engine::project::{Project, Purpose};
-use craft_anything_engine::workspace::{CheckResult, ProjectUsage, Status, TargetRef, Workspace};
-use craft_anything_engine::{CallOptions, Caller, CancelToken, Engine, ToolOutput};
-use craft_anything_evidence::{ErrorCode, ToolError};
-pub use craft_anything_platform::serve::StaticServer;
-use craft_anything_platform::serve::serve_dir;
-use craft_anything_platform::sync::Mutex;
+use axiom_engine::inbox::{Answer, Inbox, InboxDir, Request};
+use axiom_engine::project::{Project, Purpose};
+use axiom_engine::workspace::{CheckResult, ProjectUsage, Status, TargetRef, Workspace};
+use axiom_engine::{CallOptions, Caller, CancelToken, Engine, ToolOutput};
+use axiom_evidence::{ErrorCode, ToolError};
+pub use axiom_platform::serve::StaticServer;
+use axiom_platform::serve::serve_dir;
+use axiom_platform::sync::Mutex;
 use serde_json::{Value, json};
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -64,7 +64,7 @@ pub use output::{built_program, launch, site_dir};
 pub use runs::{RunSet, Started, Stopped, keep_queue_moving};
 pub use stand_in::StandIns;
 
-pub use craft_anything_engine::workspace::Step;
+pub use axiom_engine::workspace::Step;
 
 /// What the UI shows, in order.
 #[derive(Debug, Clone, PartialEq)]
@@ -237,9 +237,9 @@ impl RebuildRun {
                 let mut ctx = ctx;
                 let mut ws = ws;
                 // What this run changes is shown against the folder as it is now.
-                craft_anything_engine::changes::mark(&ws);
+                axiom_engine::changes::mark(&ws);
                 // A clone can run for hours: keep the computer from sleeping until it ends.
-                let _awake = craft_anything_platform::keep_awake();
+                let _awake = axiom_platform::keep_awake();
                 let _here = self_check::BuildingHere::new(&ws.root);
                 let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| ctx.run(&mut ws, entry, api, &opts)));
                 let (ok, message, paused) = match result {
@@ -363,7 +363,7 @@ impl RebuildRun {
 
     /// The file with all of it.
     pub fn activity_log(&self) -> PathBuf {
-        self.root.join(craft_anything_engine::workspace::ACTIVITY_LOG)
+        self.root.join(axiom_engine::workspace::ACTIVITY_LOG)
     }
 
     pub fn preview_url(&self) -> Option<String> {
@@ -454,7 +454,7 @@ impl Worker {
     fn call(&self, tool: &str, params: Value) -> Result<ToolOutput, ToolError> {
         self.stop.check()?;
         // The person started this run for this target, which is the consent for opening it.
-        let opts = CallOptions::new(Caller::Ui).with_consent(craft_anything_engine::Consent::Granted).with_cancel(self.stop.clone());
+        let opts = CallOptions::new(Caller::Ui).with_consent(axiom_engine::Consent::Granted).with_cancel(self.stop.clone());
         // Said as it happens, so a long step shows what it's doing and the feed counts it.
         let call_id = format!("run-{tool}");
         self.emit(RunEvent::Agent(AgentEvent::ToolStarted { call_id: call_id.clone(), tool: tool.to_string(), input: Value::Null }));
@@ -503,7 +503,7 @@ impl Worker {
         };
         let stop = self.stop.clone();
         Arc::new(move |tool: &str, input: &Value| {
-            let r = craft_anything_engine::tools::interaction_tools::approve_with(
+            let r = axiom_engine::tools::interaction_tools::approve_with(
                 Some(Inbox::new(inbox.clone())),
                 auto_mode,
                 clean_room,
@@ -775,12 +775,12 @@ impl Worker {
                     // Our own loop asks before tools that need consent. The Build tools are the
                     // builder's job (they apply the approval policy themselves); nothing else runs.
                     AgentEvent::ConsentNeeded { call_id, tool, .. } => {
-                        let build = self.engine.registry().get(tool).is_some_and(|s| s.toolset == craft_anything_engine::Toolset::Build);
+                        let build = self.engine.registry().get(tool).is_some_and(|s| s.toolset == axiom_engine::Toolset::Build);
                         agent.answer_consent(call_id, build);
                     }
                     // Decided on the tool's own id (its CLI and `mcp__…__` names included).
                     AgentEvent::ToolStarted { tool, .. }
-                        if self.engine.registry().canonical(tool) == Some(craft_anything_engine::tools::native_function::PSEUDOCODE_TOOL) =>
+                        if self.engine.registry().canonical(tool) == Some(axiom_engine::tools::native_function::PSEUDOCODE_TOOL) =>
                     {
                         self.decompiled = true
                     }

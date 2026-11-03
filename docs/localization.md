@@ -38,9 +38,9 @@ source keys change. Common terms include 净室 / 淨室 (Clean room), 深度 (D
 Run:
 
 ```sh
-cargo test -p craft-anything-ui-egui
+cargo test -p axiom-ui-egui
 cargo test -p xtask
-cargo clippy -p craft-anything-ui-egui -p xtask --all-targets -- -D warnings
+cargo clippy -p axiom-ui-egui -p xtask --all-targets -- -D warnings
 cargo xtask i18n-coverage
 ```
 
@@ -54,7 +54,7 @@ The existing snapshot example accepts `--lang zh-hans` or
 `--lang zh-hant`, for example:
 
 ```sh
-cargo run -p craft-anything-ui-egui --example snapshot -- --lang zh-hant --only settings --out-dir target/snapshots/zh-hant
+cargo run -p axiom-ui-egui --example snapshot -- --lang zh-hant --only settings --out-dir target/snapshots/zh-hant
 ```
 
 Chinese glyphs use the existing craft-fonts fallback, which release and CI builds

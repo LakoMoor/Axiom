@@ -29,7 +29,7 @@ pub fn keep_awake() -> Option<RunningProcess> {
     // ES_CONTINUOUS | ES_SYSTEM_REQUIRED (0x80000001, in decimal: Windows PowerShell reads the hex
     // literal as a negative Int32), held by the helper's thread until it's stopped. Any failure
     // ends the helper, so it never runs without doing its job.
-    const WINDOWS: &str = "$ErrorActionPreference = 'Stop'; $k = Add-Type -Name P -Namespace CraftAnything -PassThru -MemberDefinition '[DllImport(\"kernel32.dll\")] public static extern uint SetThreadExecutionState(uint f);'; while ($true) { if ($k::SetThreadExecutionState(2147483649) -eq 0) { exit 1 }; Start-Sleep -Seconds 30 }";
+    const WINDOWS: &str = "$ErrorActionPreference = 'Stop'; $k = Add-Type -Name P -Namespace Axiom -PassThru -MemberDefinition '[DllImport(\"kernel32.dll\")] public static extern uint SetThreadExecutionState(uint f);'; while ($true) { if ($k::SetThreadExecutionState(2147483649) -eq 0) { exit 1 }; Start-Sleep -Seconds 30 }";
     let p = if cfg!(windows) {
         Process::new("powershell").args(["-NoProfile", "-NonInteractive", "-Command", WINDOWS])
     } else if cfg!(target_os = "macos") {

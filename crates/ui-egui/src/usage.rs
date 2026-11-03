@@ -6,7 +6,7 @@
 use std::path::Path;
 use std::time::{Duration, Instant};
 
-use craft_anything_engine::workspace::ProjectUsage;
+use axiom_engine::workspace::ProjectUsage;
 
 use crate::i18n::{tr, trf};
 
@@ -163,7 +163,7 @@ mod tests {
     fn a_saved_cost_from_before_the_split_counts_as_an_estimate() {
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(
-            dir.path().join(craft_anything_engine::workspace::USAGE_FILE),
+            dir.path().join(axiom_engine::workspace::USAGE_FILE),
             r#"{"version":1,"work_ms":5,"input_tokens":1,"output_tokens":1,"cost_usd":3.12,"priced":true}"#,
         )
         .unwrap();

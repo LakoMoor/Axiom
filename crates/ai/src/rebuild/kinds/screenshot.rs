@@ -8,9 +8,9 @@
 //! the two windows look and which of the original's labelled controls the build lacks.
 
 use super::*;
-use craft_anything_engine::tools::web_common::{Image, decode_picture, decode_png, perceptual_similarity, resize};
-use craft_anything_engine::workspace::Claim;
-use craft_anything_platform::process::Process;
+use axiom_engine::tools::web_common::{Image, decode_picture, decode_png, perceptual_similarity, resize};
+use axiom_engine::workspace::Claim;
+use axiom_platform::process::Process;
 
 /// What every app and game brief asks for, so the check can see the result.
 pub const SCREENSHOT_CONTRACT: &str = "Give the program a `--screenshot <file.png>` option: start normally, draw about 120 frames, save the window's picture as a PNG to that file and exit. Axiom runs it that way after each build to check the result, and a build without the option, or with a blank picture, doesn't pass. Try it yourself: run it with a file inside app/ (for example app/shots/now.png) and look at the picture.";
@@ -306,7 +306,7 @@ pub fn picture_likeness(shot: &Image, pictures: &[PathBuf]) -> Likeness {
         let Some(b) = std::fs::read(p).ok().and_then(|bytes| decode_picture(&bytes).ok()) else { continue };
         let b = resize(&b, COMPARE.0, COMPARE.1);
         let detail = perceptual_similarity(&a, &b);
-        let layout = craft_anything_engine::tools::web_common::block_similarity(&a, &b, 16, 24);
+        let layout = axiom_engine::tools::web_common::block_similarity(&a, &b, 16, 24);
         let score = (detail + layout) * 50.0;
         // "reference/picture-1.png", or "capture/window.png" for the original running.
         let folder = p.parent().and_then(|d| d.file_name()).map(|d| d.to_string_lossy().into_owned()).unwrap_or_default();
@@ -330,7 +330,7 @@ fn last_lines(stderr: &str, stdout: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_engine::tools::web_common::encode_png;
+    use axiom_engine::tools::web_common::encode_png;
 
     fn img(w: u32, h: u32, f: &dyn Fn(u32, u32) -> [u8; 3]) -> Image {
         let mut rgba = Vec::new();

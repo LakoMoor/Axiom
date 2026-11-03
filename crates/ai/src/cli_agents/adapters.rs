@@ -156,7 +156,7 @@ impl AgentAdapter for Plain {
 }
 
 /// Claude Code settings with one PostToolUse hook, run after every tool call: our CLI hands over
-/// the notes waiting in `dir` (`craft-anything-cli builder-notes <dir>`). Paths use forward
+/// the notes waiting in `dir` (`axiom-cli builder-notes <dir>`). Paths use forward
 /// slashes and quotes so the hook's shell reads them the same on every platform.
 pub fn notes_hook_settings(cli: &str, dir: &std::path::Path) -> String {
     let fwd = |s: &str| s.replace('\\', "/");
@@ -210,7 +210,7 @@ impl AgentAdapter for ClaudeCode {
     }
 
     fn check_tool_server(&self, stop: &CancelToken) -> Result<(), ToolError> {
-        cli_can_start(craft_anything_platform::self_cli_path().as_deref(), stop)
+        cli_can_start(axiom_platform::self_cli_path().as_deref(), stop)
     }
 
     fn args(&self, cx: &ArgsCx) -> Vec<String> {
@@ -324,7 +324,7 @@ impl AgentAdapter for Codex {
     }
 
     fn check_tool_server(&self, stop: &CancelToken) -> Result<(), ToolError> {
-        cli_can_start(craft_anything_platform::self_cli_path().as_deref(), stop)
+        cli_can_start(axiom_platform::self_cli_path().as_deref(), stop)
     }
 
     fn args(&self, cx: &ArgsCx) -> Vec<String> {

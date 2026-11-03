@@ -3,7 +3,7 @@
 use crate::i18n::tr;
 use crate::icons;
 use crate::theme::{self, Tokens, confidence_color, confidence_label};
-use craft_anything_engine::evidence::Confidence;
+use axiom_engine::evidence::Confidence;
 use egui::{Color32, Frame, Margin, Response, RichText, Sense, Stroke, Ui, Vec2};
 
 /// Lay out `text` in the label style ([`theme::label_text`]) for painting.

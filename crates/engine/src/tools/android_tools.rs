@@ -7,10 +7,10 @@ use super::artifact_tools::{fresh_temp_dir, rel_to};
 use super::native_common::{page, spec};
 use super::static_input::{self, Input, builder, format_err};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{
+use axiom_evidence::{
     Authority, Confidence, Coverage, CoverageStatus, Environment, ErrorCode, EvidenceBuilder, Limitation, Location, Subject, ToolError, sha256_hex,
 };
-use craft_anything_formats::{apk_sign, arsc, axml, der, dex, dex_ops, verify, zip};
+use axiom_formats::{apk_sign, arsc, axml, der, dex, dex_ops, verify, zip};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -853,7 +853,7 @@ struct InsnRow {
 /// Java source of one class from JADX, or a reason it is missing. Never an error.
 fn jadx_source(ctx: &Ctx<'_>, input: &Path, class_java: &str) -> (Value, Option<Limitation>) {
     let settings = &ctx.session.settings;
-    let Some(jadx) = craft_anything_engines::locate("jadx", &settings.engines.tools, &settings.engine_store_dir()) else {
+    let Some(jadx) = axiom_engines::locate("jadx", &settings.engines.tools, &settings.engine_store_dir()) else {
         return (
             json!({"status": "unavailable"}),
             Some(Limitation::new(
@@ -862,13 +862,13 @@ fn jadx_source(ctx: &Ctx<'_>, input: &Path, class_java: &str) -> (Value, Option<
             )),
         );
     };
-    let out = match fresh_temp_dir("craft-anything-jadx") {
+    let out = match fresh_temp_dir("axiom-jadx") {
         Ok(o) => o,
         Err(e) => {
             return (json!({"status": "failed", "error": e.message}), Some(Limitation::new("jadx_failed", "Could not create a temporary folder for JADX.")));
         }
     };
-    let run = craft_anything_engines::jadx::run_single_class(&jadx, input, class_java, &out, ctx.cancel.clone());
+    let run = axiom_engines::jadx::run_single_class(&jadx, input, class_java, &out, ctx.cancel.clone());
     let result = match run {
         Ok(o) if o.success => {
             let simple = class_java.rsplit('.').next().unwrap_or(class_java);
@@ -987,13 +987,8 @@ fn android_method_show(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, T
     let java = if p.java_source {
         let (v, lim) = jadx_source(ctx, &pkg.input.path, &dex::java_name(&class_desc));
         if v.get("status").and_then(Value::as_str) == Some("ok") {
-            env = Environment {
-                clean_room: false,
-                engine: "builtin+jadx".into(),
-                engine_version: None,
-                host: craft_anything_evidence::host_triple(),
-                language_id: None,
-            };
+            env =
+                Environment { clean_room: false, engine: "builtin+jadx".into(), engine_version: None, host: axiom_evidence::host_triple(), language_id: None };
             lims.push(Limitation::new(
                 "third_party_decompiler",
                 "The Java source comes from JADX, a third-party decompiler; it is an interpretation, the bytecode listing is the evidence.",
@@ -1203,7 +1198,7 @@ fn android_resources_read(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput
 fn engines_apktool_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let _p: ClientParams = parse_params(params)?;
     let settings = &ctx.session.settings;
-    let found = craft_anything_engines::locate("apktool", &settings.engines.tools, &settings.engine_store_dir());
+    let found = axiom_engines::locate("apktool", &settings.engines.tools, &settings.engine_store_dir());
     let mut lims = Vec::new();
     let (version, error) = match &found {
         // A pinned install is apktool's jar, run with Java.
@@ -1211,7 +1206,7 @@ fn engines_apktool_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput,
             Err(e) => (None, Some(format!("{} (Apktool's jar runs on Java)", e.message))),
             Ok((exe, pre)) => {
                 let cancel = ctx.cancel.clone();
-                match craft_anything_platform::Process::new(&exe)
+                match axiom_platform::Process::new(&exe)
                     .args(&pre)
                     .arg("--version")
                     .timeout(Duration::from_secs(20))
@@ -1256,11 +1251,11 @@ fn engines_apktool_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput,
 mod tests {
     use super::super::native_common::test_support::{call, call_err};
     use crate::Engine;
-    use craft_anything_testkit::android as fx;
+    use axiom_testkit::android as fx;
     use serde_json::json;
 
     fn apk() -> String {
-        craft_anything_testkit::temp_file("notes.apk", &fx::notes_apk()).to_string_lossy().into_owned()
+        axiom_testkit::temp_file("notes.apk", &fx::notes_apk()).to_string_lossy().into_owned()
     }
 
     /// An APK whose manifest targets `target`, with one component for each export rule.
@@ -1311,8 +1306,8 @@ mod tests {
             End("application"),
             End("manifest"),
         ]);
-        let zip = craft_anything_testkit::electron::zip_stored(&[("AndroidManifest.xml", &manifest)]);
-        craft_anything_testkit::temp_file("c.apk", &zip).to_string_lossy().into_owned()
+        let zip = axiom_testkit::electron::zip_stored(&[("AndroidManifest.xml", &manifest)]);
+        axiom_testkit::temp_file("c.apk", &zip).to_string_lossy().into_owned()
     }
 
     fn component<'a>(v: &'a serde_json::Value, name: &str) -> &'a serde_json::Value {
@@ -1336,8 +1331,8 @@ mod tests {
             End("application"),
             End("manifest"),
         ]);
-        let zip = craft_anything_testkit::electron::zip_stored(&[("AndroidManifest.xml", &manifest)]);
-        let path = craft_anything_testkit::temp_file("guarded.apk", &zip);
+        let zip = axiom_testkit::electron::zip_stored(&[("AndroidManifest.xml", &manifest)]);
+        let path = axiom_testkit::temp_file("guarded.apk", &zip);
         let e = Engine::new(crate::testing::session());
         let v = call(&e, "android_components_list", json!({"path": path}));
         let plain = component(&v, "com.example.c.Plain");
@@ -1403,13 +1398,13 @@ mod tests {
         // The shared sample app works too; a bare DEX and an APK with no manifest don't.
         let v = call(&e, "android_components_list", json!({"path": apk()}));
         assert_eq!(v["result"]["total"], 3);
-        let dex = craft_anything_testkit::temp_file("c.dex", &fx::notes_dex());
+        let dex = axiom_testkit::temp_file("c.dex", &fx::notes_dex());
         assert!(call_err(&e, "android_components_list", json!({"path": dex})).message.contains("no manifest"));
-        let zip = craft_anything_testkit::electron::zip_stored(&[("readme.txt", b"hi")]);
-        let empty = craft_anything_testkit::temp_file("e.apk", &zip);
+        let zip = axiom_testkit::electron::zip_stored(&[("readme.txt", b"hi")]);
+        let empty = axiom_testkit::temp_file("e.apk", &zip);
         assert!(call_err(&e, "android_components_list", json!({"path": empty})).message.contains("no AndroidManifest"));
-        let zip = craft_anything_testkit::electron::zip_stored(&[("AndroidManifest.xml", b"junk")]);
-        let bad = craft_anything_testkit::temp_file("b.apk", &zip);
+        let zip = axiom_testkit::electron::zip_stored(&[("AndroidManifest.xml", b"junk")]);
+        let bad = axiom_testkit::temp_file("b.apk", &zip);
         assert!(!call_err(&e, "android_components_list", json!({"path": bad})).message.is_empty());
     }
 
@@ -1440,7 +1435,7 @@ mod tests {
     #[test]
     fn signed_apk_signatures_verify() {
         let e = Engine::new(crate::testing::session());
-        let p = craft_anything_testkit::temp_file("signed.apk", &fx::signed_apk(false));
+        let p = axiom_testkit::temp_file("signed.apk", &fx::signed_apk(false));
         let v = call(&e, "android_package_show", json!({"path": p}));
         let r = &v["result"];
         assert_eq!(r["signing"]["schemes"], json!(["v1", "v2", "v3"]));
@@ -1460,7 +1455,7 @@ mod tests {
         assert!(v["summary"].as_str().unwrap().contains("cryptographically VERIFIED"), "{}", v["summary"]);
 
         // A tampered APK: signatures stay well-formed but every content digest must fail.
-        let bad = craft_anything_testkit::temp_file("bad.apk", &fx::signed_apk(true));
+        let bad = axiom_testkit::temp_file("bad.apk", &fx::signed_apk(true));
         let vb = call(&e, "android_package_show", json!({"path": bad}));
         let rb = &vb["result"];
         assert_eq!(rb["signing"]["signing_block"]["signers"][0]["verification"]["digest_matches"], false);
@@ -1498,11 +1493,11 @@ mod tests {
         );
         assert_eq!(r["result"]["defined_in"], "classes.dex");
         let err = call_err(&e, "android_class_show", json!({"path": path, "class_name": "com.example.Missing"}));
-        assert_eq!(err.code, craft_anything_evidence::ErrorCode::BadInput);
+        assert_eq!(err.code, axiom_evidence::ErrorCode::BadInput);
         let err = call_err(&e, "android_method_show", json!({"path": path, "class_name": "com.example.notes.Util", "method_name": "log", "overload_index": 5}));
         assert!(err.message.contains("out of range"));
         // A bare DEX works too.
-        let dex = craft_anything_testkit::temp_file("classes.dex", &fx::notes_dex());
+        let dex = axiom_testkit::temp_file("classes.dex", &fx::notes_dex());
         let d = call(&e, "android_classes_find", json!({"path": dex}));
         assert_eq!(d["result"]["matches"], 2);
     }
@@ -1545,7 +1540,7 @@ mod tests {
         assert_eq!(some["result"]["strings"].as_object().unwrap().keys().collect::<Vec<_>>(), vec!["fr"]);
         assert_eq!(some["result"]["locales_not_found"], json!(["de"]));
         assert!(some["limitations"].as_array().unwrap().iter().any(|l| l["code"] == "locales_not_found"));
-        let arsc = craft_anything_testkit::temp_file("resources.arsc", &fx::resources_arsc());
+        let arsc = axiom_testkit::temp_file("resources.arsc", &fx::resources_arsc());
         let a = call(&e, "android_resources_read", json!({"path": arsc, "type_name": "style"}));
         assert_eq!(a["result"]["entries"][0]["bag"][0]["value"], "#ff336699");
     }
@@ -1563,8 +1558,8 @@ mod tests {
     fn hostile_packages_do_not_panic() {
         let e = Engine::new(crate::testing::session());
         let apk_bytes = fx::notes_apk();
-        for (i, m) in craft_anything_testkit::mutations(&apk_bytes).into_iter().enumerate().step_by(3) {
-            let p = craft_anything_testkit::temp_file(&format!("m{i}.apk"), &m);
+        for (i, m) in axiom_testkit::mutations(&apk_bytes).into_iter().enumerate().step_by(3) {
+            let p = axiom_testkit::temp_file(&format!("m{i}.apk"), &m);
             for (tool, params) in [
                 ("android_package_show", json!({"path": p})),
                 ("android_classes_find", json!({"path": p})),

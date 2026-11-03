@@ -1,7 +1,7 @@
 //! Render the Axiom UI offscreen (no window) and save PNGs of the main screens.
 //!
 //! ```sh
-//! cargo run -p craft-anything-ui-egui --example snapshot -- --out-dir target/snapshots [--scale 2] [--light] [--only NAME] [--width 1440] [--height 900] [--lang fr]
+//! cargo run -p axiom-ui-egui --example snapshot -- --out-dir target/snapshots [--scale 2] [--light] [--only NAME] [--width 1440] [--height 900] [--lang fr]
 //! ```
 //!
 //! The README's pictures: `simple-home` → make.png and `project-game` → project-game.png (both
@@ -10,9 +10,9 @@
 //! Scenes: first run (welcome, brain, purpose), Beginner Home, Beginner Ask (with an evidence
 //! card), Experienced workbench, and Home in Studio Light.
 
-use craft_anything_engine::Mode;
-use craft_anything_ui_egui::state::{FirstRunStep, Screen};
-use craft_anything_ui_egui::{CraftApp, demo};
+use axiom_engine::Mode;
+use axiom_ui_egui::state::{FirstRunStep, Screen};
+use axiom_ui_egui::{CraftApp, demo};
 use std::path::PathBuf;
 
 fn arg(args: &[String], name: &str) -> Option<String> {
@@ -28,7 +28,7 @@ fn render(out: &std::path::Path, name: &str, w: f32, h: f32, scale: f32, make: i
             CraftApp::setup_context(&cc.egui_ctx);
             let mut app = make();
             app.settings.language = LANG.get().cloned().unwrap_or_else(|| "en".into());
-            craft_anything_ui_egui::i18n::set_language(&app.settings.language);
+            axiom_ui_egui::i18n::set_language(&app.settings.language);
             app
         });
     // Let fonts, SVG icons and fades settle.
@@ -128,10 +128,10 @@ fn main() {
         render(&out, "experienced-hex", w, h, scale, || {
             let mut a = demo::app(demo::engine(Mode::Experienced, true));
             demo::fill_workbench(&mut a);
-            a.state.center = craft_anything_ui_egui::state::CenterTab::Hex;
+            a.state.center = axiom_ui_egui::state::CenterTab::Hex;
             a.state.views.clear();
-            a.state.right = craft_anything_ui_egui::state::RightTab::Inspector;
-            a.state.bottom = craft_anything_ui_egui::state::BottomTab::Jobs;
+            a.state.right = axiom_ui_egui::state::RightTab::Inspector;
+            a.state.bottom = axiom_ui_egui::state::BottomTab::Jobs;
             a
         });
     }
@@ -179,10 +179,10 @@ fn main() {
             let mut a = demo::app(demo::engine(Mode::Beginner, true));
             demo::fill_project(&mut a);
             // What the build took and used (side panel and title bar).
-            let mut u = craft_anything_engine::workspace::ProjectUsage { work_ms: 725_000, ..Default::default() };
+            let mut u = axiom_engine::workspace::ProjectUsage { work_ms: 725_000, ..Default::default() };
             u.add_turn(1_180_000, 42_000, Some(3.21), true);
             if let Some(root) = a.workspace.as_ref().map(|w| w.root.clone()) {
-                a.usage.insert(root, craft_anything_ui_egui::usage::ProjectClock { saved: u.clone(), since: None });
+                a.usage.insert(root, axiom_ui_egui::usage::ProjectClock { saved: u.clone(), since: None });
             }
             a.session_usage = u;
             a
@@ -191,10 +191,10 @@ fn main() {
     // Notes sent while it builds, waiting under the conversation until the builder reads them.
     if want("project-notes") {
         render(&out, "project-notes", w, h, scale, || {
-            use craft_anything_ai::rebuild::{RunOptions, RunSet, StandIns};
+            use axiom_ai::rebuild::{RunOptions, RunSet, StandIns};
             let mut a = demo::app(demo::engine(Mode::Beginner, true));
             demo::fill_project(&mut a);
-            a.state.feed.retain(|i| !matches!(i, craft_anything_ui_egui::state::FeedItem::Ask { .. }));
+            a.state.feed.retain(|i| !matches!(i, axiom_ui_egui::state::FeedItem::Ask { .. }));
             a.runs = RunSet::new(1).with_starter(StandIns::new().starter());
             if let Some(ws) = a.workspace.clone() {
                 let root = ws.root.clone();
@@ -213,9 +213,9 @@ fn main() {
             let mut a = demo::app(demo::engine(Mode::Beginner, true));
             demo::fill_project(&mut a);
             if let Some(ws) = a.workspace.as_mut() {
-                ws.manifest.status = craft_anything_engine::workspace::Status::Building;
+                ws.manifest.status = axiom_engine::workspace::Status::Building;
             }
-            a.state.feed.retain(|i| !matches!(i, craft_anything_ui_egui::state::FeedItem::Ask { .. }));
+            a.state.feed.retain(|i| !matches!(i, axiom_ui_egui::state::FeedItem::Ask { .. }));
             a
         });
     }
@@ -223,7 +223,7 @@ fn main() {
     let engine_app = |_modal: Option<()>, _downloading: bool| {
         let mut a = demo::app(demo::engine(Mode::Beginner, true));
         demo::fill_projects(&mut a);
-        a.state.make.target = craft_anything_engine::workspace::TargetRef::Local { path: std::env::temp_dir() };
+        a.state.make.target = axiom_engine::workspace::TargetRef::Local { path: std::env::temp_dir() };
         a.state.make.game = true;
         a.state.make.request = "Recreate this game".into();
         a
@@ -231,9 +231,9 @@ fn main() {
     if want("assets-offer") {
         render(&out, "assets-offer", w, h, scale, move || {
             let mut a = engine_app(None, false);
-            a.asset_keys = Some([(craft_anything_engines::assets::fal::ID.to_string(), false)].into());
+            a.asset_keys = Some([(axiom_engines::assets::fal::ID.to_string(), false)].into());
             a.state.make.generate_assets = true;
-            a.state.modal = Some(craft_anything_ui_egui::state::Modal::Assets);
+            a.state.modal = Some(axiom_ui_egui::state::Modal::Assets);
             a
         });
     }
@@ -266,7 +266,7 @@ fn main() {
             a.settings.engines.store_dir = Some(std::env::temp_dir().join("ca-no-ghidra"));
             a.settings.deep_mode = true;
             a.ghidra.start_after = Some(Box::new(a.state.make.clone()));
-            a.state.modal = Some(craft_anything_ui_egui::state::Modal::Ghidra);
+            a.state.modal = Some(axiom_ui_egui::state::Modal::Ghidra);
             a
         });
     }
@@ -274,18 +274,18 @@ fn main() {
         render(&out, "settings-engines", w, h, scale, move || {
             let mut a = engine_app(None, false);
             a.state.settings_open = true;
-            a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Engines;
+            a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Engines;
             a
         });
     }
     // Settings → AI: each asset provider's key (none saved yet), and three AIs: one in use, one
     // building, one extracting a game's files; settings-ai-error adds a save that failed.
     let ai_app = move |error: bool| {
-        use craft_anything_ai::{BackendConfig, BackendKind};
+        use axiom_ai::{BackendConfig, BackendKind};
         let mut a = engine_app(None, false);
         a.state.settings_open = true;
-        a.state.settings_tab = craft_anything_ui_egui::state::SettingsTab::Ai;
-        a.asset_keys = Some([(craft_anything_engines::assets::fal::ID.to_string(), false)].into());
+        a.state.settings_tab = axiom_ui_egui::state::SettingsTab::Ai;
+        a.asset_keys = Some([(axiom_engines::assets::fal::ID.to_string(), false)].into());
         let b = |name: &str, kind, model: &str| BackendConfig { name: name.into(), kind, model: model.into(), base_url: None, ssh_host: None, enabled: true };
         a.backends = vec![
             b("Claude Code", BackendKind::AgentCli, "claude-code"),
@@ -295,7 +295,7 @@ fn main() {
         a.state.backend = Some("Claude".into());
         a.builder = Some("Claude Code".into());
         if error {
-            a.toast("Couldn't save C:/Users/me/AppData/Roaming/craft-anything/config.toml: access is denied.", true);
+            a.toast("Couldn't save C:/Users/me/AppData/Roaming/axiom/config.toml: access is denied.", true);
         }
         a
     };
@@ -307,7 +307,7 @@ fn main() {
     }
     if want("project-game") {
         // A finished game: a workspace with what `cargo build` leaves behind (nothing is run).
-        use craft_anything_engine::workspace::{Status, TargetRef, Workspace};
+        use axiom_engine::workspace::{Status, TargetRef, Workspace};
         let root = out.join("demo-projects");
         let _ = std::fs::remove_dir_all(&root);
         if let Ok(mut ws) = Workspace::create(&root, "Snake", "A snake game", TargetRef::None) {
@@ -321,8 +321,8 @@ fn main() {
             render(&out, "project-game", w, h, scale, move || {
                 let mut a = demo::app(demo::engine(Mode::Beginner, true));
                 a.state.feed = vec![
-                    craft_anything_ui_egui::state::FeedItem::User("A snake game".into()),
-                    craft_anything_ui_egui::state::FeedItem::Agent {
+                    axiom_ui_egui::state::FeedItem::User("A snake game".into()),
+                    axiom_ui_egui::state::FeedItem::Agent {
                         text: "Your snake game is ready: arrow keys to steer, eat the dots to grow, and the speed goes up as you score.".into(),
                         streaming: false,
                     },
@@ -335,7 +335,7 @@ fn main() {
     }
     if want("project-plan") {
         render(&out, "project-plan", w, h, scale, || {
-            use craft_anything_ui_egui::state::{FeedItem, PlanStatus, PlanStep};
+            use axiom_ui_egui::state::{FeedItem, PlanStatus, PlanStep};
             let step = |text: &str, status| PlanStep { text: text.into(), doing: text.into(), status };
             let mut a = demo::app(demo::engine(Mode::Beginner, true));
             demo::fill_project(&mut a);
@@ -352,7 +352,7 @@ fn main() {
         render(&out, "project-long-prompt", w, h, scale, || {
             let mut a = demo::app(demo::engine(Mode::Beginner, true));
             demo::fill_project(&mut a);
-            a.state.feed.push(craft_anything_ui_egui::state::FeedItem::User(format!(
+            a.state.feed.push(axiom_ui_egui::state::FeedItem::User(format!(
                 "{}https://example.com/{}",
                 "Make it exactly like the original, with the same menus, weapons and maps. ".repeat(6),
                 "a".repeat(160)

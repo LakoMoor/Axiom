@@ -949,7 +949,7 @@ mod tests {
 
     #[test]
     fn reads_fixture_overview_schema_and_rows() {
-        let db = craft_anything_testkit::sqlite::simple_db();
+        let db = axiom_testkit::sqlite::simple_db();
         let parsed = SqliteDb::parse(&db).expect("fixture parses");
         let ov = parsed.overview();
         assert_eq!(ov.header.page_size, 4096);
@@ -994,14 +994,14 @@ mod tests {
 
     #[test]
     fn wal_mode_is_reported() {
-        let db = craft_anything_testkit::sqlite::wal_mode_db();
+        let db = axiom_testkit::sqlite::wal_mode_db();
         let parsed = SqliteDb::parse(&db).expect("parses");
         assert!(parsed.header().wal_mode);
         assert!(parsed.overview().integrity_notes.iter().any(|n| n.contains("WAL")));
     }
 
     fn check_rowid_alias(declaration: &str, column: usize, alias: bool) {
-        use craft_anything_testkit::sqlite::{Val, table_db};
+        use axiom_testkit::sqlite::{Val, table_db};
         let sql = format!("CREATE TABLE t({declaration})");
         let columns = parse_create_columns(&sql);
         let rows: Vec<_> = [-3, 7]
@@ -1055,14 +1055,14 @@ mod tests {
     fn a_without_rowid_table_has_no_rowid_alias() {
         // Only test alias classification here; index b-tree reading is a separate defect.
         let sql = "CREATE TABLE t(id INTEGER PRIMARY KEY) WITHOUT ROWID";
-        let bytes = craft_anything_testkit::sqlite::table_db(sql, &[(7, vec![craft_anything_testkit::sqlite::Val::Null])]);
+        let bytes = axiom_testkit::sqlite::table_db(sql, &[(7, vec![axiom_testkit::sqlite::Val::Null])]);
         let db = SqliteDb::parse(&bytes).expect("fixture parses");
         assert_eq!(db.read_rows(2, 0, 1).rows[0].values, vec![CellValue::Null]);
     }
 
     #[test]
     fn truncation_never_panics() {
-        let db = craft_anything_testkit::sqlite::simple_db();
+        let db = axiom_testkit::sqlite::simple_db();
         for cut in 0..db.len() {
             let slice = &db[..cut];
             if let Ok(parsed) = SqliteDb::parse(slice) {
@@ -1080,7 +1080,7 @@ mod tests {
 
     #[test]
     fn mutation_fuzz_never_panics() {
-        let base = craft_anything_testkit::sqlite::simple_db();
+        let base = axiom_testkit::sqlite::simple_db();
         // Deterministic LCG so the test is reproducible.
         let mut state: u64 = 0x1234_5678_9abc_def0;
         let mut next = || {

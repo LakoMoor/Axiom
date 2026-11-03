@@ -30,15 +30,15 @@ pub mod versioned;
 pub mod wasm_plugins;
 pub mod workspace;
 
-pub use craft_anything_evidence as evidence;
+pub use axiom_evidence as evidence;
 pub use registry::Registry;
 pub use session::Session;
 pub use settings::{Mode, Settings};
 pub use target::{Target, TargetKind};
 pub use tool::{Caller, CancelToken, Ctx, Effects, Progress, Requires, ToolOutput, ToolSpec, Toolset};
 
-use craft_anything_evidence::{ErrorCode, ToolError};
-use craft_anything_platform::sync::{Mutex, MutexGuard};
+use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::sync::{Mutex, MutexGuard};
 use serde_json::Value;
 use std::sync::PoisonError;
 
@@ -180,8 +180,8 @@ impl Engine {
             Requires::Engine(id) => match session.settings.engine_path(id) {
                 Some(_) => Availability::ok(),
                 None => Availability::no(
-                    format!("This needs {} installed.", craft_anything_engines::display_name(id)),
-                    format!("Install {} from Settings → Engines.", craft_anything_engines::display_name(id)),
+                    format!("This needs {} installed.", axiom_engines::display_name(id)),
+                    format!("Install {} from Settings → Engines.", axiom_engines::display_name(id)),
                 ),
             },
             Requires::Os(hosts) => {
@@ -196,7 +196,7 @@ impl Engine {
                     });
                     let names = names.collect::<Vec<_>>().join(" or ");
                     Availability::no(
-                        format!("This needs {names} and is not available on this host ({}).", craft_anything_evidence::host_triple()),
+                        format!("This needs {names} and is not available on this host ({}).", axiom_evidence::host_triple()),
                         format!("Run it on {names}."),
                     )
                 }
@@ -233,15 +233,15 @@ impl Engine {
 
     fn call_inner(&self, id: &str, params: Value, opts: CallOptions<'_>) -> Result<ToolOutput, ToolError> {
         let spec = *self.registry.get(id).ok_or_else(|| {
-            ToolError::invalid(format!("No tool named {id}")).with_remediation("List tools with `craft-anything-cli commands` or the command palette.")
+            ToolError::invalid(format!("No tool named {id}")).with_remediation("List tools with `axiom-cli commands` or the command palette.")
         })?;
         // Stop works while waiting for the session, and a holder that looks stuck is an error here,
         // not a wait forever. Tools are long jobs: the label says so (they have their own deadlines).
         let cancel = opts.cancel.clone();
         let mut session = match self.session.lock_unless(&|| cancel.is_cancelled()) {
             Ok(g) => g.unwrap_or_else(PoisonError::into_inner),
-            Err(craft_anything_platform::sync::GaveUp::Stopped) => return Err(ToolError::cancelled()),
-            Err(craft_anything_platform::sync::GaveUp::Stuck(why)) => {
+            Err(axiom_platform::sync::GaveUp::Stopped) => return Err(ToolError::cancelled()),
+            Err(axiom_platform::sync::GaveUp::Stuck(why)) => {
                 return Err(ToolError::new(ErrorCode::TimedOut, format!("{} couldn't start because another part of the app is stuck.", spec.title))
                     .with_remediation("Restart the app; your work is kept.")
                     .with_details(serde_json::json!({"lock": why})));
@@ -311,7 +311,7 @@ mod tests {
         let e = Engine::new(crate::testing::session());
         for spec in e.registry().all() {
             if let Requires::Engine(id) = spec.requires {
-                assert!(craft_anything_engines::engine(id).is_some(), "{} needs unknown engine {id:?}", spec.id);
+                assert!(axiom_engines::engine(id).is_some(), "{} needs unknown engine {id:?}", spec.id);
             }
         }
     }

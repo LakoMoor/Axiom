@@ -1,16 +1,16 @@
 //! Rebuild control as tools, registered from this layer next to the engine's own
-//! ([`craft_anything_engine::Engine::shared`]): start a build (new or a follow-up), see whether
+//! ([`axiom_engine::Engine::shared`]): start a build (new or a follow-up), see whether
 //! it's running, add a note while it works, and stop it. The conversation, questions and result
 //! are the project tools' (`project_show`, `project_inbox_answer`, `project_play`…).
 
 use super::*;
-use craft_anything_engine::questions::{self, AskedQuestion};
-use craft_anything_engine::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_engine::{EngineRef, Settings};
+use axiom_engine::questions::{self, AskedQuestion};
+use axiom_engine::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
+use axiom_engine::{EngineRef, Settings};
 use schemars::JsonSchema;
 use serde::Deserialize;
 
-/// The AI layer's tools, for [`craft_anything_engine::Engine::shared`].
+/// The AI layer's tools, for [`axiom_engine::Engine::shared`].
 pub fn specs() -> Vec<ToolSpec> {
     vec![
         ToolSpec {
@@ -140,7 +140,7 @@ pub struct StartParams {
     /// With `project_folder` that has files: `edit` (they're the app, edited in place) or
     /// `start_from` (material to start from; the app is built in app/ beside them).
     #[serde(default)]
-    pub existing: Option<craft_anything_engine::workspace::ExistingFiles>,
+    pub existing: Option<axiom_engine::workspace::ExistingFiles>,
     /// What to build with: an engine or a stack's full name.
     #[serde(default)]
     pub build_with: Option<String>,
@@ -269,11 +269,10 @@ pub struct QuestionParams {
 fn rebuild_question_ask(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: QuestionParams = parse_params(params)?;
     let engine = engine(ctx).ok_or_else(|| {
-        ToolError::new(ErrorCode::FeatureMissing, "Questions about a build aren't available in this engine.")
-            .with_remediation("Use the app or `craft-anything-cli`.")
+        ToolError::new(ErrorCode::FeatureMissing, "Questions about a build aren't available in this engine.").with_remediation("Use the app or `axiom-cli`.")
     })?;
     let ws = open(&p.project)?;
-    let after = craft_anything_engine::feed::load(&ws).len();
+    let after = axiom_engine::feed::load(&ws).len();
     ctx.report(None, "Asking…");
     // The session is this call's while it runs: the question gets its settings from here.
     let mut settings = ctx.session.settings.clone();
@@ -297,7 +296,7 @@ fn rebuild_questions_list(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutpu
 fn rebuild_start(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolError> {
     let p: StartParams = parse_params(params)?;
     let engine = engine(ctx).ok_or_else(|| {
-        ToolError::new(ErrorCode::FeatureMissing, "Building isn't available in this engine.").with_remediation("Use the app or `craft-anything-cli rebuild`.")
+        ToolError::new(ErrorCode::FeatureMissing, "Building isn't available in this engine.").with_remediation("Use the app or `axiom-cli rebuild`.")
     })?;
     let runs = runs(ctx);
     let settings: &Settings = &ctx.session.settings;
@@ -385,7 +384,7 @@ fn rebuild_activity_show(_ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput
     let (lines, total) = super::activity::read_log(&ws.root, p.offset.unwrap_or(0), limit)?;
     Ok(ToolOutput::Value(json!({
         "project": ws.root.display().to_string(),
-        "log": ws.root.join(craft_anything_engine::workspace::ACTIVITY_LOG).display().to_string(),
+        "log": ws.root.join(axiom_engine::workspace::ACTIVITY_LOG).display().to_string(),
         "lines": lines,
         "total_lines_read": total,
     })))
@@ -450,7 +449,7 @@ fn rebuild_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolErr
             .with_remediation("Finish the turn: Axiom checks the build after it."));
     }
     let asks = Inbox::new(self_check::asks_dir(&ws.root));
-    let id = asks.post(craft_anything_engine::inbox::RequestKind::Question, "Check the build", "", Vec::new(), false, None)?;
+    let id = asks.post(axiom_engine::inbox::RequestKind::Question, "Check the build", "", Vec::new(), false, None)?;
     ctx.report(None, "Checking the build against the original…");
     let cancel = ctx.cancel.clone();
     match asks.wait(&id, Duration::from_secs(p.wait_minutes * 60), &|| cancel.is_cancelled()) {
@@ -464,15 +463,14 @@ fn rebuild_check(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolErr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_engine::{CallOptions, Caller, Consent, Engine};
+    use axiom_engine::{CallOptions, Caller, Consent, Engine};
 
     #[test]
     fn a_question_through_the_engine_comes_back_instead_of_waiting_for_the_session() {
         // The tool runs while the call holds the session; reading it again would wait forever.
-        let mut s = craft_anything_engine::testing::session();
+        let mut s = axiom_engine::testing::session();
         s.settings.ai =
-            toml::from_str("[[backends]]\nname = \"Agent\"\nkind = \"agent_cli\"\nmodel = \"claude-code\"\ncommand = \"craft-anything-no-such-agent\"\n")
-                .unwrap();
+            toml::from_str("[[backends]]\nname = \"Agent\"\nkind = \"agent_cli\"\nmodel = \"claude-code\"\ncommand = \"axiom-no-such-agent\"\n").unwrap();
         let e = std::sync::Arc::new(Engine::shared(s, specs()));
         let d = tempfile::tempdir().unwrap();
         let ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
@@ -490,7 +488,7 @@ mod tests {
     #[test]
     fn rebuild_tools_are_registered_from_the_ai_layer_and_check_their_input() {
         let d = tempfile::tempdir().unwrap();
-        let e = Engine::shared(craft_anything_engine::testing::session(), specs());
+        let e = Engine::shared(axiom_engine::testing::session(), specs());
         let ok = || CallOptions::new(Caller::Cli).with_consent(Consent::Granted);
         for id in ["rebuild_start", "rebuild_status", "rebuild_note", "rebuild_note_withdraw", "rebuild_stop", "rebuild_check"] {
             assert!(e.registry().get(id).is_some(), "{id}");
@@ -507,7 +505,7 @@ mod tests {
         // A project's activity reads through the tool, none yet being no lines, not an error.
         let shown = e.call("rebuild_activity_show", json!({"project": ws.root}), ok()).unwrap().to_json();
         assert_eq!(shown["result"]["lines"], json!([]), "{shown}");
-        std::fs::write(ws.root.join(craft_anything_engine::workspace::ACTIVITY_LOG), "one\ntwo\nthree\n").unwrap();
+        std::fs::write(ws.root.join(axiom_engine::workspace::ACTIVITY_LOG), "one\ntwo\nthree\n").unwrap();
         let shown = e.call("rebuild_activity_show", json!({"project": ws.root, "limit": 1, "offset": 1}), ok()).unwrap().to_json();
         assert_eq!(shown["result"]["lines"], json!(["two"]), "{shown}");
         let st = e.call("rebuild_status", json!({"project": ws.root}), ok()).unwrap().to_json();
@@ -521,7 +519,7 @@ mod tests {
     #[test]
     fn the_builder_asks_the_running_build_for_a_check_and_gets_its_report() {
         let d = tempfile::tempdir().unwrap();
-        let e = Engine::shared(craft_anything_engine::testing::session(), specs());
+        let e = Engine::shared(axiom_engine::testing::session(), specs());
         let ok = || CallOptions::new(Caller::Mcp);
         let ws = Workspace::create(d.path(), "Snake", "A snake game", TargetRef::None).unwrap();
         assert!(e.call("rebuild_check", json!({"project": ws.root, "wait_minutes": 0}), ok()).is_err(), "wait is checked");

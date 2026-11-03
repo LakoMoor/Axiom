@@ -1,17 +1,8 @@
 <p align="center">
-  <a href="https://getartcraft.com/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/brand/artcraft-logo-white.svg">
-      <img alt="ArtCraft" src="docs/brand/artcraft-logo.svg" width="200">
-    </picture>
-  </a>
+  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.axiom.png" width="128" height="128" alt="Axiom">
 </p>
 
-<p align="center">
-  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.craft-anything.png" width="128" height="128" alt="Craft Anything のアイコン: 青いタイルに刻まれたワタリガラス">
-</p>
-
-<h1 align="center">Craft Anything</h1>
+<h1 align="center">Axiom</h1>
 
 <p align="center">
   <a href="README.md">English</a> · <b>日本語</b> · <a href="README.zh.md">简体中文</a> · <a href="README.ko.md">한국어</a>
@@ -31,27 +22,16 @@
 </p>
 
 <p align="center">
-  <a href="https://discord.gg/artcraft"><img alt="ArtCraft コミュニティの Discord に参加する" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
-</p>
-
-<p align="center">
-  <a href="#downloads"><b>Craft Anything をダウンロード</b></a> ·
-  <a href="https://getartcraft.com/">ArtCraft</a> ·
-  <a href="https://getartcraft.com/apps">すべての Crafting Apps</a>
+  <a href="#downloads"><b>Axiom をダウンロード</b></a>
 </p>
 
 <br>
 
 <p align="center">
-  <img src="docs/images/project-website.png" alt="Craft Anything の Web サイトプロジェクト: チェックがまだ一致していない点と各ページの類似度を示し、ビルダーはビルドした版の準備ができたと告げ、承認カードはコマンド実行の前に確認を求め、プランは 4 ステップのうち 2 つが完了していることを示している" width="100%">
+  <img src="docs/images/project-website.png" alt="Axiom の Web サイトプロジェクト: チェックがまだ一致していない点と各ページの類似度を示し、ビルダーはビルドした版の準備ができたと告げ、承認カードはコマンド実行の前に確認を求め、プランは 4 ステップのうち 2 つが完了していることを示している" width="100%">
   <br>
   <sub>Web サイトプロジェクト: 各チェックは、ビルドが元のソフトにどれくらい似ているかを示し、ルールから外れるものはあなたが承認し、プランは残りの作業を示します。</sub>
 </p>
-
-> [!NOTE]
-> **ArtCraft は、あらゆる分野の作り手が集まるコミュニティです。** 画家、写真家、映像作家、
-> イラストレーター、デザイナー、アニメーター、趣味で作っている人、先週ペンを持ったばかりの人。
-> 何かを作っているなら、あなたも仲間です。**[Discord で気軽に声をかけてください](https://discord.gg/artcraft)。**
 
 <p align="center">
   <a href="#how-it-works">仕組み</a> ·
@@ -61,8 +41,7 @@
   <a href="#under-the-hood">内部の仕組み</a> ·
   <a href="#get-started">はじめかた</a> ·
   <a href="#status">ステータス</a> ·
-  <a href="#downloads">ダウンロード</a> ·
-  <a href="https://discord.gg/artcraft">Discord</a>
+  <a href="#downloads">ダウンロード</a>
 </p>
 
 <br>
@@ -94,7 +73,7 @@
 
 ## 仕組み
 
-Craft Anything で対象を指定し、欲しいものを伝えて「Start」を押すだけ。4 つのステップで進み、判断が必要なときは、わかりやすい言葉であなたに尋ねます:
+Axiom で対象を指定し、欲しいものを伝えて「Start」を押すだけ。4 つのステップで進み、判断が必要なときは、わかりやすい言葉であなたに尋ねます:
 
 1. **調べる (Study):** 元のソフトを調査します。あらゆる幅で表示したページ、コード、ファイル、動作のしかたを調べます。
 2. **作る (Build):** コーディングエージェントが新しいプロジェクトを作ります。言語、フレームワーク、エンジンはリクエストで指定したもの (指定がなければ妥当な既定値)を使います。
@@ -104,15 +83,20 @@ Craft Anything で対象を指定し、欲しいものを伝えて「Start」を
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="docs/images/make.png" alt="Make 画面: 再現する Web サイト、アプリ、ゲームを選び、アドレスを入力し、「Clean room」か「Deep」かを選び、欲しいものを伝えて Start を押す" width="100%"><br>
-      <sub><b>Make:</b> 何を再現するかを選び、欲しいものを伝え、Start を押します。</sub>
+      <img src="docs/images/make.png" alt="ホーム画面: 作りたいものを伝える入力欄。その下に再現する対象、作る担当、Clean room モード" width="100%"><br>
+      <sub><b>ホーム:</b> 欲しいものを伝えて Enter を押す。</sub>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/images/project-game.png" alt="完成したスネークゲームのプロジェクト。すべてのステップが完了し、「Play the game」ボタンがある" width="100%"><br>
+      <img src="docs/images/project-game.png" alt="完成したスネークゲームのプロジェクト: すべてのステップが完了し、変更カードと変更を頼む入力欄がある" width="100%"><br>
       <sub><b>Ready:</b> ゲームで遊ぶ。変更は下の欄から頼めます。</sub>
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <img src="docs/images/models.png" alt="モデルハブ: このコンピューターに合うかを示すおすすめのローカルモデル、検索、ダウンロード、実行ボタン" width="100%"><br>
+  <sub><b>モデル:</b> モデルをダウンロードし、このコンピューターで動かし、入力欄で選ぶ。</sub>
+</p>
 
 <a name="two-ways-to-use-it"></a>
 
@@ -125,7 +109,7 @@ Craft Anything で対象を指定し、欲しいものを伝えて「Start」を
 
 ## クリーンルーム(Clean room)かディープモード(Deep)
 
-- **クリーンルーム(Clean room)** (既定): 元のソフトの中身は一切読みません。コードも、ファイルも、ページのソースも読みません。Craft Anything は、あなたに見えるものだけから作業します。追加した画像、訪問者から見た Web サイト (スクリーンショット、見えているテキスト、計測したレイアウト、色、フォント、余白、開いたメニュー)、そして許可した場合はアプリのウィンドウの画像です。中を覗こうとするツールは拒否され、ディープモードの有効化方法を案内します。
+- **クリーンルーム(Clean room)** (既定): 元のソフトの中身は一切読みません。コードも、ファイルも、ページのソースも読みません。Axiom は、あなたに見えるものだけから作業します。追加した画像、訪問者から見た Web サイト (スクリーンショット、見えているテキスト、計測したレイアウト、色、フォント、余白、開いたメニュー)、そして許可した場合はアプリのウィンドウの画像です。中を覗こうとするツールは拒否され、ディープモードの有効化方法を案内します。
 - **ディープモード(Deep)**: すべてのツールを使います。私的利用のためのモードです。プログラムのコードとファイルは内蔵エンジン (インストールされていれば Ghidra も)で読み、Web サイトの JavaScript を読み、そのスタートページを観察します。ビルダーもそれらすべてを使えます。
 
 タイトルバーまたは Settings で切り替えられます。`settings_set deep_mode true` で設定するか、CLI の 1 回限りなら `--deep` (または `--clean-room`)を使ってください。
@@ -140,7 +124,7 @@ Craft Anything で対象を指定し、欲しいものを伝えて「Start」を
 
 ## AI
 
-ビルドには、お使いのコンピュータ上のコーディングエージェントが必要です。まず **Claude Code** に対応しています。Craft Anything は、あなた自身の改変されていない `claude` プログラムを実行します。これはあなた自身のサインイン情報を使います。Craft Anything がアカウントを見たり扱ったりすることはありません。利用は Anthropic とのあなた自身の契約に従います。方法と理由は [docs/claude-code.md](docs/claude-code.md) を参照してください。Codex アダプターもありますが、実際のインストール環境ではまだ検証されていません。質問と分析には、Anthropic、OpenAI、OpenRouter、ローカルの OpenAI 互換サーバーが使えます (Settings → AI)。
+ビルドには、お使いのコンピュータ上のコーディングエージェントが必要です。まず **Claude Code** に対応しています。Axiom は、あなた自身の改変されていない `claude` プログラムを実行します。これはあなた自身のサインイン情報を使います。Axiom がアカウントを見たり扱ったりすることはありません。利用は Anthropic とのあなた自身の契約に従います。方法と理由は [docs/claude-code.md](docs/claude-code.md) を参照してください。Codex アダプターもありますが、実際のインストール環境ではまだ検証されていません。質問と分析には、Anthropic、OpenAI、OpenRouter、ローカルの OpenAI 互換サーバーが使えます (Settings → AI)。
 
 <a name="built-for-agents"></a>
 
@@ -149,12 +133,12 @@ Craft Anything で対象を指定し、欲しいものを伝えて「Start」を
 すべてのツールは CLI サブコマンドでも MCP ツールでもあるので、エージェントはアプリなしで対象を調べたり、再構築を丸ごと実行したりできます:
 
 ```sh
-craft-anything-cli commands                                   # every tool, by toolset
-craft-anything-cli mcp                                        # serve them to any MCP client
-craft-anything-cli rebuild https://example.com "Recreate this website"
+axiom-cli commands                                   # every tool, by toolset
+axiom-cli mcp                                        # serve them to any MCP client
+axiom-cli rebuild https://example.com "Recreate this website"
 ```
 
-結果は、信頼度・カバレッジ・制限事項を備えたエビデンス記録です。大きな結果はまず要約として返り、`core_evidence_browse` でページ送りできます。`craft-anything-cli setup` は Craft Anything をコーディングエージェントのアプリにつなぎます。
+結果は、信頼度・カバレッジ・制限事項を備えたエビデンス記録です。大きな結果はまず要約として返り、`core_evidence_browse` でページ送りできます。`axiom-cli setup` は Axiom をコーディングエージェントのアプリにつなぎます。
 
 <a name="under-the-hood"></a>
 
@@ -175,22 +159,22 @@ sudo apt-get install libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev li
 続いて:
 
 ```sh
-git clone https://github.com/storytold/craft-anything && cd craft-anything
-cargo run --release -p craft-anything                # the desktop app
-cargo install --path apps/craft-anything-cli         # the CLI, as `craft-anything-cli`
-craft-anything-cli doctor                            # checks the install, coding agents and engines
+git clone https://github.com/LakoMoor/Axiom && cd Axiom
+cargo run --release -p axiom                # the desktop app
+cargo install --path apps/axiom-cli         # the CLI, as `axiom-cli`
+axiom-cli doctor                            # checks the install, coding agents and engines
 ```
 
 ビルドには、コンピュータ上でサインイン済みのコーディングエージェントが必要です ([AI](#ai) を参照)。足りないものは `doctor` が示します。コマンドラインからの再構築 (ターミナルで質問に答えます):
 
 ```sh
-craft-anything-cli rebuild https://example.com "Recreate this website"
-craft-anything-cli rebuild - "A snake game in Rust" --rounds 1
-craft-anything-cli rebuild https://example.com "Make the header blue" --continue-in "<project folder>"
-craft-anything-cli rebuild - "Add a contact form" --project-folder "<your folder>" --existing edit
+axiom-cli rebuild https://example.com "Recreate this website"
+axiom-cli rebuild - "A snake game in Rust" --rounds 1
+axiom-cli rebuild https://example.com "Make the header blue" --continue-in "<project folder>"
+axiom-cli rebuild - "Add a contact form" --project-folder "<your folder>" --existing edit
 ```
 
-新しいプロジェクトは `Documents/Craft Anything` に作られます (Settings → General で変更できます)。各プロジェクトフォルダには `craft.json` (リクエスト、対象、状態、履歴)、`capture/` (対象から記録したもの)、`app/` (生成されたプロジェクト)、`checks/` (元のソフトとの比較ごとの結果)、`investigation.cany/` (エビデンス)、`inbox/` (未回答の質問)が入ります。
+新しいプロジェクトは `Documents/Axiom` に作られます (Settings → General で変更できます)。各プロジェクトフォルダには `craft.json` (リクエスト、対象、状態、履歴)、`capture/` (対象から記録したもの)、`app/` (生成されたプロジェクト)、`checks/` (元のソフトとの比較ごとの結果)、`investigation.cany/` (エビデンス)、`inbox/` (未回答の質問)が入ります。
 
 プロジェクトは、選んだフォルダから始めることもできます (Start の下にある「Choose a folder…」、または `--project-folder`)。すでにファイルがある場合は、それが何なのかを答えます。アプリ本体 (ビルダーがその場で編集します)か、そこから始める素材 (アプリはその隣の `app/` に作られます)のどちらかです (Settings → General で答えを記憶できます)。Settings → General では、ほかのフォルダにあるプロジェクトも一覧できます。一覧から外すと、その一覧から消えるだけです。
 
@@ -199,7 +183,7 @@ craft-anything-cli rebuild - "Add a contact form" --project-folder "<your folder
 ## ステータス
 
 > [!IMPORTANT]
-> **ステータス:** Craft Anything はアルファ版の初期段階です。いま動くもの、一部だけのもの、この先の予定:
+> **ステータス:** Axiom はアルファ版の初期段階です。いま動くもの、一部だけのもの、この先の予定:
 >
 > - **いま動くもの:** デスクトップアプリ (Simple と Advanced)、CLI、MCP サーバー。Claude Code
 > をビルダーとして、Web サイト・アプリ・ゲームを「調べる → 作る → 確認する → 磨く」の順に進める
@@ -214,24 +198,23 @@ craft-anything-cli rebuild - "Add a contact form" --project-folder "<your folder
 > [docs/STATUS.md](docs/STATUS.md) に詳細と、各部分をどう確かめたか、
 > [docs/tool-status.md](docs/tool-status.md) にツールごとのチェックリスト、
 > [docs/ROADMAP.md](docs/ROADMAP.md) に計画の項目別一覧があります。issue を立てるか、
-> [Discord](https://discord.gg/artcraft) で壊れたところを教えてください。
 
-**責任ある使い方。** Craft Anything は、所有しているか、調べる許可があるソフトにだけ使ってください。DRM、ログイン、
+**責任ある使い方。** Axiom は、所有しているか、調べる許可があるソフトにだけ使ってください。DRM、ログイン、
 アンチチートを回避することは決してありません。再構築は、エビデンスに基づいてレイアウト・スタイル・挙動を再現します。エージェントには、ロゴ・写真・テキストを、あなたが権利を持つか使用許可があると確認できるまでコピーしないよう指示しています。
 
 <a name="downloads"></a>
 
 ## ダウンロード
 
-GitHub の [最新リリース](https://github.com/storytold/craft-anything/releases/latest) には以下に挙げるすべてのビルドがあり、[すべてのリリース](https://github.com/storytold/craft-anything/releases) には過去のバージョンとそのリリースノートがあります。ファイル名の `<ver>` はバージョン番号で、`SHA256SUMS.txt` に各ファイルのチェックサムが載っています。
+GitHub の [最新リリース](https://github.com/LakoMoor/Axiom/releases/latest) には以下に挙げるすべてのビルドがあり、[すべてのリリース](https://github.com/LakoMoor/Axiom/releases) には過去のバージョンとそのリリースノートがあります。ファイル名の `<ver>` はバージョン番号で、`SHA256SUMS.txt` に各ファイルのチェックサムが載っています。
 
 ### Windows
 
 | ビルド | インストーラ | ポータブル |
 |---|---|---|
-| x64 (64 ビット Intel/AMD) | `craft-anything-<ver>-windows-x64.msi` | `craft-anything-<ver>-windows-x64-portable.zip` |
-| arm64 (Snapdragon などの ARM PC) | `craft-anything-<ver>-windows-arm64.msi` | `craft-anything-<ver>-windows-arm64-portable.zip` |
-| x86 (32 ビット) | `craft-anything-<ver>-windows-x86.msi` | `craft-anything-<ver>-windows-x86-portable.zip` |
+| x64 (64 ビット Intel/AMD) | `axiom-<ver>-windows-x64.msi` | `axiom-<ver>-windows-x64-portable.zip` |
+| arm64 (Snapdragon などの ARM PC) | `axiom-<ver>-windows-arm64.msi` | `axiom-<ver>-windows-arm64-portable.zip` |
+| x86 (32 ビット) | `axiom-<ver>-windows-x86.msi` | `axiom-<ver>-windows-x86-portable.zip` |
 
 インストーラと実行ファイルはコード署名済みです。ポータブルの zip は設定をアプリの隣に保存します。
 
@@ -239,115 +222,68 @@ GitHub の [最新リリース](https://github.com/storytold/craft-anything/rele
 
 | ビルド | ファイル | 備考 |
 |---|---|---|
-| アプリ、ユニバーサル (Apple silicon + Intel) | `craft-anything-<ver>-macos-universal.dmg` | 署名・公証済み |
-| コマンドラインツール、ユニバーサル | `craft-anything-cli-<ver>-macos-universal.zip` | 署名・公証済み。macOS がブロックする場合は下記を参照 |
+| アプリ、ユニバーサル (Apple silicon + Intel) | `axiom-<ver>-macos-universal.dmg` | 署名・公証済み |
+| コマンドラインツール、ユニバーサル | `axiom-cli-<ver>-macos-universal.zip` | 署名・公証済み。macOS がブロックする場合は下記を参照 |
 
 0.2.0 以降のバージョンではコマンドラインツールがアプリに同梱されるため、ビルドに別の zip は
 不要です。必要なのは、アプリなしでコマンドラインだけを使う場合です。
 
-ブラウザから zip をダウンロードすると「Apple could not verify craft-anything-cli」で止まることが
+ブラウザから zip をダウンロードすると「Apple could not verify axiom-cli」で止まることが
 あります(単体のプログラムは公証を自分に添付できないため、macOS がオンラインで確認します)。
 ターミナルからのダウンロードはこの検査を受けないので、代わりに次を使ってください:
 
 ```sh
 ver=0.2.0   # change this to the version you want
-curl -fLO "https://github.com/storytold/craft-anything/releases/download/v$ver/craft-anything-cli-$ver-macos-universal.zip"
-ditto -x -k "craft-anything-cli-$ver-macos-universal.zip" .
+curl -fLO "https://github.com/LakoMoor/Axiom/releases/download/v$ver/axiom-cli-$ver-macos-universal.zip"
+ditto -x -k "axiom-cli-$ver-macos-universal.zip" .
 mkdir -p ~/.local/bin
-mv "craft-anything-cli-$ver-macos-universal/craft-anything-cli" ~/.local/bin/
-~/.local/bin/craft-anything-cli --version
+mv "axiom-cli-$ver-macos-universal/axiom-cli" ~/.local/bin/
+~/.local/bin/axiom-cli --version
 ```
 
-`craft-anything-cli` だけで実行したい場合は、`~/.local/bin` を `PATH` に追加してください。
+`axiom-cli` だけで実行したい場合は、`~/.local/bin` を `PATH` に追加してください。
 
 すでにブロックされたコピーがある場合は、Done(「ゴミ箱に入れる」ではなく)を押してから
-`xattr -d com.apple.quarantine <craft-anything-cli のパス>` を実行するか、システム設定 →
+`xattr -d com.apple.quarantine <axiom-cli のパス>` を実行するか、システム設定 →
 プライバシーとセキュリティ → このまま開く で許可してください。
 
 ### Linux
 
 | 形式 | x86_64 | aarch64 (ARM64) | 備考 |
 |---|---|---|---|
-| AppImage | `craft-anything-<ver>-linux-x86_64.AppImage` | `craft-anything-<ver>-linux-aarch64.AppImage` | どこでも動きます。[AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) で自己更新します (`.zsync` ファイル) |
-| Flatpak | `craft-anything-<ver>-linux-x86_64.flatpak` | `craft-anything-<ver>-linux-aarch64.flatpak` | サンドボックス化。`flatpak install --user <file>` |
-| Debian/Ubuntu | `craft-anything-<ver>-linux-x86_64.deb` | `craft-anything-<ver>-linux-aarch64.deb` | |
-| Fedora/RHEL/openSUSE | `craft-anything-<ver>-linux-x86_64.rpm` | `craft-anything-<ver>-linux-aarch64.rpm` | |
-| Tarball | `craft-anything-<ver>-linux-x86_64.tar.gz` | `craft-anything-<ver>-linux-aarch64.tar.gz` | どこにでも展開できます |
+| AppImage | `axiom-<ver>-linux-x86_64.AppImage` | `axiom-<ver>-linux-aarch64.AppImage` | どこでも動きます。[AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) で自己更新します (`.zsync` ファイル) |
+| Flatpak | `axiom-<ver>-linux-x86_64.flatpak` | `axiom-<ver>-linux-aarch64.flatpak` | サンドボックス化。`flatpak install --user <file>` |
+| Debian/Ubuntu | `axiom-<ver>-linux-x86_64.deb` | `axiom-<ver>-linux-aarch64.deb` | |
+| Fedora/RHEL/openSUSE | `axiom-<ver>-linux-x86_64.rpm` | `axiom-<ver>-linux-aarch64.rpm` | |
+| Tarball | `axiom-<ver>-linux-x86_64.tar.gz` | `axiom-<ver>-linux-aarch64.tar.gz` | どこにでも展開できます |
 
-RISC-V (riscv64): `craft-anything-<ver>-linux-riscv64.tar.gz`、tarball のみです。
+RISC-V (riscv64): `axiom-<ver>-linux-riscv64.tar.gz`、tarball のみです。
 
 ### FreeBSD
 
 | ビルド | ファイル |
 |---|---|
-| x86_64 | `craft-anything-<ver>-freebsd-x86_64.tar.gz` |
+| x86_64 | `axiom-<ver>-freebsd-x86_64.tar.gz` |
 
 ### Web (WebAssembly)
 
 | ビルド | ファイル | 備考 |
 |---|---|---|
-| ブラウザビューア | `craft-anything-web-<ver>.zip` | ファイルが何であるかをブラウザ上で示します (ファイルはブラウザから出ません)。フォルダはどんな静的 Web サーバーでも公開できます ([packaging/web/README.md](packaging/web/README.md)) |
+| ブラウザビューア | `axiom-web-<ver>.zip` | ファイルが何であるかをブラウザ上で示します (ファイルはブラウザから出ません)。フォルダはどんな静的 Web サーバーでも公開できます ([packaging/web/README.md](packaging/web/README.md)) |
 
 <br>
 
 <p align="center">
-  <a href="https://discord.gg/artcraft"><img alt="ArtCraft コミュニティの Discord に参加する" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
+  <a href="https://github.com/LakoMoor/Axiom">Axiom</a>
 </p>
-
-<h3 align="center">一緒にものづくりを</h3>
-
-<p align="center">
-  私たちの Discord は、あらゆる種類の作り手が集まる場所です。絵を描く人、写真を撮る人、
-  デッサンする人、映像を編集する人、文字を組む人、そしてまだ自分が何を作りたいのか
-  模索している人。いま取り組んでいることを共有したり、助けを求めたり、不具合を
-  教えたり、これらのツールでこうだったらいいのにと思うことを話したりしてください。
-  どんな表現手段を使っていても、経験の長さにかかわらず、ここでは誰でも歓迎します。
-</p>
-
-<p align="center">
-  <a href="https://discord.gg/artcraft"><b>discord.gg/artcraft</b></a> ·
-  <a href="https://getartcraft.com/">getartcraft.com</a> ·
-  <a href="https://getartcraft.com/apps">すべての Crafting Apps</a> ·
-  <a href="https://github.com/storytold/craft-anything">Craft Anything</a>
-</p>
-
----
-
-## The Craft App Suite
-
-| | アプリ | 用途 | コード | 詳細 |
-|:-:|---|---|---|---|
-| <img src="https://raw.githubusercontent.com/storytold/photocraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.photocraft.png" alt="" width="32" height="32"> | **PhotoCraft** | 画像編集:レイヤー、マスク、文字、本物の PSD ファイル | [GitHub](https://github.com/storytold/photocraft) | [ウェブサイト](https://getartcraft.com/apps/photocraft) |
-| <img src="https://raw.githubusercontent.com/storytold/vectorcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.vectorcraft.png" alt="" width="32" height="32"> | **VectorCraft** | ベクターイラスト | [GitHub](https://github.com/storytold/vectorcraft) | [ウェブサイト](https://getartcraft.com/apps/vectorcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/filmcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.filmcraft.png" alt="" width="32" height="32"> | **FilmCraft** | 動画編集、カラー、サウンド | [GitHub](https://github.com/storytold/filmcraft) | [ウェブサイト](https://getartcraft.com/apps/filmcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/lightcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.lightcraft.png" alt="" width="32" height="32"> | **LightCraft** | 写真ライブラリと RAW 現像 | [GitHub](https://github.com/storytold/lightcraft) | [ウェブサイト](https://getartcraft.com/apps/lightcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/pdfcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.pdfcraft.png" alt="" width="32" height="32"> | **PdfCraft** | PDF の閲覧、整理、保護 | [GitHub](https://github.com/storytold/pdfcraft) | [ウェブサイト](https://getartcraft.com/apps/pdfcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/effectcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.effectcraft.png" alt="" width="32" height="32"> | **EffectCraft** | モーショングラフィックスと視覚効果 | [GitHub](https://github.com/storytold/effectcraft) | [ウェブサイト](https://getartcraft.com/apps/effectcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/designcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.designcraft.png" alt="" width="32" height="32"> | **DesignCraft** | ページレイアウトと出版 | [GitHub](https://github.com/storytold/designcraft) | [ウェブサイト](https://getartcraft.com/apps/designcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/figcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.figcraft.png" alt="" width="32" height="32"> | **FigCraft** | インターフェースデザインとプロトタイピング | [GitHub](https://github.com/storytold/figcraft) | [ウェブサイト](https://getartcraft.com/apps/figcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/wordcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.wordcraft.png" alt="" width="32" height="32"> | **WordCraft** | ワープロと文書 | [GitHub](https://github.com/storytold/wordcraft) | [ウェブサイト](https://getartcraft.com/apps/wordcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/soundcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.soundcraft.png" alt="" width="32" height="32"> | **SoundCraft** | 音声の録音と編集 | [GitHub](https://github.com/storytold/soundcraft) | [ウェブサイト](https://getartcraft.com/apps/soundcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/deckcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.deckcraft.png" alt="" width="32" height="32"> | **DeckCraft** | プレゼンテーションとスライド | [GitHub](https://github.com/storytold/deckcraft) | [ウェブサイト](https://getartcraft.com/apps/deckcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/cadcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.cadcraft.png" alt="" width="32" height="32"> | **CADCraft** | コンピューター支援設計 | [GitHub](https://github.com/storytold/cadcraft) | [ウェブサイト](https://getartcraft.com/apps/cadcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/gridcraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.gridcraft.png" alt="" width="32" height="32"> | **GridCraft** | 表計算とデータ | [GitHub](https://github.com/storytold/gridcraft) | [ウェブサイト](https://getartcraft.com/apps/gridcraft) |
-| <img src="https://raw.githubusercontent.com/storytold/texturecraft/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.texturecraft.png" alt="" width="32" height="32"> | **TextureCraft** | 3D テクスチャ描画 | [GitHub](https://github.com/storytold/texturecraft) | [ウェブサイト](https://getartcraft.com/apps/texturecraft) |
-| <img src="https://raw.githubusercontent.com/storytold/craft-anything/main/assets/app-icon/hicolor/64x64/apps/ai.storyteller.craft-anything.png" alt="" width="32" height="32"> | **Craft Anything** | あらゆるソフトの仕組みを知り、自分の版を作る | [GitHub](https://github.com/storytold/craft-anything) | [ウェブサイト](https://getartcraft.com/apps/craft-anything) |
-| <img src="https://raw.githubusercontent.com/tangency-labs/solidcraft/main/assets/icons/app/linux/exports/hicolor/64x64/apps/io.tangencylabs.solidcraft.png" alt="" width="32" height="32"> | **SolidCraft** | Tangency Labs によるパラメトリック 3D CAD(コミュニティ製アプリ) | [GitHub](https://github.com/tangency-labs/solidcraft) | |
 
 ## ライセンスとクレジット
 
-Craft Anything は [MIT](LICENSE-MIT) または [Apache-2.0](LICENSE-APACHE) のデュアルライセンスです (どちらかお選びください)。Copyright (c) 2026 ArtCraft Team and the Craft Anything contributors. 必要な通知は [NOTICE](NOTICE) にあります。
+Axiom は [MIT](LICENSE-MIT) または [Apache-2.0](LICENSE-APACHE) のデュアルライセンスです (どちらかお選びください)。Copyright (c) 2026 the Axiom contributors. 必要な通知は [NOTICE](NOTICE) にあります。
 
 同梱のフォント、アイコン、画像、その他のアセットは、それぞれ独自のオープンライセンスが適用されます。各アセットの作者、出典、ライセンスは [ATTRIBUTION.md](ATTRIBUTION.md) に記載しています。
 
 スクリーンショットに写っているのは、そのために作られたサンプルプロジェクトです: example.com、スネークゲーム、小さな電卓プログラム。
-
-[`docs/brand/`](docs/brand/) にある ArtCraft の名称、ワードマーク、ロゴは ArtCraft Team の商標で、このライセンスの対象外です。無改変のまま、このリポジトリと Craft Anything の一部としてのみ、[`docs/brand/LICENSE-brand.txt`](docs/brand/LICENSE-brand.txt) に従って使用できます。フォークや改変版では、これらを削除しなければなりません。
-
-<p align="center">
-  <a href="https://getartcraft.com/"><img alt="ArtCraft" src="docs/brand/artcraft-mark.svg" width="28"></a><br>
-  <sub><a href="https://getartcraft.com/">ArtCraft</a> チームとコミュニティによる制作。</sub>
-</p>
 
 ---
 

@@ -4,9 +4,9 @@
 //! summary, PNG pixel diffing and base64.
 
 use crate::tool::Ctx;
-use craft_anything_engines::cdp::{self, CdpClient, Deadline, Endpoint, WsConn};
-use craft_anything_evidence::{Environment, ErrorCode, ToolError, host_triple, sha256_hex};
-use craft_anything_platform::process::{Process, RunningProcess, StdinMode};
+use axiom_engines::cdp::{self, CdpClient, Deadline, Endpoint, WsConn};
+use axiom_evidence::{Environment, ErrorCode, ToolError, host_triple, sha256_hex};
+use axiom_platform::process::{Process, RunningProcess, StdinMode};
 use serde_json::{Value, json};
 use std::time::Duration;
 
@@ -121,7 +121,7 @@ impl Browser {
     }
 
     pub(crate) fn launch(ctx: &Ctx<'_>, opts: &LaunchOptions, dl: &Deadline) -> Result<Browser, ToolError> {
-        let exe = craft_anything_engines::locate("chromium", &ctx.session.settings.engines.tools, &ctx.session.settings.engine_store_dir())
+        let exe = axiom_engines::locate("chromium", &ctx.session.settings.engines.tools, &ctx.session.settings.engine_store_dir())
             .ok_or_else(|| engine_missing("no Chromium-based browser was found"))?;
         let profile = super::artifact_tools::fresh_temp_dir("craft-browser")?;
         let mut args: Vec<String> = vec![
@@ -476,7 +476,7 @@ pub fn kept_text(raw: &[u8], secrets: &mut Secrets, cap: usize) -> Value {
             json!({
                 "state": "captured",
                 "bytes": raw.len(),
-                "sha256": craft_anything_evidence::sha256_hex(redacted.as_bytes()),
+                "sha256": axiom_evidence::sha256_hex(redacted.as_bytes()),
                 "text": redacted.get(..end).unwrap_or_default(),
                 "truncated": end < redacted.len(),
             })
@@ -1236,7 +1236,7 @@ mod tests {
 
 /// The last lines a launched browser wrote to stderr, for a failure's message.
 #[derive(Clone, Default)]
-struct StderrTail(std::sync::Arc<craft_anything_platform::sync::Mutex<std::collections::VecDeque<String>>>);
+struct StderrTail(std::sync::Arc<axiom_platform::sync::Mutex<std::collections::VecDeque<String>>>);
 
 impl StderrTail {
     fn push(&self, line: &str) {

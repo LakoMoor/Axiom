@@ -7,23 +7,23 @@ version = "0.3.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.97"
-repository = "https://github.com/storytold/craft-anything"
+repository = "https://github.com/LakoMoor/Axiom"
 
 [workspace.dependencies]
 # internal
-craft-anything-evidence = { path = "crates/evidence" }
-craft-anything-formats = { path = "crates/formats" }
-craft-anything-disasm = { path = "crates/disasm" }
-craft-anything-js = { path = "crates/js" }
-craft-anything-analysis = { path = "crates/analysis" }
-craft-anything-platform = { path = "crates/platform" }
-craft-anything-engines = { path = "crates/engines" }
-craft-anything-engine = { path = "crates/engine" }
-craft-anything-ai = { path = "crates/ai" }
-craft-anything-mcp = { path = "crates/mcp" }
-craft-anything-setup = { path = "crates/setup" }
-craft-anything-ui-egui = { path = "crates/ui-egui" }
-craft-anything-testkit = { path = "crates/testkit" }
+axiom-evidence = { path = "crates/evidence" }
+axiom-formats = { path = "crates/formats" }
+axiom-disasm = { path = "crates/disasm" }
+axiom-js = { path = "crates/js" }
+axiom-analysis = { path = "crates/analysis" }
+axiom-platform = { path = "crates/platform" }
+axiom-engines = { path = "crates/engines" }
+axiom-engine = { path = "crates/engine" }
+axiom-ai = { path = "crates/ai" }
+axiom-mcp = { path = "crates/mcp" }
+axiom-setup = { path = "crates/setup" }
+axiom-ui-egui = { path = "crates/ui-egui" }
+axiom-testkit = { path = "crates/testkit" }
 
 # external
 thiserror = "2"
@@ -80,7 +80,7 @@ opt-level = 1
 lto = "thin"
 codegen-units = 1
 
-# The browser build (apps/craft-anything-web, `trunk build --release`): small and fast to load.
+# The browser build (apps/axiom-web, `trunk build --release`): small and fast to load.
 [profile.web-release]
 inherits = "release"
 opt-level = "s"

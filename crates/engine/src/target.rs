@@ -1,6 +1,6 @@
 //! Targets: what we're looking at, loaded once, identified by content hash.
 
-use craft_anything_evidence::{ErrorCode, Subject, ToolError, sha256_hex};
+use axiom_evidence::{ErrorCode, Subject, ToolError, sha256_hex};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -88,14 +88,14 @@ pub fn sniff(bytes: &[u8], name: &str) -> TargetKind {
     } else if starts(b"\x7fELF") {
         TargetKind::Elf
     } else if starts(b"MZ") {
-        if craft_anything_formats::pe_is_managed(bytes) { TargetKind::Managed } else { TargetKind::Pe }
+        if axiom_formats::pe_is_managed(bytes) { TargetKind::Managed } else { TargetKind::Pe }
     } else if starts(&[0xfe, 0xed, 0xfa, 0xce]) || starts(&[0xfe, 0xed, 0xfa, 0xcf]) || starts(&[0xce, 0xfa, 0xed, 0xfe]) || starts(&[0xcf, 0xfa, 0xed, 0xfe]) {
         TargetKind::MachO
     } else if starts(&[0xca, 0xfe, 0xba, 0xbe]) {
         // Both a Java class and a big-endian fat Mach-O start 0xCAFEBABE. A class has a plausible
         // major version where a fat binary has a small big-endian architecture count, so prefer
         // the .class extension, then the version check.
-        if lower.ends_with(".class") || craft_anything_formats::java_class::is_class(bytes) { TargetKind::JavaClass } else { TargetKind::MachOFat }
+        if lower.ends_with(".class") || axiom_formats::java_class::is_class(bytes) { TargetKind::JavaClass } else { TargetKind::MachOFat }
     } else if starts(b"\0asm") {
         TargetKind::Wasm
     } else if starts(b"dex\n") {
@@ -105,12 +105,12 @@ pub fn sniff(bytes: &[u8], name: &str) -> TargetKind {
             TargetKind::Apk
         } else if lower.ends_with(".jar") || lower.ends_with(".war") {
             TargetKind::Jar
-        } else if craft_anything_formats::zip_has_entry(bytes, "AndroidManifest.xml") {
+        } else if axiom_formats::zip_has_entry(bytes, "AndroidManifest.xml") {
             TargetKind::Apk
         } else {
             TargetKind::Zip
         }
-    } else if lower.ends_with(".asar") || craft_anything_formats::looks_like_asar(bytes) {
+    } else if lower.ends_with(".asar") || axiom_formats::looks_like_asar(bytes) {
         TargetKind::Asar
     } else if starts(b"bplist00") || (lower.ends_with(".plist") && bytes.windows(6).take(512).any(|w| w == b"<plist")) {
         TargetKind::Plist

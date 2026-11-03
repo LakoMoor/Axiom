@@ -19,7 +19,7 @@ fn run_with(opts: ServerOptions, lines: &[Value]) -> Vec<Value> {
 }
 
 fn run_raw(opts: ServerOptions, input: &str) -> Vec<Value> {
-    let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+    let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
     let buf = Buf::default();
     serve(engine, opts, std::io::Cursor::new(input.as_bytes().to_vec()), Box::new(buf.clone())).unwrap();
     let out = String::from_utf8(buf.0.lock().unwrap().clone()).unwrap();
@@ -85,10 +85,10 @@ fn enabling_a_toolset_counts_the_tools_listed() {
 ",
         req(1, "tools/call", json!({"name": "enable_toolset", "arguments": {"toolset": "all"}}))
     );
-    let mut session = craft_anything_engine::testing::session();
+    let mut session = axiom_engine::testing::session();
     session.settings.deep_mode = false;
     let engine = Arc::new(Engine::new(session));
-    let runs = engine.registry().all().iter().filter(|s| craft_anything_engine::clean_room::allows(s.id)).count();
+    let runs = engine.registry().all().iter().filter(|s| axiom_engine::clean_room::allows(s.id)).count();
     let buf = Buf::default();
     serve(engine, ServerOptions::default(), std::io::Cursor::new(input.into_bytes()), Box::new(buf.clone())).unwrap();
     let out: Vec<Value> = String::from_utf8(buf.0.lock().unwrap().clone()).unwrap().lines().map(|l| serde_json::from_str(l).unwrap()).collect();
@@ -110,7 +110,7 @@ fn initialize_negotiates_version() {
     ]);
     let r = response(&out, 1);
     assert_eq!(r["result"]["protocolVersion"], "2025-03-26");
-    assert_eq!(r["result"]["serverInfo"]["name"], "craft-anything");
+    assert_eq!(r["result"]["serverInfo"]["name"], "axiom");
     assert_eq!(r["result"]["capabilities"]["tools"]["listChanged"], true);
     assert_eq!(response(&out, 2)["result"]["protocolVersion"], PROTOCOL_VERSIONS[0]);
     assert_eq!(response(&out, 3)["result"], json!({}));
@@ -146,7 +146,7 @@ fn tool_call_success_and_error_shapes() {
     ]);
     let ok = response(&out, 1);
     assert_eq!(ok["result"]["isError"], false);
-    assert_eq!(ok["result"]["structuredContent"]["result"]["server"]["name"], "craft-anything");
+    assert_eq!(ok["result"]["structuredContent"]["result"]["server"]["name"], "axiom");
     let text: Value = serde_json::from_str(ok["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(text, ok["result"]["structuredContent"]);
     let err = response(&out, 2);
@@ -246,7 +246,7 @@ fn test_server(engine: Arc<Engine>, opts: ServerOptions) -> Server {
 
 #[test]
 fn provenance_meta_is_set_for_target_content() {
-    let server = test_server(Arc::new(Engine::new(craft_anything_engine::testing::session())), ServerOptions::default());
+    let server = test_server(Arc::new(Engine::new(axiom_engine::testing::session())), ServerOptions::default());
 
     // By tool id: a known producer of target content, even when the record didn't set the flag.
     let mut body = json!({"content": [{"type": "text", "text": "x"}], "structuredContent": {"result": {}}, "isError": false});
@@ -267,8 +267,8 @@ fn provenance_meta_is_set_for_target_content() {
 
 #[test]
 fn oversize_evidence_collapses_to_a_summary() {
-    use craft_anything_evidence::{Confidence, Environment, EvidenceBuilder, Subject};
-    let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+    use axiom_evidence::{Confidence, Environment, EvidenceBuilder, Subject};
+    let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
     let ev = EvidenceBuilder::new(
         "extract_strings",
         Subject { kind: "native".into(), sha256: Some("ab".repeat(32)), name: Some("calc".into()) },
@@ -303,7 +303,7 @@ fn oversize_evidence_collapses_to_a_summary() {
 /// (bigger results come back summary-first); other clients and an explicit budget are left alone.
 #[test]
 fn claude_code_connections_get_a_budget_that_fits_its_limit() {
-    let server = |opts: ServerOptions| Server::new(Arc::new(Engine::new(craft_anything_engine::testing::session())), opts, Box::new(Buf::default()));
+    let server = |opts: ServerOptions| Server::new(Arc::new(Engine::new(axiom_engine::testing::session())), opts, Box::new(Buf::default()));
     let hello = |name: &str| json!({"protocolVersion": PROTOCOL_VERSIONS[0], "clientInfo": {"name": name, "version": "1"}});
     let s = server(ServerOptions::default());
     s.handle_request("initialize", &hello("claude-code")).unwrap();

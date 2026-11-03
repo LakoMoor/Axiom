@@ -226,7 +226,7 @@ fn games_hear_about_generated_assets_only_when_allowed_and_with_a_key() {
 #[test]
 fn a_new_project_keeps_the_persons_asset_choice() {
     let d = tempfile::tempdir().unwrap();
-    let settings = craft_anything_engine::Settings::default();
+    let settings = axiom_engine::Settings::default();
     for allow in [false, true] {
         let ws = project::new_project(&settings, "-", "A snake game", project::Place::In(d.path()), Some("rust + macroquad"), allow, None).unwrap();
         assert_eq!(Workspace::open(&ws.root).unwrap().manifest.generate_assets, allow);
@@ -253,7 +253,7 @@ fn notes_added_while_it_works_reach_the_agent_at_its_next_step() {
     let notes: Arc<Mutex<Vec<Note>>> = Arc::default();
     let w = Worker {
         wake: Default::default(),
-        engine: Arc::new(Engine::new(craft_anything_engine::testing::session())),
+        engine: Arc::new(Engine::new(axiom_engine::testing::session())),
         tx,
         stop: CancelToken::default(),
         preview: Arc::default(),
@@ -412,7 +412,7 @@ fn prompts_carry_the_request_rules_and_measurements() {
 
 #[test]
 fn needs_an_agent_app() {
-    let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+    let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
     let d = tempfile::tempdir().unwrap();
     let hub = AiHub::with_stores(engine, d.path().join("settings.toml"), crate::KeyStore::file_only(d.path().join("keys.toml")));
     let ws = Workspace::create(d.path(), "x", "y", TargetRef::None).unwrap();
@@ -532,7 +532,7 @@ fn an_api_backend_builds_with_the_build_tools() {
     use crate::model::{Block, StopReason};
     let d = tempfile::tempdir().unwrap();
     let mut ws = Workspace::create(d.path(), "Notes", "A notes app", TargetRef::None).unwrap();
-    let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+    let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
     let (tx, _rx) = std::sync::mpsc::channel();
     let mut w = Worker {
         wake: Default::default(),
@@ -560,7 +560,7 @@ fn an_api_backend_builds_with_the_build_tools() {
         seen: Arc::default(),
     };
     let slot = ModelSlot { name: "Scripted".into(), model: Box::new(script), local: false, effort: None, max_turns: 10 };
-    let enabled = std::collections::BTreeSet::from([craft_anything_engine::Toolset::Core, craft_anything_engine::Toolset::Build]);
+    let enabled = std::collections::BTreeSet::from([axiom_engine::Toolset::Core, axiom_engine::Toolset::Build]);
     let mut api = ApiConversation::start_with(Arc::new(EngineHost(engine)), vec![slot], LoopConfig::default(), enabled).unwrap();
     let reply = w.turn(&mut ws, &mut api, "Build it.").unwrap();
     assert_eq!(reply.trim(), "Built the notes app.");
@@ -647,7 +647,7 @@ impl TargetKind for SheetKind {
 fn the_mechanics_sheet_is_required_and_held_against_the_code() {
     let d = tempfile::tempdir().unwrap();
     let ws = Workspace::create(d.path(), "Arena", "Recreate this game", TargetRef::None).unwrap();
-    let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+    let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
     let (tx, _rx) = std::sync::mpsc::channel();
     let w = Worker {
         wake: Default::default(),
@@ -790,7 +790,7 @@ mod picking_up_a_build {
         let agent = dir.path().join("agent.sh");
         std::fs::write(&agent, format!("#!/bin/sh\nfor last; do :; done\nprintf '%s\\n===\\n' \"$last\" >> '{}'\necho Done.\n", prompts.display())).unwrap();
         std::fs::set_permissions(&agent, std::fs::Permissions::from_mode(0o755)).unwrap();
-        let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+        let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
         let hub = AiHub::with_stores(engine, dir.path().join("settings.toml"), crate::KeyStore::file_only(dir.path().join("keys.toml")));
         let mut cfg = hub.config();
         cfg.upsert(crate::BackendEntry {
@@ -884,7 +884,7 @@ mod picking_up_a_build {
             }
         };
         assert!(!finished.0, "{finished:?}");
-        assert!(finished.1.contains("craft-anything-cli"), "{finished:?}");
+        assert!(finished.1.contains("axiom-cli"), "{finished:?}");
         assert_eq!(prompts_given(&b), 0, "the agent was asked anyway");
         assert!(!studied(&feed::load(&Workspace::open(&ws.root).unwrap())), "it studied first");
     }
@@ -957,7 +957,7 @@ mod picking_up_a_build {
 }
 
 fn check_worker(ws: &Workspace, deep: bool) -> Worker {
-    let mut s = craft_anything_engine::testing::session();
+    let mut s = axiom_engine::testing::session();
     s.settings.deep_mode = deep;
     let (tx, _rx) = std::sync::mpsc::channel();
     Worker {
@@ -1192,7 +1192,7 @@ fn a_resumed_game_builder_hears_the_asset_choice_as_it_is_now() {
     assert!(on[0].contains("assets_model_generate") && on[0].contains("$5.00"), "{on:?}");
     assert!(game.follow_up_sections(&cx(&ws, false)).is_empty(), "no key: not offered");
     // Turned off after some were made: say so.
-    let rec = craft_anything_engine::workspace::AssetRecord { file: "a.glb".into(), kind: "model".into(), prompt: "a crate".into(), cost_usd: 0.5, at_ms: 1 };
+    let rec = axiom_engine::workspace::AssetRecord { file: "a.glb".into(), kind: "model".into(), prompt: "a crate".into(), cost_usd: 0.5, at_ms: 1 };
     ws.record_asset(rec).unwrap();
     ws.set_person(|m| m.generate_assets = false).unwrap();
     assert!(game.follow_up_sections(&cx(&ws, true))[0].contains("now off"));
@@ -1278,7 +1278,7 @@ impl Conversation for ChecksItsWork {
     fn send(&mut self, _text: &str) {
         let asks = Inbox::new(self_check::asks_dir(&self.root));
         self.asked = Some(std::thread::spawn(move || {
-            let id = asks.post(craft_anything_engine::inbox::RequestKind::Question, "Check the build", "", Vec::new(), false, None).ok()?;
+            let id = asks.post(axiom_engine::inbox::RequestKind::Question, "Check the build", "", Vec::new(), false, None).ok()?;
             asks.wait(&id, Duration::from_secs(20), &|| false).and_then(|a| a.text)
         }));
     }
@@ -1310,7 +1310,7 @@ fn preparing_the_builders_agent_does_not_lock_up() {
     let (tx, _rx) = std::sync::mpsc::channel();
     let w = Worker {
         wake: Default::default(),
-        engine: Arc::new(Engine::new(craft_anything_engine::testing::session())),
+        engine: Arc::new(Engine::new(axiom_engine::testing::session())),
         tx,
         stop: CancelToken::default(),
         preview: Arc::default(),
@@ -1349,7 +1349,7 @@ fn the_run_answers_the_builders_own_check_during_its_turn() {
     let (tx, rx) = std::sync::mpsc::channel();
     let mut w = Worker {
         wake: Default::default(),
-        engine: Arc::new(Engine::new(craft_anything_engine::testing::session())),
+        engine: Arc::new(Engine::new(axiom_engine::testing::session())),
         tx,
         stop: CancelToken::default(),
         preview: Arc::default(),
@@ -1497,7 +1497,7 @@ fn deep_mode_hands_the_builder_every_tool_and_clean_room_none_that_look_inside()
     let d = tempfile::tempdir().unwrap();
     let web = Workspace::create(d.path(), "Site", "Clone it", TargetRef::Website { url: "https://example.com".into() }).unwrap();
     let b = brief(&web, "website", true, false, false, None);
-    assert!(b.contains("every craft-anything tool is yours") && b.contains("capture/how-it-works.md"), "{b}");
+    assert!(b.contains("every axiom tool is yours") && b.contains("capture/how-it-works.md"), "{b}");
     assert!(b.contains("web_listeners_list") && b.contains("web_coverage_measure") && b.contains("js_sources_restore"), "{b}");
     assert!(b.contains("never paste the original's code into app/") && !b.contains("enable_toolset with"), "{b}");
     let clean = brief(&web, "website", false, false, false, None);
@@ -1523,8 +1523,8 @@ fn deep_mode_hands_the_builder_every_tool_and_clean_room_none_that_look_inside()
 fn a_console_original_is_rebuilt_as_a_console_program() {
     let d = tempfile::tempdir().unwrap();
     let (tool, app) = (d.path().join("tool.exe"), d.path().join("app.exe"));
-    std::fs::write(&tool, craft_anything_testkit::pe64_subsystem(3)).unwrap();
-    std::fs::write(&app, craft_anything_testkit::pe64_subsystem(2)).unwrap();
+    std::fs::write(&tool, axiom_testkit::pe64_subsystem(3)).unwrap();
+    std::fs::write(&app, axiom_testkit::pe64_subsystem(2)).unwrap();
     assert_eq!(choose("Rebuild this tool", &TargetRef::Local { path: tool }), ("app", "Rust (console)"));
     assert_eq!(choose("Rebuild this tool", &TargetRef::Local { path: app }).1, "Rust + egui (eframe)", "a windowed program stays a windowed app");
     let steps = stacks::steps("Rust (console)");
@@ -1539,7 +1539,7 @@ fn a_note_the_builder_took_at_a_step_joins_the_feed_and_isnt_sent_again() {
     let (tx, rx) = std::sync::mpsc::channel();
     let w = Worker {
         wake: Default::default(),
-        engine: Arc::new(Engine::new(craft_anything_engine::testing::session())),
+        engine: Arc::new(Engine::new(axiom_engine::testing::session())),
         tx,
         stop: CancelToken::default(),
         preview: Arc::default(),
@@ -1591,9 +1591,9 @@ fn design_notes_pair_renamed_sections_and_leave_nav_links_alone() {
 
 #[test]
 fn a_project_in_a_picked_folder_tells_the_builder_what_its_files_are() {
-    use craft_anything_engine::workspace::ExistingFiles;
+    use axiom_engine::workspace::ExistingFiles;
     let d = tempfile::tempdir().unwrap();
-    let settings = craft_anything_engine::Settings::default();
+    let settings = axiom_engine::Settings::default();
     let folder = |name: &str| {
         let f = d.path().join(name);
         std::fs::create_dir_all(&f).unwrap();
@@ -1619,12 +1619,12 @@ fn a_project_in_a_picked_folder_tells_the_builder_what_its_files_are() {
 
 #[test]
 fn a_project_started_in_a_picked_folder_stays_in_the_list() {
-    let mut session = craft_anything_engine::testing::session();
+    let mut session = axiom_engine::testing::session();
     let d = tempfile::tempdir().unwrap();
     let ws = project::new_project(&session.settings, "-", "A notes app", project::Place::At(&d.path().join("mine"), None), None, false, None).unwrap();
     session.remember_project(&ws.root).unwrap();
     assert_eq!(session.settings.project_folders, std::slice::from_ref(&ws.root));
-    let saved = craft_anything_engine::Settings::load_from(&session.config_dir().join("config.toml"));
+    let saved = axiom_engine::Settings::load_from(&session.config_dir().join("config.toml"));
     assert_eq!(saved.project_folders, std::slice::from_ref(&ws.root), "saved in the session's own settings");
     let listed = Workspace::list_in(&session.settings.project_locations());
     assert!(listed.iter().any(|w| w.root == ws.root));

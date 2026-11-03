@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn reads_a_small_image() {
-        let img = read(&craft_anything_testkit::firmware::cramfs_image(), &Limits::default());
+        let img = read(&axiom_testkit::firmware::cramfs_image(), &Limits::default());
         assert!(img.complete, "{:?}", img.warnings);
         assert_eq!(img.entries.iter().find(|e| e.path == "hello.txt").unwrap().data.as_deref(), Some(b"Hello from cramfs!\n".as_slice()));
         assert!(img.entries.iter().any(|e| e.path == "dir" && e.kind == FsKind::Dir));
@@ -147,8 +147,8 @@ mod tests {
 
     #[test]
     fn hostile_never_panics() {
-        let base = craft_anything_testkit::firmware::cramfs_image();
-        for m in craft_anything_testkit::mutations(&base) {
+        let base = axiom_testkit::firmware::cramfs_image();
+        for m in axiom_testkit::mutations(&base) {
             let _ = read(&m, &Limits::default());
         }
         for len in 0..base.len().min(400) {

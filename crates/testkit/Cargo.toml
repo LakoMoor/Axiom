@@ -1,6 +1,6 @@
 [package]
-name = "craft-anything-testkit"
-description = "Test helpers and synthetic sample builders for Craft Anything"
+name = "axiom-testkit"
+description = "Test helpers and synthetic sample builders for Axiom"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

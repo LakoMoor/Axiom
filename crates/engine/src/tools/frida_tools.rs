@@ -1,5 +1,5 @@
 //! Frida instrumentation, driven through the Frida command-line tools (`frida`, `frida-ps`,
-//! `frida-ls-devices`) located via [`craft_anything_engines::locate`] — never a native binding.
+//! `frida-ls-devices`) located via [`axiom_engines::locate`] — never a native binding.
 //!
 //! A "session" here is Axiom's own managed record of an attach/spawn intent, held in the
 //! session's process memory (not the binary session) and keyed by a generated id. Scripts are
@@ -15,10 +15,10 @@
 use super::artifact_tools::{abs_path, fresh_temp_dir, read_capped};
 use super::native_common::spec;
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_engines::frida::{Attach, Frida, Remote, Selector};
-use craft_anything_evidence::{Authority, Confidence, Coverage, Environment, ErrorCode, Evidence, EvidenceBuilder, Limitation, Subject, ToolError, sha256_hex};
-use craft_anything_platform::process::{Cancel, Output};
-use craft_anything_platform::sync::Mutex;
+use axiom_engines::frida::{Attach, Frida, Remote, Selector};
+use axiom_evidence::{Authority, Confidence, Coverage, Environment, ErrorCode, Evidence, EvidenceBuilder, Limitation, Subject, ToolError, sha256_hex};
+use axiom_platform::process::{Cancel, Output};
+use axiom_platform::sync::Mutex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -354,7 +354,7 @@ const MAX_MESSAGES: usize = 5000;
 
 fn frida_for(ctx: &Ctx<'_>) -> Result<Frida, ToolError> {
     let s = &ctx.session.settings;
-    let path = craft_anything_engines::locate("frida", &s.engines.tools, &s.engine_store_dir())
+    let path = axiom_engines::locate("frida", &s.engines.tools, &s.engine_store_dir())
         .ok_or_else(|| ToolError::new(ErrorCode::EngineMissing, "Frida isn't installed.").with_remediation(INSTALL))?;
     Ok(Frida::new(path).cancel(cancel_of(ctx)))
 }
@@ -367,13 +367,7 @@ fn cancel_of(ctx: &Ctx<'_>) -> Cancel {
 }
 
 fn frida_env(ctx: &Ctx<'_>) -> Environment {
-    Environment {
-        clean_room: ctx.session.clean_room(),
-        engine: "frida".into(),
-        engine_version: None,
-        host: craft_anything_evidence::host_triple(),
-        language_id: None,
-    }
+    Environment { clean_room: ctx.session.clean_room(), engine: "frida".into(), engine_version: None, host: axiom_evidence::host_triple(), language_id: None }
 }
 
 fn frida_subject(target: &str) -> Subject {
@@ -423,9 +417,9 @@ fn run_and_collect(
     script: &[u8],
     duration_ms: u32,
 ) -> Result<(Vec<String>, bool, Option<i32>), ToolError> {
-    let dir = fresh_temp_dir("craft-anything-frida")?;
+    let dir = fresh_temp_dir("axiom-frida")?;
     let script_file = dir.join("script.js");
-    let write = craft_anything_platform::fs::write_atomic(&script_file, script);
+    let write = axiom_platform::fs::write_atomic(&script_file, script);
     let result = (|| {
         write?;
         let wall = Duration::from_millis(u64::from(duration_ms.clamp(1, 60_000))).saturating_add(Duration::from_secs(10));
@@ -716,7 +710,7 @@ mod tests {
 
     fn frida_locatable(e: &Engine) -> bool {
         let s = e.session();
-        craft_anything_engines::locate("frida", &s.settings.engines.tools, &s.settings.engine_store_dir()).is_some()
+        axiom_engines::locate("frida", &s.settings.engines.tools, &s.settings.engine_store_dir()).is_some()
     }
 
     #[test]

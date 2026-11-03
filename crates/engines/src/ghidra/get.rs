@@ -1,8 +1,8 @@
 //! Finding Ghidra and the Java it runs on, and getting both for the person once they agree:
 //! pinned releases, each checked against its publisher's SHA-256 before anything is unpacked.
 
-use craft_anything_evidence::{ErrorCode, ToolError};
-use craft_anything_platform::process::Cancel;
+use axiom_evidence::{ErrorCode, ToolError};
+use axiom_platform::process::Cancel;
 use std::path::{Path, PathBuf};
 
 /// Ghidra's engine id, as the engine table, Settings and every listing name it.
@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn a_macos_jdk_unpacks_to_a_java_home_we_find() {
-        use craft_anything_testkit::firmware as fx;
+        use axiom_testkit::firmware as fx;
         let pin = crate::engine("java").and_then(|e| e.pin_for("macos", "aarch64")).unwrap();
         let java = if cfg!(windows) { "java.exe" } else { "java" };
         let tar = fx::tar_entries(&[

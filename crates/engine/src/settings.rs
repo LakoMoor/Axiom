@@ -1,7 +1,7 @@
 //! User settings (`config.toml`). No environment variables are required for anything.
 
 use crate::versioned::{Step, upgrade};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -36,7 +36,7 @@ pub struct GhidraSettings {
 
 /// One list for the per-engine path overrides: it declares the `ToolPaths` fields, `override_for`,
 /// and the list the Engines settings page shows. The ids and their order are exactly the engines in
-/// `craft_anything_engines::ENGINES` that have a path setting (a test checks it).
+/// `axiom_engines::ENGINES` that have a path setting (a test checks it).
 macro_rules! tool_paths {
     ($($id:ident),* $(,)?) => {
         /// Paths to external tools when the user prefers their own install over the managed one.
@@ -53,7 +53,7 @@ macro_rules! tool_paths {
             }
         }
 
-        impl craft_anything_engines::ToolPathLookup for ToolPaths {
+        impl axiom_engines::ToolPathLookup for ToolPaths {
             fn override_for(&self, id: &str) -> Option<PathBuf> {
                 match id {
                     $(stringify!($id) => self.$id.clone(),)*
@@ -262,18 +262,18 @@ pub fn read_settings(text: &str) -> Result<Settings, String> {
     table.try_into::<Settings>().map_err(|e| e.to_string())
 }
 
-/// Where settings, logs and the engine store live: `CRAFT_ANYTHING_CONFIG_DIR`, then a portable
+/// Where settings, logs and the engine store live: `AXIOM_CONFIG_DIR`, then a portable
 /// `portable.txt` marker next to the executable, then the platform config dir.
 pub fn config_dir() -> PathBuf {
-    if let Some(dir) = std::env::var_os("CRAFT_ANYTHING_CONFIG_DIR") {
+    if let Some(dir) = std::env::var_os("AXIOM_CONFIG_DIR") {
         return PathBuf::from(dir);
     }
     if let Some(exe_dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(Path::to_path_buf))
         && exe_dir.join("portable.txt").exists()
     {
-        return exe_dir.join("CraftAnythingData");
+        return exe_dir.join("AxiomData");
     }
-    dirs::config_dir().map(|d| d.join("craft-anything")).unwrap_or_else(|| PathBuf::from(".craft-anything"))
+    dirs::config_dir().map(|d| d.join("axiom")).unwrap_or_else(|| PathBuf::from(".axiom"))
 }
 
 impl Settings {
@@ -374,12 +374,12 @@ impl Settings {
 
     /// Ghidra's headless launcher, when Deep mode can really use Ghidra (`None`: not installed).
     pub fn ghidra_launcher(&self) -> Option<PathBuf> {
-        craft_anything_engines::ghidra::get::headless(self.engines.ghidra.install_dir.as_deref(), &self.engine_store_dir())
+        axiom_engines::ghidra::get::headless(self.engines.ghidra.install_dir.as_deref(), &self.engine_store_dir())
     }
 
     /// The Java runtime Ghidra runs on (`None`: let Ghidra find its own).
     pub fn ghidra_java(&self) -> Option<PathBuf> {
-        craft_anything_engines::ghidra::get::java_home(self.engines.ghidra.java_home.as_deref(), &self.engine_store_dir())
+        axiom_engines::ghidra::get::java_home(self.engines.ghidra.java_home.as_deref(), &self.engine_store_dir())
     }
 
     /// Where an external engine is on this computer, honouring every setting that can name one:
@@ -388,10 +388,10 @@ impl Settings {
     /// `doctor`, `capabilities`) and behind `Requires::Engine`, so they all agree with what Deep
     /// mode actually runs.
     pub fn engine_path(&self, id: &str) -> Option<PathBuf> {
-        if id == craft_anything_engines::ghidra::get::ID {
+        if id == axiom_engines::ghidra::get::ID {
             return self.ghidra_launcher();
         }
-        craft_anything_engines::locate(id, &self.engines.tools, &self.engine_store_dir())
+        axiom_engines::locate(id, &self.engines.tools, &self.engine_store_dir())
     }
 }
 
@@ -416,10 +416,10 @@ auto_mode = true
 
     #[test]
     fn path_overrides_match_the_engine_table_exactly() {
-        use craft_anything_engines::ToolPathLookup;
+        use axiom_engines::ToolPathLookup;
         let mut paths = ToolPaths::default();
         let ids: Vec<&str> = paths.entries_mut().into_iter().map(|(id, _)| id).collect();
-        let table: Vec<&str> = craft_anything_engines::path_setting_ids().collect();
+        let table: Vec<&str> = axiom_engines::path_setting_ids().collect();
         assert_eq!(ids, table, "tool_paths! must list the engine table's path-setting ids, in table order");
         for (id, v) in paths.entries_mut() {
             *v = Some(PathBuf::from(format!("/opt/{id}")));

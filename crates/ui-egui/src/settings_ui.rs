@@ -5,8 +5,8 @@ use crate::i18n::{LANGUAGES, tr, trf};
 use crate::state::SettingsTab;
 use crate::theme::{self, ThemeKind, Tokens};
 use crate::{CraftApp, Pick, icons, widgets};
-use craft_anything_ai::BackendKind;
-use craft_anything_engine::Mode;
+use axiom_ai::BackendKind;
+use axiom_engine::Mode;
 use egui::{RichText, Ui, Vec2};
 use std::path::PathBuf;
 
@@ -292,7 +292,7 @@ fn engines(app: &mut CraftApp, ui: &mut Ui) {
     egui::Grid::new("tool-paths").num_columns(2).spacing([12.0, 6.0]).show(ui, |ui| {
         // Names and purposes come from the engine table; the override list matches it (tested).
         for (id, v) in app.settings.engines.tools.entries_mut() {
-            let (name, needed_for) = craft_anything_engines::engine(id).map(|e| (e.name, e.needed_for)).unwrap_or((id, ""));
+            let (name, needed_for) = axiom_engines::engine(id).map(|e| (e.name, e.needed_for)).unwrap_or((id, ""));
             ui.label(RichText::new(tr(name)).size(theme::CAPTION)).on_hover_text(format!("{}\n{id}", tr(needed_for)));
             changed |= path_field(ui, v, name, "managed");
             ui.end_row();
@@ -328,7 +328,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                 icons::show(ui, "bot", 18.0, if b.enabled { t.accent } else { t.text_faint });
                 ui.vertical(|ui| {
                     ui.add(egui::Label::new(RichText::new(&b.name).font(theme::semibold(theme::SMALL))).truncate());
-                    let model_in_use = craft_anything_ai::model_in_use(b, app.backend_options.get(&b.name));
+                    let model_in_use = axiom_ai::model_in_use(b, app.backend_options.get(&b.name));
                     // An API's model has its own line below; an agent app is named by its `model`.
                     let what = if model_in_use.is_some() && b.kind != BackendKind::AgentCli { String::new() } else { format!(" · {}", b.model) };
                     let ssh = b.ssh_host.as_ref().map(|h| format!(" · ssh {h}")).unwrap_or_default();
@@ -351,7 +351,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                         });
                     }
                     // How hard it thinks: the Claude API and Claude Code take every Claude level.
-                    let effort = craft_anything_ai::effort_in_use(b, app.backend_options.get(&b.name));
+                    let effort = axiom_ai::effort_in_use(b, app.backend_options.get(&b.name));
                     // Which model it uses, and the ones it can be set to (#123).
                     if let Some(current) = model_in_use {
                         ui.horizontal_wrapped(|ui| {
@@ -386,7 +386,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                             if let Some(current) = effort {
                                 ui.label(RichText::new(tr("Effort:")).color(t.text_faint).size(theme::CAPTION));
                                 egui::ComboBox::from_id_salt(("effort", &b.name)).icon(widgets::combo_icon).selected_text(current.as_str()).show_ui(ui, |ui| {
-                                    for e in craft_anything_ai::Effort::ALL {
+                                    for e in axiom_ai::Effort::ALL {
                                         if ui.selectable_label(e == current, e.as_str()).clicked() && e != current {
                                             chosen_effort = Some((b.name.clone(), e));
                                         }
@@ -470,7 +470,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
         app.choose_backend(Some(p));
     }
     if let Some(b) = builds {
-        app.set_role(craft_anything_ai::Role::Builder, b);
+        app.set_role(axiom_ai::Role::Builder, b);
     }
     ui.add_space(8.0);
     ui.horizontal(|ui| {
@@ -581,7 +581,7 @@ fn builds(app: &mut CraftApp, ui: &mut Ui) {
         changed |= number(ui, &mut b.max_rounds, 0..=20, "", "");
     });
     row(ui, "Website pages", "Other pages of a website studied and compared besides the one you gave.", |ui| {
-        changed |= number(ui, &mut b.max_pages, 0..=craft_anything_ai::rebuild::kinds::website::MAX_ROUTES, "", "");
+        changed |= number(ui, &mut b.max_pages, 0..=axiom_ai::rebuild::kinds::website::MAX_ROUTES, "", "");
     });
     row(ui, "Match my pictures", "Apps and games: keep refining until they look this alike to your pictures. Off, the likeness is only reported.", |ui| {
         let mut on = b.picture_good_enough.is_some();
@@ -607,12 +607,12 @@ fn builds(app: &mut CraftApp, ui: &mut Ui) {
             changed |= number(ui, &mut a.budget_usd, 0.0..=10_000.0, "$", "");
         },
     );
-    let table = craft_anything_engines::assets::Catalogue::built_in();
+    let table = axiom_engines::assets::Catalogue::built_in();
     row(ui, "Picture model", "What pictures and textures are made with.", |ui| {
         let current = table.image_model(a.image_model.as_deref()).or_else(|_| table.image_model(None)).map(|m| m.name.clone()).unwrap_or_default();
         egui::ComboBox::from_id_salt("image-model").icon(widgets::combo_icon).selected_text(current).show_ui(ui, |ui| {
             for m in table.images() {
-                let price = crate::usage::asset_cost_words(m.cost(craft_anything_engines::assets::Shape::Square));
+                let price = crate::usage::asset_cost_words(m.cost(axiom_engines::assets::Shape::Square));
                 let label = format!("{} · {} {}", m.name, price, tr("a picture"));
                 let on = a.image_model.as_deref() == Some(m.id.as_str());
                 if ui.selectable_label(on, label).on_hover_text(&m.licence).clicked() && !on {
@@ -766,7 +766,7 @@ fn safety(app: &mut CraftApp, ui: &mut Ui) {
         "The builder's questions",
         "When the builder needs a choice made: show it to you and wait, or let it decide and say what it chose. Each project can choose for itself under its prompt box.",
         |ui| {
-            use craft_anything_engine::workspace::Questions;
+            use axiom_engine::workspace::Questions;
             let sel = usize::from(app.settings.questions() == Questions::Decide);
             if let Some(i) = widgets::segmented(ui, &["Ask me", "Decide yourself"], sel, 30.0) {
                 app.settings.questions = Some(if i == 0 { Questions::Ask } else { Questions::Decide });

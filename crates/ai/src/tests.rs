@@ -2,7 +2,7 @@
 //! engine runs the tools. No real network.
 
 use super::*;
-use craft_anything_platform::sync::Mutex;
+use axiom_platform::sync::Mutex;
 use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
@@ -132,7 +132,7 @@ fn chat_sse(chunks: &[Value]) -> String {
 
 fn hub() -> (AiHub, tempfile::TempDir) {
     let dir = tempfile::tempdir().unwrap();
-    let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+    let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
     let h = AiHub::with_stores(engine, dir.path().join("config.toml"), KeyStore::file_only(dir.path().join("ai-keys.toml")));
     (h, dir)
 }
@@ -142,7 +142,7 @@ fn a_failed_save_changes_nothing() {
     let dir = tempfile::tempdir().unwrap();
     // The settings "file" can't be written: its folder is a file.
     std::fs::write(dir.path().join("blocked"), "").unwrap();
-    let engine = Arc::new(Engine::new(craft_anything_engine::testing::session()));
+    let engine = Arc::new(Engine::new(axiom_engine::testing::session()));
     let h = AiHub::with_stores(engine, dir.path().join("blocked").join("config.toml"), KeyStore::file_only(dir.path().join("ai-keys.toml")));
     let cfg = BackendConfig { name: "Kimi".into(), kind: BackendKind::Openrouter, model: "m".into(), base_url: None, ssh_host: None, enabled: true };
     assert!(h.add_backend(cfg, None).is_err());
@@ -371,7 +371,7 @@ fn anthropic_streaming_tool_loop_through_the_engine() {
     assert_eq!(r1.header("x-api-key"), Some("sk-test-123"));
     assert_eq!(r1.header("anthropic-version"), Some("2023-06-01"));
     assert_eq!(r1.header("anthropic-beta"), Some("server-side-fallback-2026-07-01"));
-    assert_eq!(r1.header("user-agent"), Some("CraftAnything-dev"));
+    assert_eq!(r1.header("user-agent"), Some("Axiom-dev"));
     let b = &r1.body;
     assert_eq!(b["model"], "claude-opus-5-5");
     assert_eq!(b["stream"], true);

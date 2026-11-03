@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 /// The name our server is registered under in every client.
-pub const SERVER_NAME: &str = "craft-anything";
+pub const SERVER_NAME: &str = "axiom";
 
 /// Environment variables that affect where clients keep their config. Only these are read.
 pub const ENV_KEYS: &[&str] = &[
@@ -223,7 +223,7 @@ pub fn is_owned_entry(entry: &serde_json::Value) -> bool {
     let Some(cmd) = entry_command(entry) else { return false };
     let Some((program, args)) = cmd.split_first() else { return false };
     let file = program.rsplit(['/', '\\']).next().unwrap_or_default();
-    (file == "craft-anything-cli" || file.eq_ignore_ascii_case("craft-anything-cli.exe")) && args.first().is_some_and(|a| a == "mcp")
+    (file == "axiom-cli" || file.eq_ignore_ascii_case("axiom-cli.exe")) && args.first().is_some_and(|a| a == "mcp")
 }
 
 /// Every supported client, resolved for `host`.
@@ -425,7 +425,7 @@ pub fn clients(host: &Host) -> Vec<Client> {
         }
         if c.id == "dsh" {
             c.manual = Some(
-                "Add an MCP client entry for a stdio server named craft-anything whose command is the path of craft-anything-cli with the argument `mcp`, using the harness's own configuration commands.",
+                "Add an MCP client entry for a stdio server named axiom whose command is the path of axiom-cli with the argument `mcp`, using the harness's own configuration commands.",
             );
         }
     }
@@ -490,11 +490,11 @@ mod tests {
 
     #[test]
     fn ownership() {
-        assert!(is_owned_entry(&json!({"command": "/opt/bin/craft-anything-cli", "args": ["mcp"]})));
-        assert!(is_owned_entry(&json!({"command": "C:\\x\\craft-anything-cli.exe", "args": ["mcp", "--all-tools"]})));
-        assert!(is_owned_entry(&json!({"type": "local", "command": ["/b/craft-anything-cli", "mcp"]})));
-        assert!(!is_owned_entry(&json!({"command": "npx", "args": ["craft-anything-cli", "mcp"]})));
-        assert!(!is_owned_entry(&json!({"command": "/b/craft-anything-cli", "args": ["doctor"]})));
+        assert!(is_owned_entry(&json!({"command": "/opt/bin/axiom-cli", "args": ["mcp"]})));
+        assert!(is_owned_entry(&json!({"command": "C:\\x\\axiom-cli.exe", "args": ["mcp", "--all-tools"]})));
+        assert!(is_owned_entry(&json!({"type": "local", "command": ["/b/axiom-cli", "mcp"]})));
+        assert!(!is_owned_entry(&json!({"command": "npx", "args": ["axiom-cli", "mcp"]})));
+        assert!(!is_owned_entry(&json!({"command": "/b/axiom-cli", "args": ["doctor"]})));
         assert!(!is_owned_entry(&json!({"url": "http://x"})));
     }
 
@@ -502,9 +502,9 @@ mod tests {
     fn shapes() {
         let host = Host::with_home("/h");
         let cs = clients(&host);
-        let cmd = vec!["/b/craft-anything-cli".to_string(), "mcp".to_string()];
+        let cmd = vec!["/b/axiom-cli".to_string(), "mcp".to_string()];
         let oc = cs.iter().find(|c| c.id == "opencode").unwrap().desired_entry(&cmd);
-        assert_eq!(oc, json!({"type": "local", "command": ["/b/craft-anything-cli", "mcp"], "enabled": true}));
+        assert_eq!(oc, json!({"type": "local", "command": ["/b/axiom-cli", "mcp"], "enabled": true}));
         let codex = cs.iter().find(|c| c.id == "codex").unwrap().desired_entry(&cmd);
         assert_eq!(codex["startup_timeout_sec"], 30);
         for c in &cs {

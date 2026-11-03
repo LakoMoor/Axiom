@@ -5,8 +5,8 @@
 use super::native_common::spec;
 use super::static_input::{self, builder, format_err};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{Authority, Confidence, Coverage, CoverageStatus, Limitation, Location, ToolError};
-use craft_anything_formats::sqlite::{self, SqliteDb};
+use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, Limitation, Location, ToolError};
+use axiom_formats::sqlite::{self, SqliteDb};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -217,8 +217,8 @@ fn db_sqlite_show(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutput, ToolEr
 mod tests {
     use super::super::native_common::test_support::{call, call_err};
     use crate::Engine;
-    use craft_anything_testkit::sqlite as fx;
-    use craft_anything_testkit::temp_file;
+    use axiom_testkit::sqlite as fx;
+    use axiom_testkit::temp_file;
     use serde_json::json;
 
     #[test]

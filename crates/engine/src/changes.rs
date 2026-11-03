@@ -153,7 +153,7 @@ fn relative(base: &Path, path: &Path) -> Option<String> {
 pub fn mark(ws: &Workspace) {
     let snap = take(ws);
     if let Ok(bytes) = serde_json::to_vec(&snap) {
-        let _ = craft_anything_platform::fs::write_atomic(&ws.root.join(BASELINE_FILE), &bytes);
+        let _ = axiom_platform::fs::write_atomic(&ws.root.join(BASELINE_FILE), &bytes);
     }
 }
 

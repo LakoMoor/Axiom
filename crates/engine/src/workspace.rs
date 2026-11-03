@@ -20,7 +20,7 @@
 use crate::inbox::now_ms;
 use crate::project::write_atomic;
 use crate::versioned::{self, upgrade};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_evidence::{ErrorCode, ToolError};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -667,8 +667,8 @@ impl Workspace {
     /// Start a project in `folder` itself, a folder the person picked. A missing or empty folder
     /// is used as it is. One that has their files needs `existing` to say what those files are:
     /// the app, edited in place, or material to start from, with the app built in app/ beside
-    /// them. A folder that's already a project, or that has something named like a file Craft
-    /// Anything keeps there, is refused, so nothing of theirs is ever replaced.
+    /// them. A folder that's already a project, or that has something named like a file Axiom
+    /// keeps there, is refused, so nothing of theirs is ever replaced.
     pub fn create_at(folder: &Path, name: &str, request: &str, target: TargetRef, existing: Option<ExistingFiles>) -> Result<Workspace, ToolError> {
         let mut manifest = Manifest::new(name, request, target);
         match folder_state(folder)? {
@@ -1275,7 +1275,7 @@ mod tests {
     }
 
     #[test]
-    fn a_folder_with_names_craft_anything_uses_is_refused() {
+    fn a_folder_with_names_axiom_uses_is_refused() {
         let d = tempfile::tempdir().unwrap();
         let checks = d.path().join("checks-here");
         std::fs::create_dir_all(checks.join("checks")).unwrap();
@@ -1326,7 +1326,7 @@ mod tests {
     }
 
     #[test]
-    fn craft_anythings_records_are_its_own_even_when_the_app_is_the_folder() {
+    fn axioms_records_are_its_own_even_when_the_app_is_the_folder() {
         let d = tempfile::tempdir().unwrap();
         std::fs::write(d.path().join("index.html"), "<p>hi</p>").unwrap();
         let ws = Workspace::create_at(d.path(), "Site", "x", TargetRef::None, Some(ExistingFiles::Edit)).unwrap();

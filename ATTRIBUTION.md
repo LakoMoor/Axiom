@@ -1,6 +1,6 @@
 # Attribution
 
-Third-party material bundled with Craft Anything, file by file. Rust crates are pulled from
+Third-party material bundled with Axiom, file by file. Rust crates are pulled from
 crates.io under their own licences (see `Cargo.lock`) and are not listed here.
 
 ## Fonts (`assets/fonts/`)
@@ -36,13 +36,8 @@ texts are in the crate's `fonts/` folder.
 
 ## App icon (`assets/app-icon/`)
 
-The raven, the Crafting Apps' shared icon, made by the ArtCraft team; not open source, used on the
-brand terms below. See `assets/app-icon/LICENSE.txt`.
-
-## Brand (`docs/brand/`)
-
-The ArtCraft name, wordmark and logos are trademarks of the ArtCraft Team and are not covered by
-the open-source licence; see `docs/brand/LICENSE-brand.txt`.
+Axiom's own icon, drawn for this project and covered by the repository's licence. See
+`assets/app-icon/LICENSE.txt`.
 
 ## Optional build-time fonts
 

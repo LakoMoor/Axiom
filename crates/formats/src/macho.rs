@@ -584,7 +584,7 @@ pub fn objc_metadata(data: &[u8], b: &Binary) -> ObjcMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit as tk;
+    use axiom_testkit as tk;
 
     fn executable_with_header_symbol(helper: Option<u8>) -> Vec<u8> {
         let mut symtab = vec![0u8; 24];

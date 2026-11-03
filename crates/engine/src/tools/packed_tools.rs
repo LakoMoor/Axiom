@@ -5,8 +5,8 @@ use super::artifact_tools::{create_absent_dir, safe_components, write_new_file};
 use super::native_common::{DEFAULT_LIMIT, page, params_json, spec};
 use super::static_input::{builder, format_err, load};
 use crate::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::{Authority, Confidence, Coverage, CoverageStatus, ErrorCode, Limitation, Location, ToolError, sha256_hex};
-use craft_anything_formats::packed::{self, PackedEntry, PackedFormat, READERS};
+use axiom_evidence::{Authority, Confidence, Coverage, CoverageStatus, ErrorCode, Limitation, Location, ToolError, sha256_hex};
+use axiom_formats::packed::{self, PackedEntry, PackedFormat, READERS};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -253,8 +253,8 @@ fn core_packed_files_unpack(ctx: &mut Ctx<'_>, params: Value) -> Result<ToolOutp
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_formats::FormatError;
-    use craft_anything_formats::packed::{Compression, PackedListing};
+    use axiom_formats::FormatError;
+    use axiom_formats::packed::{Compression, PackedListing};
 
     struct Plain;
     impl PackedFormat for Plain {

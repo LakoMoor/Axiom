@@ -30,8 +30,8 @@ pub use model::Effort;
 
 use crate::agent::{ApiConversation, EngineHost, LoopConfig, ModelSlot};
 use crate::model::{ChatModel, Delta, Msg, Stop, TurnRequest, TurnResult};
-use craft_anything_engine::{Engine, Settings};
-use craft_anything_evidence::{ErrorCode, ToolError};
+use axiom_engine::{Engine, Settings};
+use axiom_evidence::{ErrorCode, ToolError};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -261,8 +261,8 @@ impl ChatModel for Tunneled {
 }
 
 /// The tools this layer adds to the engine's (rebuild control), for
-/// [`craft_anything_engine::Engine::shared`].
-pub fn tools() -> Vec<craft_anything_engine::ToolSpec> {
+/// [`axiom_engine::Engine::shared`].
+pub fn tools() -> Vec<axiom_engine::ToolSpec> {
     let mut v = rebuild::tools::specs();
     v.extend(key_tools::specs());
     v.extend(models::tools::specs());
@@ -350,9 +350,7 @@ impl AiHub {
         let role = config::role_key(role).to_string();
         match name {
             Some(n) if cfg.get(n).is_none() => {
-                return Err(
-                    ToolError::invalid(format!("No AI backend named {n:?}")).with_remediation("See `craft-anything-cli ai list`, or add one in Settings → AI.")
-                );
+                return Err(ToolError::invalid(format!("No AI backend named {n:?}")).with_remediation("See `axiom-cli ai list`, or add one in Settings → AI."));
             }
             Some(n) => {
                 cfg.roles.insert(role, n.to_string());
@@ -499,7 +497,7 @@ impl AiHub {
 
     /// Some built-in asset provider has a key, so builds can generate assets.
     pub fn has_asset_keys(&self) -> bool {
-        let providers = craft_anything_engines::assets::AssetProviders::built_in();
+        let providers = axiom_engines::assets::AssetProviders::built_in();
         providers.ids().into_iter().any(|id| self.has_asset_key(&providers, id))
     }
 
@@ -513,7 +511,7 @@ impl AiHub {
     }
 
     /// The provider's key is stored or in its environment variable.
-    pub fn has_asset_key(&self, providers: &craft_anything_engines::assets::AssetProviders, provider: &str) -> bool {
+    pub fn has_asset_key(&self, providers: &axiom_engines::assets::AssetProviders, provider: &str) -> bool {
         providers.get(provider).is_some_and(|p| keys::asset_key(&self.keys, p.as_ref()).is_some())
     }
 
@@ -524,7 +522,7 @@ impl AiHub {
 
     fn entry(&self, name: &str) -> Result<BackendEntry, ToolError> {
         self.config().get(name).cloned().ok_or_else(|| {
-            ToolError::invalid(format!("No AI backend named {name:?}")).with_remediation("See `craft-anything-cli ai list`, or add one in Settings → AI.")
+            ToolError::invalid(format!("No AI backend named {name:?}")).with_remediation("See `axiom-cli ai list`, or add one in Settings → AI.")
         })
     }
 
@@ -625,7 +623,7 @@ impl AiHub {
     /// every toolset is enabled, so it can look inside the original with all of them.
     /// `transcript`: where the conversation is kept, and resumed from when it's there.
     pub fn start_builder(&self, entry: &BackendEntry, beginner: bool, transcript: Option<PathBuf>) -> Result<ApiConversation, ToolError> {
-        use craft_anything_engine::Toolset;
+        use axiom_engine::Toolset;
         let deep = !self.engine.session().clean_room();
         let toolsets = if deep { self.engine.registry().toolsets() } else { vec![Toolset::Core, Toolset::Build] };
         self.start_loop(entry, beginner, transcript, &toolsets)
@@ -636,7 +634,7 @@ impl AiHub {
         entry: &BackendEntry,
         beginner: bool,
         transcript: Option<PathBuf>,
-        toolsets: &[craft_anything_engine::Toolset],
+        toolsets: &[axiom_engine::Toolset],
     ) -> Result<ApiConversation, ToolError> {
         let mut slot = self.build_model(entry)?;
         slot.max_turns = slot.max_turns.max(agent::BUILDER_MAX_TURNS);
@@ -695,8 +693,8 @@ impl AiHub {
         if e.config.kind == BackendKind::AgentCli {
             let program = e.options.command.clone().unwrap_or_else(|| cli_agents::program_for(&e.config.model));
             let p = match e.config.ssh_host.as_deref().filter(|h| !h.trim().is_empty()) {
-                Some(h) => craft_anything_platform::Process::new("ssh").args(ssh::ssh_args(h, &[program.clone(), "--version".into()])),
-                None => craft_anything_platform::Process::new(&program).arg("--version"),
+                Some(h) => axiom_platform::Process::new("ssh").args(ssh::ssh_args(h, &[program.clone(), "--version".into()])),
+                None => axiom_platform::Process::new(&program).arg("--version"),
             };
             let out = p.timeout(Duration::from_secs(15)).run_checked()?;
             return Ok(TestReport {
@@ -780,7 +778,7 @@ fn reach(e: &BackendEntry, key: Option<String>) -> Result<u64, String> {
         BackendKind::Openrouter => openai::OpenAi::openrouter(base, need(key)?, &e.config.model).list_models(t).map(|_| ()).map_err(|x| x.message),
         BackendKind::OpenaiCompatible | BackendKind::AgentCli if e.config.ssh_host.as_deref().is_some_and(|h| !h.trim().is_empty()) => {
             let host = e.config.ssh_host.clone().unwrap_or_default();
-            craft_anything_platform::Process::new("ssh")
+            axiom_platform::Process::new("ssh")
                 .args(ssh::ssh_args(&host, &["true".to_string()]))
                 .timeout(Duration::from_secs(10))
                 .run_checked()
@@ -798,7 +796,7 @@ fn reach(e: &BackendEntry, key: Option<String>) -> Result<u64, String> {
         }
         BackendKind::AgentCli => {
             let program = e.options.command.clone().unwrap_or_else(|| cli_agents::program_for(&e.config.model));
-            craft_anything_platform::which(&program).map(|_| ()).ok_or_else(|| format!("{program} isn't on PATH"))
+            axiom_platform::which(&program).map(|_| ()).ok_or_else(|| format!("{program} isn't on PATH"))
         }
     };
     r.map(|_| start.elapsed().as_millis() as u64)

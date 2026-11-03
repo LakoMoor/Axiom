@@ -358,7 +358,7 @@ pub fn member_data<'a>(data: &'a [u8], m: &Member) -> Option<&'a [u8]> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::firmware as fx;
+    use axiom_testkit::firmware as fx;
 
     #[test]
     fn walks_tar() {
@@ -402,7 +402,7 @@ mod tests {
         let t = fx::tar(&[("a", b"hello"), ("b/c", b"world")]);
         let c = fx::cpio_newc(&[("a", b"hello", 0o100644)]);
         for s in [&t, &c] {
-            for m in craft_anything_testkit::mutations(s) {
+            for m in axiom_testkit::mutations(s) {
                 let _ = tar(&m, 10);
                 let _ = cpio(&m, 10);
             }
@@ -412,7 +412,7 @@ mod tests {
             }
         }
         for seed in 0..50 {
-            let n = craft_anything_testkit::noise(seed, 2048);
+            let n = axiom_testkit::noise(seed, 2048);
             let _ = tar(&n, 10);
             let _ = cpio(&n, 10);
         }

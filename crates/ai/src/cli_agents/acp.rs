@@ -5,12 +5,12 @@
 //! `session/request_permission` becomes [`AgentEvent::ConsentNeeded`].
 //!
 //! [`AcpCore`] is the protocol alone (lines in, lines and events out) so it's tested without a
-//! process; [`AcpConversation`] runs it against the agent through `craft_anything_platform`.
+//! process; [`AcpConversation`] runs it against the agent through `axiom_platform`.
 
 use super::{McpCommand, display_for};
 use crate::{AgentEvent, Conversation};
-use craft_anything_platform::sync::Mutex;
-use craft_anything_platform::{Process, RunningProcess, StdinMode};
+use axiom_platform::sync::Mutex;
+use axiom_platform::{Process, RunningProcess, StdinMode};
 use serde_json::{Value, json};
 use std::collections::{HashMap, VecDeque};
 use std::io::Write;
@@ -164,7 +164,7 @@ impl AcpCore {
             "protocolVersion": PROTOCOL_VERSION,
             // The agent reads and writes files and runs commands itself, asking us first.
             "clientCapabilities": {"fs": {"readTextFile": false, "writeTextFile": false}, "terminal": false},
-            "clientInfo": {"name": "craft-anything", "version": env!("CARGO_PKG_VERSION")},
+            "clientInfo": {"name": "axiom", "version": env!("CARGO_PKG_VERSION")},
         });
         vec![self.request("initialize", params, Pending::Initialize)]
     }
@@ -489,12 +489,12 @@ impl AcpConversation {
         }
     }
 
-    fn lock(&self) -> craft_anything_platform::sync::MutexGuard<'_, Option<Shared>> {
+    fn lock(&self) -> axiom_platform::sync::MutexGuard<'_, Option<Shared>> {
         self.shared.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
     /// Start the agent and send `initialize`.
-    fn spawn(&mut self) -> Result<(), craft_anything_evidence::ToolError> {
+    fn spawn(&mut self) -> Result<(), axiom_evidence::ToolError> {
         let name = display_for(&self.agent);
         let resume = self.lock().as_ref().and_then(|s| s.core.session_id()).or_else(|| self.resume.clone());
         let mut core = AcpCore::new(&self.backend, &name, self.cwd.clone(), self.mcp.clone(), resume);
@@ -596,7 +596,7 @@ impl Conversation for AcpConversation {
             self.busy.store(false, Ordering::SeqCst);
             let tail = self.lock().as_ref().map(|s| s.stderr.iter().cloned().collect::<Vec<_>>().join("\n")).unwrap_or_default();
             events.extend(self.rx.try_iter());
-            let command = craft_anything_platform::process::printable_command(std::ffi::OsStr::new(&self.program), &self.args);
+            let command = axiom_platform::process::printable_command(std::ffi::OsStr::new(&self.program), &self.args);
             let check = format!("{} --version", crate::ssh::shell_quote(&self.program));
             let log = self.logs.as_ref().and_then(|dir| {
                 let report = crate::failure_log::Report {
@@ -649,7 +649,7 @@ mod tests {
     use super::*;
 
     fn core(resume: Option<&str>) -> AcpCore {
-        let mcp = McpCommand { command: "/opt/ca/craft-anything-cli".into(), args: vec!["mcp".into()], notes: None };
+        let mcp = McpCommand { command: "/opt/ca/axiom-cli".into(), args: vec!["mcp".into()], notes: None };
         AcpCore::new("Gemini", "Gemini CLI", PathBuf::from("/w/project"), mcp, resume.map(str::to_string))
     }
 
@@ -672,7 +672,7 @@ mod tests {
         let new = sent(&c.line(r#"{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":1,"agentCapabilities":{"loadSession":true}}}"#));
         assert_eq!(new[0]["method"], "session/new");
         assert_eq!(new[0]["params"]["cwd"], "/w/project");
-        assert_eq!(new[0]["params"]["mcpServers"][0]["name"], "craft-anything");
+        assert_eq!(new[0]["params"]["mcpServers"][0]["name"], "axiom");
         assert_eq!(new[0]["params"]["mcpServers"][0]["env"], json!([]));
         let prompt = sent(&c.line(r#"{"jsonrpc":"2.0","id":2,"result":{"sessionId":"s-1"}}"#));
         assert_eq!(prompt[0]["method"], "session/prompt");

@@ -1,6 +1,6 @@
 [package]
-name = "craft-anything-ui-egui"
-description = "The Craft Anything egui interface: Beginner and Experienced modes"
+name = "axiom-ui-egui"
+description = "The Axiom egui interface: Beginner and Experienced modes"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -11,11 +11,11 @@ build = "build.rs"
 workspace = true
 
 [dependencies]
-craft-anything-engine = { workspace = true }
-craft-anything-engines = { workspace = true }
-craft-anything-ai = { workspace = true }
-craft-anything-setup = { workspace = true }
-craft-anything-platform = { workspace = true }
+axiom-engine = { workspace = true }
+axiom-engines = { workspace = true }
+axiom-ai = { workspace = true }
+axiom-setup = { workspace = true }
+axiom-platform = { workspace = true }
 egui = { workspace = true }
 # SVG icons (Lucide) rasterised at the exact on-screen size with resvg (pure Rust).
 egui_extras = { workspace = true, features = ["svg"] }
@@ -33,6 +33,6 @@ pollster = "0.4"
 sys-locale = "0.3.2"
 
 [dev-dependencies]
-craft-anything-testkit = { workspace = true }
+axiom-testkit = { workspace = true }
 egui_kittest = { workspace = true, features = ["wgpu", "snapshot", "eframe"] }
 tempfile = "3"

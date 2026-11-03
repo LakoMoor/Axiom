@@ -256,7 +256,7 @@ impl Projector<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_testkit::apple as fx;
+    use axiom_testkit::apple as fx;
 
     #[test]
     fn projects_a_keyed_archive() {
@@ -282,7 +282,7 @@ mod tests {
     #[test]
     fn hostile_inputs() {
         let s = fx::keyed_archive();
-        for m in craft_anything_testkit::mutations(&s) {
+        for m in axiom_testkit::mutations(&s) {
             if let Ok(a) = parse(&m) {
                 for (_, r) in a.top.clone() {
                     let _ = a.project(r);

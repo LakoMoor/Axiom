@@ -3,8 +3,8 @@
 //! the health checks, and removing our entries again. Ids follow docs/tool-ids.md.
 
 use crate::{DoctorRequest, Host, PlanRequest};
-use craft_anything_engine::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
-use craft_anything_evidence::ToolError;
+use axiom_engine::tool::{Ctx, Effects, Requires, ToolOutput, ToolSpec, Toolset, parse_params, schema_of};
+use axiom_evidence::ToolError;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -126,19 +126,19 @@ fn setup_uninstall(_ctx: &mut Ctx<'_>, _params: Value) -> Result<ToolOutput, Too
 #[cfg(test)]
 mod tests {
     use super::*;
-    use craft_anything_engine::{CallOptions, Caller, Engine};
+    use axiom_engine::{CallOptions, Caller, Engine};
 
     // These tools read and change real agent apps' configs, so tests never call them for real
     // (docs/pitfalls.md): only registration, consent and input checks.
     #[test]
     fn setup_tools_are_registered_and_changes_ask_first() {
-        let e = Engine::shared(craft_anything_engine::testing::session(), specs());
+        let e = Engine::shared(axiom_engine::testing::session(), specs());
         for id in ["setup_plan", "setup_apply", "setup_doctor", "setup_uninstall"] {
             assert!(e.registry().get(id).is_some(), "{id}");
         }
         for id in ["setup_apply", "setup_uninstall"] {
             let err = e.call(id, json!({}), CallOptions::new(Caller::Mcp)).unwrap_err();
-            assert_eq!(err.code, craft_anything_evidence::ErrorCode::ConsentRequired, "{id}");
+            assert_eq!(err.code, axiom_evidence::ErrorCode::ConsentRequired, "{id}");
         }
         assert!(e.call("setup_plan", json!({"nope": 1}), CallOptions::new(Caller::Mcp)).is_err(), "unknown fields refused");
     }

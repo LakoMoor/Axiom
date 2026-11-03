@@ -1,18 +1,18 @@
 # Using Claude Code as the builder
 
-Craft Anything can build with the person's own local Claude Code. This page records what the
+Axiom can build with the person's own local Claude Code. This page records what the
 integration does, why it is shaped this way, and what remains to confirm.
 
 ## How it works
 
-- Craft Anything finds the `claude` program on the computer (PATH or `~/.local/bin`) and runs it
+- Axiom finds the `claude` program on the computer (PATH or `~/.local/bin`) and runs it
   as a child process in headless mode, as documented by Anthropic: `claude -p <task>
   --output-format stream-json --verbose`, with `--resume <session>` to continue a project.
-- The working folder is the project folder. Craft Anything's own tools are offered through
-  `--mcp-config` (our MCP server, `craft-anything-cli mcp --project … --inbox …`) with
-  `--strict-mcp-config`. A build checks that `craft-anything-cli` starts before doing anything
+- The working folder is the project folder. Axiom's own tools are offered through
+  `--mcp-config` (our MCP server, `axiom-cli mcp --project … --inbox …`) with
+  `--strict-mcp-config`. A build checks that `axiom-cli` starts before doing anything
   else, and says so plainly if not. Without the server Claude Code stops at its first approval
-  with `MCP tool mcp__craft-anything__core_action_approve … not found. Available MCP tools: none`,
+  with `MCP tool mcp__axiom__core_action_approve … not found. Available MCP tools: none`,
   and its MCP log blames an executable called `stdio`: that's Claude Code's wording for a command
   that wouldn't start, whatever the command was, not something in our config.
 - Our MCP server runs in the build's mode (`--deep` or `--clean-room`); in Deep mode it lists
@@ -21,7 +21,7 @@ integration does, why it is shaped this way, and what remains to confirm.
   mode. In Clean room only `TodoWrite` is: reads go through the approval tool too, which refuses
   anything in the original's folder or on its site (the project folder excepted).
   Every other action (writing files, running commands, fetching the web) goes through
-  `--permission-prompt-tool mcp__craft-anything__core_action_approve`. That tool allows edits
+  `--permission-prompt-tool mcp__axiom__core_action_approve`. That tool allows edits
   inside the project's `app/` folder and a fixed list of build commands (`npm install`,
   `npm run build`, `cargo build`…), refuses dev servers (they never exit), and asks the person
   in the app for anything else ("Allow once / Always for this project / Don't allow").
@@ -42,7 +42,7 @@ From Claude Code's *Legal and compliance* page:
 - Products that run Claude Code must not modify the binary or disable its authentication
   methods, and may not pay for, resell or intermediate Claude usage.
 
-Craft Anything:
+Axiom:
 
 - runs the unmodified `claude` binary that the person installed;
 - never reads, stores or forwards credentials or tokens, and offers no Claude login of its own
@@ -55,7 +55,7 @@ Craft Anything:
 
 ## Whose account and terms
 
-Craft Anything is open source and runs on the person's own computer. Whoever runs it runs their
+Axiom is open source and runs on the person's own computer. Whoever runs it runs their
 own Claude Code, signed in to their own account, so their use falls under their agreement with
 Anthropic, as with any other script that calls `claude -p`. The free release ships on that basis.
 The questions below matter for a paid offering, where we would be the party.
@@ -64,7 +64,7 @@ The questions below matter for a paid offering, where we would be the party.
 
 1. The Agent SDK overview says third-party developers may not "offer claude.ai login or rate
    limits for their products, including agents built on the Claude Agent SDK" without approval.
-   Craft Anything doesn't offer a login, but it does let a person's subscription do work that
+   Axiom doesn't offer a login, but it does let a person's subscription do work that
    our app orchestrates. The legal page explicitly allows end users to use their own
    subscription with the unmodified binary, which is what we do. Still, **confirm with Anthropic
    (sales/partnerships) that orchestrating the user's own CLI this way is acceptable at scale**,

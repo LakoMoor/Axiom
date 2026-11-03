@@ -114,7 +114,7 @@ Owner: maintainers · Status: done (branch `chore/r0.2-release-pipeline`, supers
 The PR branches from the initial commit, about 35 commits behind `main`. CI isn't a priority, but
 its packaging, `cargo xtask version` and web viewer are worth keeping.
 - [x] **decision**: rebase completely onto `main` (all six commits kept, `ci-release` untouched)
-- [x] Port `apps/craft-anything-web` (wasm viewer) and `cargo xtask version`
+- [x] Port `apps/axiom-web` (wasm viewer) and `cargo xtask version`
 - [x] Port the platform fixes: capture is Linux and macOS only (FreeBSD loses output); the spawn
       lock was reverted inside the PR itself
 - [x] Keep workflows parked until M4: manual-only (`workflow_dispatch`); `release.yml` unchanged
@@ -198,7 +198,7 @@ or download into them.
 
 ### R0.6 Tool naming
 Owner: maintainers · Status: done
-Craft Anything's own ids, grouped by what a person does (`native_functions_list`,
+Axiom's own ids, grouped by what a person does (`native_functions_list`,
 `web_page_capture`…). Each tool answers to its id (and CLI spelling) only.
 - [x] Id scheme in `docs/tool-ids.md`: `<area>_<object>_<action>` (no dots: MCP and model APIs
       allow only letters, digits, `_` and `-` in tool names)
@@ -221,14 +221,14 @@ Craft Anything's own ids, grouped by what a person does (`native_functions_list`
 
 ### R0.7 One live end-to-end rebuild, kept as an opt-in test
 Owner: maintainers · Status: done (branch `test/r0.7-live-e2e`; runs on 2026-10-18, Windows 10)
-- [x] `craft-anything-cli rebuild https://example.com "Clone this website" --rounds 1` completes:
+- [x] `axiom-cli rebuild https://example.com "Clone this website" --rounds 1` completes:
       Ready in 1.5 min, 96% alike (98% at 1440 px, 94% at 390 px)
 - [x] App target: a small desktop app → Rust + egui, Ready in 9 min (checked by "does it build" only)
 - [x] Game target: Muck → Rust reached Build (game written and compiled, the builder screenshotting
       its own result) and was stopped on purpose before Check; a polished game isn't the goal.
       It first failed at once because "in Rust" was ignored (fixed in #4)
 - [x] Opt-in test (`CRAFT_E2E=1`) that runs the website case
-      (`apps/craft-anything-cli/tests/live_rebuild.rs`)
+      (`apps/axiom-cli/tests/live_rebuild.rs`)
 
 ---
 
@@ -368,7 +368,7 @@ Pending changes:
       (`ghidra::get::can_install`) now works there too
 - [ ] Ghidra setup tried for real on Linux and macOS (the Java pins were checked by tests only)
 - [x] Rizin 0.9.1 pinned for Windows x64 (the static zip; GitHub asset digest), installed for real
-      by the opt-in `a_pinned_engine_installs_for_real` (`CRAFT_ANYTHING_TEST_INSTALL`)
+      by the opt-in `a_pinned_engine_installs_for_real` (`AXIOM_TEST_INSTALL`)
 - [ ] More pins once their hashes are checked against the publisher: Chromium (no published
       checksums found yet), Rizin for Linux (the tar.xz unpacks to ~800 MB, so it needs streaming
       extraction) and macOS (a .pkg)
@@ -399,7 +399,7 @@ Pending changes:
       `rebuild_note`, `rebuild_note_withdraw`, `rebuild_stop`), registered from the AI layer (R1.7);
       the CLI's `rebuild` and the tool share `rebuild::project::new_project`
 - [x] A note sent while Claude Code builds reaches it at its next step, not after the turn: the run
-      leaves it in `inbox/notes/`, a PostToolUse hook (`--settings`, `craft-anything-cli
+      leaves it in `inbox/notes/`, a PostToolUse hook (`--settings`, `axiom-cli
       builder-notes`) claims it and hands it to the model as context, and the run shows it as read;
       unclaimed notes still go in after the turn (`rebuild::notes`)
 - [ ] The same for other coding agents with tool hooks, and for the API-backend loop (between tool calls)
@@ -407,7 +407,7 @@ Pending changes:
       game engines and readiness), `engines_install` (Ghidra, Godot, pinned engines, with
       progress; Unity/Unreal get their download page), `settings_show`, `settings_set`
 - [x] Find registered Linux Unreal installations and their bundled Clang toolchain; support an
-      explicit `UE_ROOT` ([PR #191](https://github.com/storytold/craft-anything/pull/191))
+      explicit `UE_ROOT` ([PR #191](https://github.com/LakoMoor/Axiom/pull/191))
       — claimed: one-bit, branch `bugfix/r1.6-linux-unreal-detection`
 - [ ] Give Linux-specific Clang guidance in Unreal's guided installer when the bundled compiler
       is missing (the requirements summary is already platform-specific).
@@ -441,7 +441,7 @@ Owner: maintainers · Status: done
 `ToolSpec` is `&'static` with fn pointers and the registry is fixed at build time.
 - [x] Higher layers register their own (static) tools: `Engine::shared(session, extra)`, with an
       `EngineRef` in the session so those tools can reach the engine; the apps pass
-      `craft_anything_ai::tools()`
+      `axiom_ai::tools()`
 - [x] Tools defined at run time: `registry::RuntimeTool` (owned names, a JSON schema, a function
       that tells its tools apart by `Ctx::tool`), via `Engine::shared_with`;
       `Registry::input_schema` serves every client the right schema
@@ -462,13 +462,13 @@ Owner: maintainers · Status: done
       added this way always asks before each call; the app re-reads the list after the tool runs
 - [x] **decision**: wasmtime with a WIT interface, behind the off-by-default `wasm-plugins` build
       feature (it's a large build)
-- [x] Phase 2, tools: `[[plugins.wasm]]` components exporting `craft-anything:plugin/tools`
+- [x] Phase 2, tools: `[[plugins.wasm]]` components exporting `axiom:plugin/tools`
       (`crates/engines/wit/plugin.wit`: `describe`, `call`, JSON strings). They import nothing (no
       files, network, environment); each call is a fresh instance with a fuel and 256 MiB memory
       limit, so their tools run without asking
 - [x] **decision**: plugin checks get the build as JSON (every file's path and size, plus the text
       of the extensions they ask for); asset providers stay out of plugins (they'd need the network)
-- [x] Phase 2, checks: `craft-anything:plugin/checks` (`describe` with kinds and extensions, `run`
+- [x] Phase 2, checks: `axiom:plugin/checks` (`describe` with kinds and extensions, `run`
       on the build JSON → passed, similarity, summary), run after a kind's own checks; a plugin that
       fails to run passes with a note instead of failing the build
 - [x] WASM plugins: Settings → Plugins lists, adds (a `.wasm` path), turns on or off and removes
@@ -476,12 +476,12 @@ Owner: maintainers · Status: done
       `cargo xtask ci` lints and tests the engine with `--features wasm-plugins`
 - [x] WASM plugins: `examples/wasm-plugin-wordcount` (Rust, wit-bindgen 0.63,
       `wasm32-unknown-unknown`, `wasm-tools component new`), built and loaded through the host
-      (opt-in test `CRAFT_ANYTHING_TEST_WASM_PLUGIN`)
-- [x] Plugin API versions: semver for `package craft-anything:plugin@…`; the host finds a plugin's
+      (opt-in test `AXIOM_TEST_WASM_PLUGIN`)
+- [x] Plugin API versions: semver for `package axiom:plugin@…`; the host finds a plugin's
       interfaces by name and accepts any compatible version (same major, and same minor while 0.x),
       refusing others by name; patch versions only add optional JSON fields (docs/extending.md)
 - [x] A check plugin in Rust: `examples/wasm-plugin-readme-check` (does the build's README say how
-      to run it), built and loaded for real (opt-in test `CRAFT_ANYTHING_TEST_WASM_CHECK`)
+      to run it), built and loaded for real (opt-in test `AXIOM_TEST_WASM_CHECK`)
 - [x] `docs/extending.md`: how to add a tool, a target kind, a check, a builder or a plugin
 
 ### R1.9 Versioned files
@@ -737,7 +737,7 @@ Deep mode is its own switch, not tied to Ghidra.
       builders), a website's study also reads its JavaScript and watches its start page
       (capture/how-it-works.md), and briefs name the tools for each kind of target
 - [ ] A live Clean room build of a website and of an app, checked end to end
-- [ ] A remote (SSH) builder needs a craft-anything-cli that knows `--deep` and `--clean-room`:
+- [ ] A remote (SSH) builder needs a axiom-cli that knows `--deep` and `--clean-room`:
       check its version first and say so when it's older
 - [ ] A remote (SSH) builder doesn't get the time limits or effort set through `Process::env`
       (`MCP_TOOL_TIMEOUT`, `CLAUDE_CODE_EFFORT_LEVEL`…): they're set on the local `ssh`, which doesn't
@@ -788,7 +788,7 @@ Gaps found while using the app for real projects.
 - [x] Simple mode keeps the Project screen in Advanced mode too, so builds and approvals stay in sight
       (the workbench is a screen beside the projects: a Workbench row in the sidebar, a Projects
       button on the workbench)
-- [x] One answer to "can it build?" (`craft_anything_ai::default_builder`: Make's warning and
+- [x] One answer to "can it build?" (`axiom_ai::default_builder`: Make's warning and
       the builder chosen agree), and a setup dialog with what was found, Look again and API keys
       instead of "Got it"
 - [x] "Built by" on Make: every AI that can build, by name, even when one is set up and builds
@@ -834,8 +834,6 @@ Gaps found while using the app for real projects.
       language switcher in `README.md` and `README.ja.md` — claimed: maple323, branch docs/readme-zh
 - [x] A Korean README (`README.ko.md`) was translated from `README.md` and linked from the
       language switcher in every README
-- [ ] `README.ja.md` is behind `README.md`: the whole Craft App Suite section is missing, so the
-      Japanese translation needs a catch-up pass
 - [x] First run sets up who builds, not only who answers, and no longer says the purpose is saved
       with projects (it stays on the computer); its Back has a name for screen readers
 - [x] An error whose fix quotes a command (`claude auth login`, `codex login`) offers to copy it,
@@ -1123,7 +1121,7 @@ should give away more of how it is set up.
       connection whose client is Claude Code (`clientInfo.name` = `claude-code`, checked against
       Claude Code 2.1.305) gets an 80 KB response budget instead of 8 MiB, so a bigger evidence
       record collapses to its summary with `core_evidence_browse` to page it;
-      `CRAFT_ANYTHING_MCP_MAX_RESPONSE_BYTES` still sets it explicitly
+      `AXIOM_MCP_MAX_RESPONSE_BYTES` still sets it explicitly
 - [ ] A live chat run with a big comparison result, to see Claude Code page it with
       `core_evidence_browse` (and whether 80 KB is the right size)
 
@@ -1237,7 +1235,7 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
       the `game_root` folder names in `ai/rebuild/locate.rs`, the Chinese/Japanese/Korean READMEs,
       and the engine items in earlier milestones of this file
 - [x] Rename the display name to Axiom in the UI, the CLI, the MCP server and the packages (keep
-      the `craft-anything-*` machine names); release files are named `axiom-<ver>-…`
+      the `axiom-*` machine names); release files are named `axiom-<ver>-…`
 - [x] Chat-first Home and composer in the style of the ChatGPT app: a centred question, a big box
       with send and a model chip, the choices as a quiet row under it
 - [x] Chats listed in the sidebar (questions and answers, kept across restarts); mode chip
@@ -1248,12 +1246,12 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
 - [x] Hub of local models, engine side: `models_*` tools (recommended list with memory fit, Hugging
       Face search, checked downloads, run through the pinned llama.cpp server, added as an AI)
 - [x] Hub of local models, screen: Models page with recommended cards (memory fit), Hugging Face
-      search, downloads with progress, run/stop/delete (CLI: `craft-anything-cli models_…`)
+      search, downloads with progress, run/stop/delete (CLI: `axiom-cli models_…`)
 - [x] Model picker in the composer; live run on macOS arm64 with Llama 3.2 1B (the extractor now
       copies links to files beside them, which llama.cpp's libraries need). Not yet run on Linux/Windows
 - [x] Rewrite the website text (English and Russian) to match (models section made honest)
 - [ ] Check the mechanics-sheet and self-test checks of Rust games on a real run
-- [x] Browser app 1:1 with the desktop app, as a remote screen: `craft-anything --remote` mirrors the
+- [x] Browser app 1:1 with the desktop app, as a remote screen: `axiom --remote` mirrors the
       real window into a browser tab (pictures out, mouse and keys in) over loopback with a random
       token and a Host check; local models run on that computer as usual. Checked live on macOS
       (click through the app, headless Chrome page)

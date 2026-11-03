@@ -1,0 +1,33 @@
+[package]
+name = "axiom"
+description = "Axiom: find out how any software works, then craft your own"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+build = "build.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+axiom-engine = { workspace = true }
+axiom-platform = { workspace = true }
+axiom-ai = { workspace = true }
+axiom-setup = { workspace = true }
+axiom-ui-egui = { workspace = true }
+eframe = { workspace = true, features = ["default_fonts", "wgpu", "accesskit", "wayland", "x11", "persistence"] }
+log = { workspace = true }
+serde_json = { workspace = true }
+# The remote screen's pictures.
+png = "0.17"
+# The one dialog the app shows itself: when its window can't open, so a start that shows nothing
+# still says why (#166).
+rfd = { workspace = true }
+
+[features]
+wasm-plugins = ["axiom-engine/wasm-plugins"]
+
+[build-dependencies]
+# Icon + VERSIONINFO for axiom.exe; build.rs only uses it when targeting Windows.
+winresource = "0.1"

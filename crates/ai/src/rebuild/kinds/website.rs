@@ -2,7 +2,7 @@
 //! screenshots with the original's.
 
 use super::*;
-use craft_anything_engine::workspace::{Claim, PageLikeness};
+use axiom_engine::workspace::{Claim, PageLikeness};
 use serde::{Deserialize, Serialize};
 
 pub struct WebsiteKind;

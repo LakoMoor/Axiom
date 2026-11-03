@@ -1,8 +1,8 @@
 //! Tool specs: the single contract the UI, CLI, MCP server and built-in agent all dispatch through.
 
 use crate::session::Session;
+use axiom_evidence::{Evidence, ToolError};
 use bitflags::bitflags;
-use craft_anything_evidence::{Evidence, ToolError};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -209,7 +209,7 @@ pub enum Caller {
 
 /// Cooperative cancellation, shared with long-running work (it lives in `platform`, so the
 /// transports below the engine can take it too).
-pub use craft_anything_platform::cancel::CancelToken;
+pub use axiom_platform::cancel::CancelToken;
 
 /// Progress reports from a running tool.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

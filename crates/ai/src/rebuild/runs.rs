@@ -227,7 +227,7 @@ mod tests {
 
     /// A hub whose Builder is an agent app, so queued runs pass the up-front check.
     fn hub() -> AiHub {
-        let mut s = craft_anything_engine::testing::session();
+        let mut s = axiom_engine::testing::session();
         s.settings.ai = toml::from_str("[[backends]]\nname = \"Agent\"\nkind = \"agent_cli\"\nmodel = \"claude-code\"\n").unwrap();
         assert!(builder_backend(&crate::AiConfig::from_settings(&s.settings), None).is_ok());
         AiHub::new(Arc::new(Engine::new(s)))
@@ -311,7 +311,7 @@ mod tests {
         let d = tempfile::tempdir().unwrap();
         let a = Workspace::create(d.path(), "A", "A game", TargetRef::None).unwrap();
         let b = Workspace::create(d.path(), "B", "A game", TargetRef::None).unwrap();
-        let hub = AiHub::new(Arc::new(Engine::new(craft_anything_engine::testing::session())));
+        let hub = AiHub::new(Arc::new(Engine::new(axiom_engine::testing::session())));
         let mut set = RunSet::new(1).with_starter(StandIns::new().starter());
         set.start(&hub, a, RunOptions::default()).unwrap();
         let root = b.root.clone();

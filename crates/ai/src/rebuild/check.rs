@@ -7,7 +7,7 @@ use super::*;
 pub(super) fn build_check(app: &Path, place: &str, stop: &CancelToken) -> (bool, String) {
     let run = |prog: &Path, args: &[String], minutes: u64| {
         let s = stop.clone();
-        craft_anything_platform::Process::new(prog)
+        axiom_platform::Process::new(prog)
             .args(args)
             .cwd(app)
             .timeout(Duration::from_secs(minutes * 60))
