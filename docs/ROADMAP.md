@@ -1253,3 +1253,10 @@ Owner: maintainers. The app is named Axiom; games are rebuilt only in Rust.
       copies links to files beside them, which llama.cpp's libraries need). Not yet run on Linux/Windows
 - [x] Rewrite the website text (English and Russian) to match (models section made honest)
 - [ ] Check the mechanics-sheet and self-test checks of Rust games on a real run
+- [ ] Browser app 1:1 with the desktop app. `apps/craft-anything-web` is only a file viewer (L0–L2 can
+      run in wasm; the engine, processes and AI cannot). Decide: the same egui screens in the browser
+      talking to the engine over a local HTTP/WebSocket bridge (`craft-anything-cli serve`), or a
+      hosted engine — **decision** for the maintainers; then build the bridge and the wasm UI
+- [ ] Android app (none exists yet; the models hub cannot run llama.cpp's server there as built —
+      needs an in-process runner or a remote engine). Needs an emulator or device to check
+- [ ] Models hub: run and check on Linux and Windows (pins exist, only macOS arm64 was run live)
